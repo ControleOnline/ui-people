@@ -148,8 +148,8 @@
 </template>
 
 <script>
-import DefaultDetail from "@controleonline/quasar-default-ui/src/components/Default/Common/DefaultDetail.vue";
-import DefaultTable from "@controleonline/quasar-default-ui/src/components/Default/DefaultTable";
+import DefaultDetail from "@controleonline/ui-default/src/components/Default/Common/DefaultDetail.vue";
+import DefaultTable from "@controleonline/ui-default/src/components/Default/DefaultTable";
 import CRMDetails from "../../../../quasar-crm-ui/src/pages/CRM/index.vue";
 import TaskDetails from "../../../../ui-tasks/src/components/Tasks/index.vue";
 import Invoice from "../../../../quasar-financial-ui/src/components/Invoice/Index";

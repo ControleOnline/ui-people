@@ -2,7 +2,7 @@
   <DefaultTable :configs="configs" v-if="loaded" />
 </template>
 <script>
-import DefaultTable from "@controleonline/quasar-default-ui/src/components/Default/DefaultTable";
+import DefaultTable from "@controleonline/ui-default/src/components/Default/DefaultTable";
 import { mapActions, mapGetters } from "vuex";
 import Button from "@controleonline/ui-common/src/components/Categories/Button";
 import getConfigs from "./Configs";  

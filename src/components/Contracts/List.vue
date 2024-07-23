@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import DefaultTable from '@controleonline/quasar-default-ui/src/components/Default/DefaultTable.vue';
+import DefaultTable from '@controleonline/ui-default/src/components/Default/DefaultTable.vue';
 
 export default {
   components: {

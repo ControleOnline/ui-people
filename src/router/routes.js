@@ -2,7 +2,7 @@ export const routes = [
   {
     path: "/company/",
     component: () =>
-      import("@controleonline/quasar-layout-ui/src/layouts/AdminLayout.vue"),
+      import("@controleonline/ui-layout/src/layouts/AdminLayout.vue"),
     children: [
       {
         name: "CompanyIndex",

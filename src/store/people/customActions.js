@@ -1,7 +1,7 @@
 import { api } from "@controleonline/../../src/boot/api";
 import SubmissionError from "@controleonline/ui-common/src/error/SubmissionError";
 import * as customTypes from "./mutation_types";
-import * as types from "@controleonline/quasar-default-ui/src/store/default/mutation_types";
+import * as types from "@controleonline/ui-default/src/store/default/mutation_types";
 
 const RESOURCE_ENDPOINT = "/people";
 
