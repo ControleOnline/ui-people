@@ -1,0 +1,4 @@
+export const SET_COMPANY         = 'SET_COMPANY';
+export const SET_CURRENT_COMPANY = 'SET_CURRENT_COMPANY';
+export const SET_DEFAULT_COMPANY = 'SET_DEFAULT_COMPANY';
+export const SET_COMPANIES       = 'SET_COMPANIES';
