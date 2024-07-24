@@ -150,10 +150,10 @@
 <script>
 import DefaultDetail from "@controleonline/ui-default/src/components/Default/Common/DefaultDetail.vue";
 import DefaultTable from "@controleonline/ui-default/src/components/Default/DefaultTable";
-import CRMDetails from "../../../../quasar-crm-ui/src/pages/CRM/index.vue";
+import CRMDetails from "../../../../ui-crm/src/pages/CRM/index.vue";
 import TaskDetails from "../../../../ui-tasks/src/components/Tasks/index.vue";
-import Invoice from "../../../../quasar-financial-ui/src/components/Invoice/Index";
-import Orders from "../../../../quasar-orders-ui/src/components/Orders.vue";
+import Invoice from "../../../../ui-financial/src/components/Invoice/Index";
+import Orders from "../../../../ui-orders/src/components/Orders.vue";
 
 import EmailsList from '../Emails/ListEmails.vue';
 import PhonesList from '../Phones/List.vue';
