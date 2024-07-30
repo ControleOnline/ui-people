@@ -26,13 +26,6 @@ export const translate = {
     success: "Operation completed successfully",
     error: "An error occurred, please try again"
   },
-  menu: {
-    details: "Details",
-    occurrences: "Occurrences",
-    financial: "Financial",
-    attendances: "Attendances",
-    orders: "Orders"
-  },
   emails: {
     title: "Emails",
     add: "Add Email"
