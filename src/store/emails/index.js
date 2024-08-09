@@ -17,7 +17,7 @@ export default {
       {
         sortable: true,
         name: "email",
-        editable: false,
+        editable: true,
         label: "email",
         align: "left",
         format(value, column, row) {

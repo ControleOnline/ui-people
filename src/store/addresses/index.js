@@ -26,16 +26,6 @@ export default {
       },
       {
         sortable: true,
-        name: "locator",
-        editable: false,
-        label: "Localizador",
-        align: "left",
-        format(value, column, row) {
-          return row.street?.locator;
-        },
-      },
-      {
-        sortable: true,
         name: "cep",
         editable: false,
         label: "CEP",
