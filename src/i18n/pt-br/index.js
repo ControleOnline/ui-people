@@ -1,8 +1,11 @@
 export const translate = {
   people: {
     input: {
-      alias: 'Apelido'
+      alias: 'Apelido',
+      peopleType: 'Tipo de cliente'
     },
+
+
 
     button: {
       save: "Salvar",
@@ -35,7 +38,8 @@ export const translate = {
 
     emails: {
       title: "E-mails",
-      add: "Adicionar E-mail"
+      add: "Adicionar E-mail",
+
     },
     addresses: {
       title: "Endereços",

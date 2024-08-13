@@ -38,7 +38,7 @@ export default {
         sortable: true,
         name: "street",
         editable: false,
-        label: "Rua / Avenida",
+        label: "Rua",
         align: "left",
         format(value, column, row) {
           return row.street?.street;
@@ -108,7 +108,7 @@ export default {
         sortable: true,
         name: "searchFor",
         editable: false,
-        label: "Procurar por",
+        label: "Referencia",
         align: "left",
         format(value, column, row) {
           return row.searchFor;
@@ -118,7 +118,7 @@ export default {
         sortable: true,
         name: "openingHours",
         editable: false,
-        label: "Horário de Funcionamento",
+        label: "Horário",
         align: "left",
         format(value, column, row) {
           return row.openingHours;
