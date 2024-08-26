@@ -12,6 +12,7 @@
       <q-tab :name="'financial'" :label="$t('menu.financial')" />
       <q-tab :name="'attendances'" :label="$t('menu.attendances')" />
       <q-tab :name="'orders'" :label="$t('menu.orders')" />
+      <q-tab :name="'franchise'" :label="$t('menu.franchise')" />
     </q-tabs>
 
     <q-tab-panels v-model="tab">
@@ -143,6 +144,16 @@
           </q-tab-panel>
         </q-tab-panels>
       </q-tab-panel>
+
+      <q-tab-panel class="items-center" name="franchise">
+        
+        <div class="q-pt-lg" v-if="currentPerson.peopleType == 'F'">
+          <PeopleList :context="'franchisee'" :myCompany="myCompany" />
+        </div>
+
+
+      </q-tab-panel>
+
     </q-tab-panels>
   </q-page>
 </template>
