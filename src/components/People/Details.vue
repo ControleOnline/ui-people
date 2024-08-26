@@ -161,9 +161,9 @@
 <script>
 import DefaultDetail from "@controleonline/ui-default/src/components/Default/Common/DefaultDetail.vue";
 import DefaultTable from "@controleonline/ui-default/src/components/Default/DefaultTable";
-import CRMDetails from "../../../../ui-crm/src/pages/CRM/index.vue";
-import TaskDetails from "../../../../ui-tasks/src/components/Tasks/index.vue";
-import Invoice from "../../../../ui-financial/src/components/Invoice/Index";
+import CRMDetails from "../../../../ui-crm/src/pages/CRM";
+import TaskDetails from "../../../../ui-tasks/src/components/Tasks";
+import Invoice from "../../../../ui-financial/src/components/Invoice";
 import Orders from "../../../../ui-orders/src/components/Orders.vue";
 
 import EmailsList from '../Emails/ListEmails.vue';
