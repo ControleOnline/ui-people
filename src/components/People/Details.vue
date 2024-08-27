@@ -2,8 +2,13 @@
   <q-page>
     <div class="q-pt-lg q-pa-md">
       <div class="q-mb-md q-pa-none">
-        <DefaultDetail :cardClass="'full-width'" :sectionClass="'full-width'" :configs="configs" :id="peopleId"
-          v-if="peopleId" />
+        <DefaultDetail
+          :cardClass="'full-width'"
+          :sectionClass="'full-width'"
+          :configs="configs"
+          :id="peopleId"
+          v-if="peopleId"
+        />
       </div>
     </div>
 
@@ -12,28 +17,35 @@
       <q-tab :name="'financial'" :label="$t('menu.financial')" />
       <q-tab :name="'attendances'" :label="$t('menu.attendances')" />
       <q-tab :name="'orders'" :label="$t('menu.orders')" />
-      <q-tab :name="'franchise'" :label="$t('menu.franchise')" v-if="currentPerson.peopleType == 'J'"/>
+      <q-tab
+        :name="'franchise'"
+        :label="$t('menu.franchise')"
+        v-if="currentPerson.peopleType == 'J'"
+      />
     </q-tabs>
 
     <q-tab-panels v-model="tab">
       <q-tab-panel name="details">
         <div class="q-pt-lg">
-          <div class="row q-col-gutter-md" v-if="currentPerson.peopleType !== 'J'">
-            <EmailsList :loaded="loaded" :configsEmail="configsEmail" />
-            <PhonesList :loaded="loaded" :configsPhones="configsPhones" />
+          <div
+            class="row q-col-gutter-md"
+            v-if="currentPerson.peopleType !== 'J'"
+          >
+            <EmailsList :loaded="loaded" />
+            <PhonesList :loaded="loaded" />
           </div>
         </div>
         <div class="q-pt-lg">
-          <DocumentsList :loaded="loaded" :configsDocuments="configsDocuments" />
+          <DocumentsList :loaded="loaded" />
         </div>
         <div class="q-pt-lg">
-          <AddressesList :loaded="loaded" :configsAddresses="configsAddresses" />
+          <AddressesList :loaded="loaded" />
         </div>
         <div class="q-pt-lg" v-if="currentPerson.peopleType == 'F'">
-          <UsersList :loaded="loaded" :configsUsers="configsUsers" />
+          <UsersList :loaded="loaded" />
         </div>
         <div class="q-pt-lg">
-          <!-- <ContractsList :loaded="loaded" :configsContracts="configsContracts" :peopleId="peopleId" /> -->
+          <!-- <ContractsList :loaded="loaded"  :peopleId="peopleId" /> -->
         </div>
 
         <!-- Colaboradores de uma Empresa: -->
@@ -42,7 +54,11 @@
         </div>
         <!-- Empresas em que a Pessoa Física é Colaboradora (employee) -->
         <div class="q-pt-lg" v-if="currentPerson.peopleType == 'F'">
-          <PeopleList :context="'company'" :myCompany="peopleId" :peopleId="peopleId" />
+          <PeopleList
+            :context="'company'"
+            :myCompany="peopleId"
+            :peopleId="peopleId"
+          />
         </div>
       </q-tab-panel>
 
@@ -58,7 +74,11 @@
               <q-card class="q-mb-md q-pa-none">
                 <q-card-section class="q-pa-none">
                   <div class="q-pa-none">
-                    <Invoice :loaded="loaded" :context="'receive'" :peopleId="peopleId" />
+                    <Invoice
+                      :loaded="loaded"
+                      :context="'receive'"
+                      :peopleId="peopleId"
+                    />
                   </div>
                 </q-card-section>
               </q-card>
@@ -70,7 +90,11 @@
               <q-card class="q-mb-md q-pa-none">
                 <q-card-section class="q-pa-none">
                   <div class="q-pa-none">
-                    <Invoice :loaded="loaded" :context="'expense'" :peopleId="peopleId" />
+                    <Invoice
+                      :loaded="loaded"
+                      :context="'expense'"
+                      :peopleId="peopleId"
+                    />
                   </div>
                 </q-card-section>
               </q-card>
@@ -91,7 +115,11 @@
               <q-card class="q-mb-md q-pa-none">
                 <q-card-section class="q-pa-none">
                   <div class="q-pa-none">
-                    <CRMDetails :loaded="loaded" :context="'relationship'" :peopleId="peopleId" />
+                    <CRMDetails
+                      :loaded="loaded"
+                      :context="'relationship'"
+                      :peopleId="peopleId"
+                    />
                   </div>
                 </q-card-section>
               </q-card>
@@ -103,7 +131,11 @@
               <q-card class="q-mb-md q-pa-none">
                 <q-card-section class="q-pa-none">
                   <div class="q-pa-none">
-                    <TaskDetails :loaded="loaded" :context="'support'" :peopleId="peopleId" />
+                    <TaskDetails
+                      :loaded="loaded"
+                      :context="'support'"
+                      :peopleId="peopleId"
+                    />
                   </div>
                 </q-card-section>
               </q-card>
@@ -124,7 +156,11 @@
               <q-card class="q-mb-md q-pa-none">
                 <q-card-section class="q-pa-none">
                   <div class="q-pa-none">
-                    <Orders :loaded="loaded" :context="'sales'" :peopleId="peopleId" />
+                    <Orders
+                      :loaded="loaded"
+                      :context="'sales'"
+                      :peopleId="peopleId"
+                    />
                   </div>
                 </q-card-section>
               </q-card>
@@ -136,7 +172,11 @@
               <q-card class="q-mb-md q-pa-none">
                 <q-card-section class="q-pa-none">
                   <div class="q-pa-none">
-                    <Orders :loaded="loaded" :context="'purchasing'" :peopleId="peopleId" />
+                    <Orders
+                      :loaded="loaded"
+                      :context="'purchasing'"
+                      :peopleId="peopleId"
+                    />
                   </div>
                 </q-card-section>
               </q-card>
@@ -146,14 +186,10 @@
       </q-tab-panel>
 
       <q-tab-panel class="items-center" name="franchise">
-
         <div class="q-pt-lg" v-if="currentPerson.peopleType == 'J'">
           <PeopleList context="franchisee" :myCompany="peopleId" />
         </div>
-
-
       </q-tab-panel>
-
     </q-tab-panels>
   </q-page>
 </template>
@@ -166,17 +202,17 @@ import TaskDetails from "../../../../ui-tasks/src/components/Tasks";
 import Invoice from "../../../../ui-financial/src/components/Invoice";
 import Orders from "../../../../ui-orders/src/components/Orders.vue";
 
-import EmailsList from '../Emails/ListEmails.vue';
-import PhonesList from '../Phones/List.vue';
-import AddressesList from '../Addresses/List.vue';
-import DocumentsList from '../Documents/List.vue';
-import UsersList from '../Users/List.vue';
-import CompaniesList from '../Companies/List.vue';
-import ContractsList from '../Contracts/List.vue';
-import PeopleList from '../People/List.vue';
+import EmailsList from "../Emails/ListEmails.vue";
+import PhonesList from "../Phones/List.vue";
+import AddressesList from "../Addresses/List.vue";
+import DocumentsList from "../Documents/List.vue";
+import UsersList from "../Users/List.vue";
+import CompaniesList from "../Companies/List.vue";
+import ContractsList from "../Contracts/List.vue";
+import PeopleList from "../People/List.vue";
 
-import { mapGetters,mapActions } from 'vuex';
-import getConfigs from './Configs';
+import { mapGetters, mapActions } from "vuex";
+import getConfigs from "./Configs";
 
 export default {
   components: {
@@ -205,19 +241,19 @@ export default {
   },
   data() {
     return {
-      tab: 'details',
-      financialTab: 'receive',
-      attendanceTab: 'crm',
-      ordersTab: 'sales',
+      tab: "details",
+      financialTab: "receive",
+      attendanceTab: "crm",
+      ordersTab: "sales",
       currentPerson: {},
       loaded: false,
     };
   },
   computed: {
     ...mapGetters({
-      myCompany: 'people/currentCompany',
-      companies: 'people/companies',
-      columns: 'people/columns'
+      myCompany: "people/currentCompany",
+      companies: "people/companies",
+      columns: "people/columns",
     }),
     configs() {
       let config = getConfigs(this.context, this.myCompany);
@@ -226,31 +262,31 @@ export default {
     },
   },
   created() {
-
     this.init();
   },
   methods: {
     ...mapActions({
-      getPeople: 'people/get',
+      getPeople: "people/get",
     }),
     init() {
-      this.getPeople(this.peopleId).then((currentPerson) => {
-        this.currentPerson = currentPerson;
+      this.getPeople(this.peopleId)
+        .then((currentPerson) => {
+          this.currentPerson = currentPerson;
 
-        let filters = {
-          people: '/people/' + this.peopleId,
-        };
-        // Seta os filtros de People:
-        this.$store.commit('emails/SET_FILTERS', filters);
-        this.$store.commit('phones/SET_FILTERS', filters);
-        this.$store.commit('addresses/SET_FILTERS', filters);
-        this.$store.commit('documents/SET_FILTERS', filters);
-        this.$store.commit('contracts/SET_FILTERS', filters);
-        this.$store.commit('usersCustomer/SET_FILTERS', filters);
-
-      }).finally(() => {
-        this.loaded = true;
-      });
+          let filters = {
+            people: "/people/" + this.peopleId,
+          };
+          // Seta os filtros de People:
+          this.$store.commit("emails/SET_FILTERS", filters);
+          this.$store.commit("phones/SET_FILTERS", filters);
+          this.$store.commit("addresses/SET_FILTERS", filters);
+          this.$store.commit("documents/SET_FILTERS", filters);
+          this.$store.commit("contracts/SET_FILTERS", filters);
+          this.$store.commit("usersCustomer/SET_FILTERS", filters);
+        })
+        .finally(() => {
+          this.loaded = true;
+        });
     },
   },
 };
