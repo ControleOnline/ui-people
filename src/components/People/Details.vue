@@ -1,13 +1,12 @@
 <template>
-  <q-page>
+  <q-page v-if="currentPerson">
     <div class="q-pt-lg q-pa-md">
       <div class="q-mb-md q-pa-none">
         <DefaultDetail
           :cardClass="'full-width'"
           :sectionClass="'full-width'"
           :configs="configs"
-          :id="peopleId"
-          v-if="peopleId"
+          :id="currentPerson.id"
         />
       </div>
     </div>
@@ -17,7 +16,7 @@
       <q-tab :name="'financial'" :label="$t('menu.financial')" />
       <q-tab :name="'attendances'" :label="$t('menu.attendances')" />
       <q-tab :name="'orders'" :label="$t('menu.orders')" />
-      <q-tab
+            <q-tab
         :name="'franchise'"
         :label="$t('menu.franchise')"
         v-if="
@@ -48,19 +47,19 @@
           <UsersList :loaded="loaded" />
         </div>
         <div class="q-pt-lg">
-          <!-- <ContractsList :loaded="loaded"  :peopleId="peopleId" /> -->
+          <!-- <ContractsList :loaded="loaded"  :peopleId="currentPerson" /> -->
         </div>
 
         <!-- Colaboradores de uma Empresa: -->
         <div class="q-pt-lg" v-if="currentPerson.peopleType == 'J'">
-          <PeopleList :context="'employee'" :myCompany="peopleId" />
+          <PeopleList :context="'employee'" :myCompany="currentPerson" />
         </div>
         <!-- Empresas em que a Pessoa Física é Colaboradora (employee) -->
         <div class="q-pt-lg" v-if="currentPerson.peopleType == 'F'">
           <PeopleList
             :context="'company'"
-            :myCompany="peopleId"
-            :peopleId="peopleId"
+            :myCompany="currentPerson"
+            :peopleId="currentPerson"
           />
         </div>
       </q-tab-panel>
@@ -80,7 +79,7 @@
                     <Invoice
                       :loaded="loaded"
                       :context="'receive'"
-                      :peopleId="peopleId"
+                      :peopleId="currentPerson"
                     />
                   </div>
                 </q-card-section>
@@ -96,7 +95,7 @@
                     <Invoice
                       :loaded="loaded"
                       :context="'expense'"
-                      :peopleId="peopleId"
+                      :peopleId="currentPerson"
                     />
                   </div>
                 </q-card-section>
@@ -121,7 +120,7 @@
                     <CRMDetails
                       :loaded="loaded"
                       :context="'relationship'"
-                      :peopleId="peopleId"
+                      :peopleId="currentPerson"
                     />
                   </div>
                 </q-card-section>
@@ -137,7 +136,7 @@
                     <TaskDetails
                       :loaded="loaded"
                       :context="'support'"
-                      :peopleId="peopleId"
+                      :peopleId="currentPerson"
                     />
                   </div>
                 </q-card-section>
@@ -162,7 +161,7 @@
                     <Orders
                       :loaded="loaded"
                       :context="'sales'"
-                      :peopleId="peopleId"
+                      :peopleId="currentPerson"
                     />
                   </div>
                 </q-card-section>
@@ -178,7 +177,7 @@
                     <Orders
                       :loaded="loaded"
                       :context="'purchasing'"
-                      :peopleId="peopleId"
+                      :peopleId="currentPerson"
                     />
                   </div>
                 </q-card-section>
@@ -190,7 +189,7 @@
 
       <q-tab-panel class="items-center" name="franchise">
         <div class="q-pt-lg" v-if="currentPerson.peopleType == 'J'">
-          <PeopleList context="franchisee" :myCompany="peopleId" />
+          <PeopleList context="franchisee" :myCompany="currentPerson" />
         </div>
       </q-tab-panel>
     </q-tab-panels>
@@ -248,7 +247,7 @@ export default {
       financialTab: "receive",
       attendanceTab: "crm",
       ordersTab: "sales",
-      currentPerson: {},
+      currentPerson: null,
       loaded: false,
     };
   },

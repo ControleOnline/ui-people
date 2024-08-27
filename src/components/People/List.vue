@@ -14,17 +14,16 @@ export default {
     context: {
       required: true,
     },
+    myCompany:{
+      required: true,
+    }
   },
   computed: {
     ...mapGetters({
-      myCompany: "people/currentCompany",
       columns: "people/columns",
     }),
     filters() {
       return this.$store.getters[this.configs.store + "/filters"];
-    },
-    user() {
-      return this.$store.getters["auth/user"];
     },
     configs() {
       let config = getConfigs(this.context, this.myCompany);
@@ -68,15 +67,14 @@ export default {
     },
 
     load() {
-
-console.log(this.context);
-
       if (!this.context) return;
 
       let filters = this.$copyObject(this.filters);
+      console.log(this.myCompany,this.context);
+
       if (this.context == "company") {
         delete filters.company;
-        filters.link = "/people/" + this.user?.people;
+        filters.link = "/people/" + this.myCompany?.id;
         filters.link_type = "employee";
       }
 
