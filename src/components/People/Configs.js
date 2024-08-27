@@ -12,7 +12,7 @@ export default function getConfigs(context, myCompany) {
     selection: true,
     externalFilters:false,
     title: {
-      class: "text-teal text-h6 q-mb-md",
+      class: "text-primary text-h6 q-mb-md",
       icon: {
         name: "people",
         size: "24px",

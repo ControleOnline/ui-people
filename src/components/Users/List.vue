@@ -37,7 +37,7 @@ export default {
         selection: false,
         search: false,
         title: {
-          class: "text-teal text-h6 q-mb-md",
+          class: "text-primary text-h6 q-mb-md",
           icon: {
             name: "people",
             size: "24px",

@@ -35,7 +35,7 @@ export default {
         "full-height": false,
         store: "emails",
         title: {
-          class: "text-teal text-h6 q-mb-md",
+          class: "text-primary text-h6 q-mb-md",
           icon: {
             name: "email",
             size: "24px",

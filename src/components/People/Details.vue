@@ -12,7 +12,7 @@
       </div>
     </div>
 
-    <q-tabs v-model="tab" class="text-teal">
+    <q-tabs v-model="tab" class="text-primary">
       <q-tab :name="'details'" :label="$t('menu.details')" />
       <q-tab :name="'financial'" :label="$t('menu.financial')" />
       <q-tab :name="'attendances'" :label="$t('menu.attendances')" />
@@ -63,7 +63,7 @@
       </q-tab-panel>
 
       <q-tab-panel name="financial">
-        <q-tabs v-model="financialTab" class="text-teal">
+        <q-tabs v-model="financialTab" class="text-primary">
           <q-tab :name="'receive'" :label="$t('button.receive')" />
           <q-tab :name="'expense'" :label="$t('button.expense')" />
         </q-tabs>
@@ -104,7 +104,7 @@
       </q-tab-panel>
 
       <q-tab-panel name="attendances">
-        <q-tabs v-model="attendanceTab" class="text-teal">
+        <q-tabs v-model="attendanceTab" class="text-primary">
           <q-tab :name="'crm'" :label="$t('menu.attendances')" />
           <q-tab :name="'tasks'" :label="$t('menu.tasks')" />
         </q-tabs>
@@ -145,7 +145,7 @@
       </q-tab-panel>
 
       <q-tab-panel name="orders">
-        <q-tabs v-model="ordersTab" class="text-teal">
+        <q-tabs v-model="ordersTab" class="text-primary">
           <q-tab :name="'purchases'" :label="$t('menu.purchasingorders')" />
           <q-tab :name="'sales'" :label="$t('menu.salesorders')" />
         </q-tabs>
