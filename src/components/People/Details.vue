@@ -200,6 +200,9 @@ export default {
     context: {
       required: true,
     },
+    peopleId: {
+      required: true,
+    },
   },
   data() {
     return {
@@ -208,7 +211,6 @@ export default {
       attendanceTab: 'crm',
       ordersTab: 'sales',
       currentPerson: {},
-      peopleId: null,
       loaded: false,
     };
   },
@@ -233,7 +235,6 @@ export default {
       getPeople: 'people/get',
     }),
     init() {
-      this.peopleId = decodeURIComponent(this.$route.params.id);
       this.getPeople(this.peopleId).then((currentPerson) => {
         this.currentPerson = currentPerson;
 
