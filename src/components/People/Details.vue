@@ -15,8 +15,18 @@
       <q-tab :name="'details'" :label="$t('menu.details')" />
       <q-tab :name="'financial'" :label="$t('menu.financial')" />
       <q-tab :name="'attendances'" :label="$t('menu.attendances')" />
-      <q-tab :name="'orders'" :label="$t('menu.orders')" />
-            <q-tab
+      <q-tab
+        v-if="context == 'customers'"
+        :name="'orders'"
+        :label="$t('menu.salesOrders')"
+      />
+      <q-tab
+        v-if="context == 'providers'"
+        :name="'orders'"
+        :label="$t('menu.purchasingOrders')"
+      />
+
+      <q-tab
         :name="'franchise'"
         :label="$t('menu.franchise')"
         v-if="
@@ -147,44 +157,26 @@
       </q-tab-panel>
 
       <q-tab-panel name="orders">
-        <q-tabs v-model="ordersTab" class="text-primary">
-          <q-tab :name="'purchases'" :label="$t('menu.purchasingorders')" />
-          <q-tab :name="'sales'" :label="$t('menu.salesorders')" />
-        </q-tabs>
-
-        <q-tab-panels v-model="ordersTab">
-          <q-tab-panel name="sales">
-            <div class="q-pt-lg">
-              <q-card class="q-mb-md q-pa-none">
-                <q-card-section class="q-pa-none">
-                  <div class="q-pa-none">
-                    <Orders
-                      :loaded="loaded"
-                      :context="'sales'"
-                      :peopleId="currentPerson"
-                    />
-                  </div>
-                </q-card-section>
-              </q-card>
-            </div>
-          </q-tab-panel>
-
-          <q-tab-panel name="purchases">
-            <div class="q-pt-lg">
-              <q-card class="q-mb-md q-pa-none">
-                <q-card-section class="q-pa-none">
-                  <div class="q-pa-none">
-                    <Orders
-                      :loaded="loaded"
-                      :context="'purchasing'"
-                      :peopleId="currentPerson"
-                    />
-                  </div>
-                </q-card-section>
-              </q-card>
-            </div>
-          </q-tab-panel>
-        </q-tab-panels>
+        <div class="q-pt-lg">
+          <q-card class="q-mb-md q-pa-none">
+            <q-card-section class="q-pa-none">
+              <div class="q-pa-none">
+                <Orders
+                  v-if="context == 'customers'"
+                  :loaded="loaded"
+                  context="sales"
+                  :peopleId="currentPerson"
+                />
+                <Orders
+                  v-if="context == 'providers'"
+                  :loaded="loaded"
+                  context="purchasing"
+                  :peopleId="currentPerson"
+                />
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
       </q-tab-panel>
 
       <q-tab-panel class="items-center" name="franchise">

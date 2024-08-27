@@ -18,7 +18,6 @@ export default function getConfigs(context, myCompany) {
         size: "24px",
         class: "q-mr-sm",
       },
-      text: 'eee'
     },
   };
 }
