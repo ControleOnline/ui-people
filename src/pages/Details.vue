@@ -1,5 +1,5 @@
 <template>
-  <People :context="context" :peopleId="peopleId" v-if="context" />
+  <People :context="context" :peopleId="peopleId" v-if="context && peopleId" />
 </template>
 
 <script>

@@ -177,7 +177,6 @@ import PeopleList from '../People/List.vue';
 
 import { mapGetters,mapActions } from 'vuex';
 import getConfigs from './Configs';
-import { currentPerson } from "../../store/people/getters";
 
 export default {
   components: {
