@@ -12,7 +12,7 @@
       <q-tab :name="'financial'" :label="$t('menu.financial')" />
       <q-tab :name="'attendances'" :label="$t('menu.attendances')" />
       <q-tab :name="'orders'" :label="$t('menu.orders')" />
-      <q-tab :name="'franchise'" :label="$t('menu.franchise')" />
+      <q-tab :name="'franchise'" :label="$t('menu.franchise')" v-if="currentPerson.peopleType == 'J'"/>
     </q-tabs>
 
     <q-tab-panels v-model="tab">
@@ -38,11 +38,11 @@
 
         <!-- Colaboradores de uma Empresa: -->
         <div class="q-pt-lg" v-if="currentPerson.peopleType == 'J'">
-          <PeopleList :context="'employee'" :myCompany="myCompany" />
+          <PeopleList :context="'employee'" :myCompany="peopleId" />
         </div>
         <!-- Empresas em que a Pessoa Física é Colaboradora (employee) -->
         <div class="q-pt-lg" v-if="currentPerson.peopleType == 'F'">
-          <PeopleList :context="'company'" :myCompany="myCompany" :peopleId="peopleId" />
+          <PeopleList :context="'company'" :myCompany="peopleId" :peopleId="peopleId" />
         </div>
       </q-tab-panel>
 
@@ -146,9 +146,9 @@
       </q-tab-panel>
 
       <q-tab-panel class="items-center" name="franchise">
-        
-        <div class="q-pt-lg" v-if="currentPerson.peopleType == 'F'">
-          <PeopleList :context="'franchisee'" :myCompany="myCompany" />
+
+        <div class="q-pt-lg" v-if="currentPerson.peopleType == 'J'">
+          <PeopleList context="franchisee" :myCompany="peopleId" />
         </div>
 
 
@@ -175,8 +175,9 @@ import CompaniesList from '../Companies/List.vue';
 import ContractsList from '../Contracts/List.vue';
 import PeopleList from '../People/List.vue';
 
-import { mapGetters } from 'vuex';
+import { mapGetters,mapActions } from 'vuex';
 import getConfigs from './Configs';
+import { currentPerson } from "../../store/people/getters";
 
 export default {
   components: {
@@ -206,6 +207,7 @@ export default {
       financialTab: 'receive',
       attendanceTab: 'crm',
       ordersTab: 'sales',
+      currentPerson: {},
       peopleId: null,
       loaded: false,
     };
@@ -214,8 +216,7 @@ export default {
     ...mapGetters({
       myCompany: 'people/currentCompany',
       companies: 'people/companies',
-      columns: 'people/columns',
-      currentPerson: 'people/currentPerson',
+      columns: 'people/columns'
     }),
     configs() {
       let config = getConfigs(this.context, this.myCompany);
@@ -224,23 +225,32 @@ export default {
     },
   },
   created() {
-    this.peopleId = decodeURIComponent(this.$route.params.id);
+
     this.init();
   },
   methods: {
+    ...mapActions({
+      getPeople: 'people/get',
+    }),
     init() {
-      let filters = {
-        people: '/people/' + this.peopleId,
-      };
-      // Seta os filtros de People:
-      this.$store.commit('emails/SET_FILTERS', filters);
-      this.$store.commit('phones/SET_FILTERS', filters);
-      this.$store.commit('addresses/SET_FILTERS', filters);
-      this.$store.commit('documents/SET_FILTERS', filters);
-      this.$store.commit('contracts/SET_FILTERS', filters);
-      this.$store.commit('usersCustomer/SET_FILTERS', filters);
+      this.peopleId = decodeURIComponent(this.$route.params.id);
+      this.getPeople(this.peopleId).then((currentPerson) => {
+        this.currentPerson = currentPerson;
 
-      this.loaded = true;
+        let filters = {
+          people: '/people/' + this.peopleId,
+        };
+        // Seta os filtros de People:
+        this.$store.commit('emails/SET_FILTERS', filters);
+        this.$store.commit('phones/SET_FILTERS', filters);
+        this.$store.commit('addresses/SET_FILTERS', filters);
+        this.$store.commit('documents/SET_FILTERS', filters);
+        this.$store.commit('contracts/SET_FILTERS', filters);
+        this.$store.commit('usersCustomer/SET_FILTERS', filters);
+
+      }).finally(() => {
+        this.loaded = true;
+      });
     },
   },
 };

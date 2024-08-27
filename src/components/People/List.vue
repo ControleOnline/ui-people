@@ -68,6 +68,9 @@ export default {
     },
 
     load() {
+
+console.log(this.context);
+
       if (!this.context) return;
 
       let filters = this.$copyObject(this.filters);
@@ -105,6 +108,12 @@ export default {
         delete filters.link;
         filters.company = "/people/" + this.myCompany?.id;
         filters.link_type = "provider";
+      }
+
+      if (this.context == "franchisee") {
+        delete filters.link;
+        filters.company = "/people/" + this.myCompany?.id;
+        filters.link_type = "franchisee";
       }
 
       this.$store.commit(this.configs.store + "/SET_FILTERS", filters);
