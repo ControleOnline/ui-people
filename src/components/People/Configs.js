@@ -3,14 +3,15 @@ export default function getConfigs(context, myCompany) {
     extraFields: {
       context: context,
     },
+    context: context,
     filters: true,
-    search:false,
+    search: false,
     store: "people",
     "full-height": false,
     add: true,
     delete: false,
     selection: true,
-    externalFilters:false,
+    externalFilters: false,
     title: {
       class: "text-primary text-h6 q-mb-md",
       icon: {

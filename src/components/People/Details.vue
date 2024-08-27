@@ -13,7 +13,25 @@
 
     <q-tabs v-model="tab" class="text-primary">
       <q-tab :name="'details'" :label="$t('menu.details')" />
-      <q-tab :name="'financial'" :label="$t('menu.financial')" />
+      <q-tab
+        :name="'peoples'"
+        :label="
+          currentPerson.peopleType == 'J'
+            ? $t('menu.employes')
+            : $t('menu.companies')
+        "
+      />
+
+      <q-tab
+        v-if="context == 'customers' || context == 'franchisee'"
+        :name="'financial'"
+        :label="$t('menu.receive')"
+      />
+      <q-tab
+        v-else
+        :name="'financial'"
+        :label="$t('menu.expense')"
+      />
       <q-tab :name="'attendances'" :label="$t('menu.attendances')" />
       <q-tab
         v-if="context == 'customers'"
@@ -59,60 +77,44 @@
         <div class="q-pt-lg">
           <!-- <ContractsList :loaded="loaded"  :peopleId="currentPerson" /> -->
         </div>
-
-        <!-- Colaboradores de uma Empresa: -->
-        <div class="q-pt-lg" v-if="currentPerson.peopleType == 'J'">
-          <PeopleList :context="'employee'" :myCompany="currentPerson" />
-        </div>
-        <!-- Empresas em que a Pessoa Física é Colaboradora (employee) -->
-        <div class="q-pt-lg" v-if="currentPerson.peopleType == 'F'">
-          <PeopleList
-            :context="'company'"
-            :myCompany="currentPerson"
-            :peopleId="currentPerson"
-          />
+      </q-tab-panel>
+      <q-tab-panel name="peoples">
+        <div class="q-pt-lg">
+          <!-- Colaboradores de uma Empresa: -->
+          <div class="q-pt-lg" v-if="currentPerson.peopleType == 'J'">
+            <PeopleList :context="'employee'" :myCompany="currentPerson" />
+          </div>
+          <!-- Empresas em que a Pessoa Física é Colaboradora (employee) -->
+          <div class="q-pt-lg" v-if="currentPerson.peopleType == 'F'">
+            <PeopleList
+              :context="'company'"
+              :myCompany="currentPerson"
+              :peopleId="currentPerson"
+            />
+          </div>
         </div>
       </q-tab-panel>
-
       <q-tab-panel name="financial">
-        <q-tabs v-model="financialTab" class="text-primary">
-          <q-tab :name="'receive'" :label="$t('button.receive')" />
-          <q-tab :name="'expense'" :label="$t('button.expense')" />
-        </q-tabs>
-
-        <q-tab-panels v-model="financialTab">
-          <q-tab-panel name="receive">
-            <div class="q-pt-lg">
-              <q-card class="q-mb-md q-pa-none">
-                <q-card-section class="q-pa-none">
-                  <div class="q-pa-none">
-                    <Invoice
-                      :loaded="loaded"
-                      :context="'receive'"
-                      :peopleId="currentPerson"
-                    />
-                  </div>
-                </q-card-section>
-              </q-card>
-            </div>
-          </q-tab-panel>
-
-          <q-tab-panel name="expense">
-            <div class="q-pt-lg">
-              <q-card class="q-mb-md q-pa-none">
-                <q-card-section class="q-pa-none">
-                  <div class="q-pa-none">
-                    <Invoice
-                      :loaded="loaded"
-                      :context="'expense'"
-                      :peopleId="currentPerson"
-                    />
-                  </div>
-                </q-card-section>
-              </q-card>
-            </div>
-          </q-tab-panel>
-        </q-tab-panels>
+        <div class="q-pt-lg">
+          <q-card class="q-mb-md q-pa-none">
+            <q-card-section class="q-pa-none">
+              <div class="q-pa-none">
+                <Invoice
+                  v-if="context == 'customers' || context == 'franchisee'"
+                  :loaded="loaded"
+                  :context="'receive'"
+                  :peopleId="currentPerson.id"
+                />
+                <Invoice
+                  v-else
+                  :loaded="loaded"
+                  :context="'expense'"
+                  :peopleId="currentPerson.id"
+                />
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
       </q-tab-panel>
 
       <q-tab-panel name="attendances">
