@@ -39,7 +39,7 @@ export default {
         title: {
           class: "text-teal text-h6 q-mb-md",
           icon: {
-            name: "mdi-account-multiple",
+            name: "people",
             size: "24px",
             class: "q-mr-sm",
           },

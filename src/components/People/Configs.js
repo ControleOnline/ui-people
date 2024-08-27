@@ -14,7 +14,7 @@ export default function getConfigs(context, myCompany) {
     title: {
       class: "text-teal text-h6 q-mb-md",
       icon: {
-        name: "mdi-email",
+        name: "people",
         size: "24px",
         class: "q-mr-sm",
       },

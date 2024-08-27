@@ -41,7 +41,7 @@ export default {
         title: {
           class: "text-teal text-h6 q-mb-md",
           icon: {
-            name: "mdi-file-document",
+            name: "email",
             size: "24px",
             class: "q-mr-sm",
           },

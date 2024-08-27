@@ -42,7 +42,7 @@ export default {
         title: {
           class: "text-teal text-h6 q-mb-md",
           icon: {
-            name: "mdi-phone",
+            name: "phone",
             size: "24px",
             class: "q-mr-sm",
           },
