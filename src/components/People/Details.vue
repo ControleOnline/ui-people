@@ -20,7 +20,10 @@
       <q-tab
         :name="'franchise'"
         :label="$t('menu.franchise')"
-        v-if="currentPerson.peopleType == 'J'"
+        v-if="
+          currentPerson.peopleType == 'J' &&
+          defaultCompany.id == currentPerson.id
+        "
       />
     </q-tabs>
 
@@ -252,6 +255,7 @@ export default {
   computed: {
     ...mapGetters({
       myCompany: "people/currentCompany",
+      defaultCompany: "people/defaultCompany",
       companies: "people/companies",
       columns: "people/columns",
     }),
