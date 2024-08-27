@@ -3,7 +3,10 @@
     <q-card class="q-mb-md q-pa-none">
       <q-card-section class="q-pa-none">
         <div class="q-pa-none">
-          <DefaultTable :configs="configsPhones" v-if="loaded && configsPhones" />
+          <DefaultTable
+            :configs="configsPhones"
+            v-if="loaded && configsPhones"
+          />
         </div>
       </q-card-section>
     </q-card>
@@ -11,7 +14,7 @@
 </template>
 
 <script>
-import DefaultTable from '@controleonline/ui-default/src/components/Default/DefaultTable.vue';
+import DefaultTable from "@controleonline/ui-default/src/components/Default/DefaultTable.vue";
 
 export default {
   components: {
@@ -27,7 +30,8 @@ export default {
     configsPhones() {
       return {
         externalFilters: false,
-        filters: true,
+        filters: false,
+        controls: false,
         totalItems: 50,
         "full-height": false,
         store: "phones",
@@ -42,10 +46,10 @@ export default {
             size: "24px",
             class: "q-mr-sm",
           },
-          text: this.$t('phones.title')
+          text: this.$t("phones.title"),
         },
       };
-    }
-  }
-}
+    },
+  },
+};
 </script>

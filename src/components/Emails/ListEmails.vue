@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import DefaultTable from '@controleonline/ui-default/src/components/Default/DefaultTable.vue';
+import DefaultTable from "@controleonline/ui-default/src/components/Default/DefaultTable.vue";
 
 export default {
   components: {
@@ -30,7 +30,8 @@ export default {
       return {
         externalFilters: false,
         totalItems: 50,
-        filters: true,
+        filters: false,
+        controls: false,
         "full-height": false,
         store: "emails",
         title: {
@@ -40,14 +41,14 @@ export default {
             size: "24px",
             class: "q-mr-sm",
           },
-          text: this.$t('emails.title')
+          text: this.$t("emails.title"),
         },
         add: true,
         delete: true,
         selection: false,
         search: false,
       };
-    }
-  }
+    },
+  },
 };
 </script>

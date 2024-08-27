@@ -27,7 +27,8 @@ export default {
     configsAddresses() {
       return {
         externalFilters: false,
-        filters: true,
+        filters: false,
+        controls: false,
         totalItems: 50,
         "full-height": false,
         store: "addresses",

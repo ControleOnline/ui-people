@@ -3,7 +3,10 @@
     <q-card class="q-mb-md q-pa-none">
       <q-card-section class="q-pa-none">
         <div class="q-pa-none">
-          <DefaultTable :configs="configsDocuments" v-if="loaded && configsDocuments" />
+          <DefaultTable
+            :configs="configsDocuments"
+            v-if="loaded && configsDocuments"
+          />
         </div>
       </q-card-section>
     </q-card>
@@ -27,7 +30,8 @@ export default {
     configsDocuments() {
       return {
         externalFilters: false,
-        filters: true,
+        filters: false,
+        controls: false,
         "full-height": false,
         store: "documents",
         add: true,
@@ -41,10 +45,10 @@ export default {
             size: "24px",
             class: "q-mr-sm",
           },
-          text: this.$t('documents.title')
+          text: this.$t("documents.title"),
         },
       };
-    }
-  }
-}
+    },
+  },
+};
 </script>
