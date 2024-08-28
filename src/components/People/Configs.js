@@ -1,28 +1,20 @@
 export default function getConfigs(context, myCompany) {
+  let list =
+    context != "company" && context != "employee" && context != "franchisee";
+
   return {
     extraFields: {
       context: context,
     },
-    companyParam:
-      context == "company" || context == "employee" || context == "franchisee"
-        ? false
-        : "company",
+    companyParam: list ? "company" : false,
     context: context,
     filters: true,
-    search: false,
+    search: true,
     store: "people",
     "full-height": false,
     add: true,
     delete: false,
     selection: true,
     externalFilters: false,
-    title: {
-      class: "text-primary text-h6 q-mb-md",
-      icon: {
-        name: "people",
-        size: "24px",
-        class: "q-mr-sm",
-      },
-    },
   };
 }
