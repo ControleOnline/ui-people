@@ -3,6 +3,10 @@ export default function getConfigs(context, myCompany) {
     extraFields: {
       context: context,
     },
+    companyParam:
+      context == "company" || context == "employee" || context == "franchisee"
+        ? false
+        : "company",
     context: context,
     filters: true,
     search: false,

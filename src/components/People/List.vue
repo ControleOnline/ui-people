@@ -14,9 +14,9 @@ export default {
     context: {
       required: true,
     },
-    myCompany:{
+    myCompany: {
       required: true,
-    }
+    },
   },
   computed: {
     ...mapGetters({
@@ -70,7 +70,6 @@ export default {
       if (!this.context) return;
 
       let filters = this.$copyObject(this.filters);
-      console.log(this.myCompany,this.context);
 
       if (this.context == "company") {
         delete filters.company;
