@@ -11,7 +11,7 @@
       </div>
     </div>
 
-    <q-tabs v-model="tab" class="text-primary">
+    <q-tabs v-model="tab" class="tab-people">
       <q-tab
         :name="'details'"
         :label="$translate(configs.store, 'details', 'tab')"
@@ -300,3 +300,9 @@ export default {
   },
 };
 </script>
+<style>
+.tab-people {
+  background-color: var(--secondary) !important;
+  color: var(--text-secondary);
+}
+</style>
