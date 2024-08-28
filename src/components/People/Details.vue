@@ -179,13 +179,13 @@
                   v-if="context == 'customers'"
                   :loaded="loaded"
                   context="sales"
-                  :peopleId="currentPerson"
+                  :peopleId="currentPerson.id"
                 />
                 <Orders
                   v-if="context == 'providers'"
                   :loaded="loaded"
                   context="purchasing"
-                  :peopleId="currentPerson"
+                  :peopleId="currentPerson.id"
                 />
               </div>
             </q-card-section>
