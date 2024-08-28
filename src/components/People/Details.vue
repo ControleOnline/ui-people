@@ -12,41 +12,47 @@
     </div>
 
     <q-tabs v-model="tab" class="text-primary">
-      <q-tab :name="'details'" :label="$t('menu.details')" />
+      <q-tab
+        :name="'details'"
+        :label="$translate(configs.store, 'details', 'tab')"
+      />
       <q-tab
         :name="'peoples'"
         :label="
           currentPerson.peopleType == 'J'
-            ? $t('menu.employes')
-            : $t('menu.companies')
+            ? $translate(configs.store, 'employes', 'tab')
+            : $translate(configs.store, 'companies', 'tab')
         "
       />
 
       <q-tab
         v-if="context == 'customers' || context == 'franchisee'"
         :name="'financial'"
-        :label="$t('menu.receive')"
+        :label="$translate(configs.store, 'receive', 'tab')"
       />
       <q-tab
         v-else
         :name="'financial'"
-        :label="$t('menu.expense')"
+        :label="$translate(configs.store, 'expense', 'tab')"
       />
-      <q-tab :name="'attendances'" :label="$t('menu.attendances')" />
+      <q-tab
+        :name="'attendances'"
+        :label="$translate(configs.store, 'attendances', 'tab')"
+      />
       <q-tab
         v-if="context == 'customers'"
         :name="'orders'"
-        :label="$t('menu.salesOrders')"
+        :label="$translate(configs.store, 'salesOrders', 'tab')"
       />
       <q-tab
         v-if="context == 'providers'"
         :name="'orders'"
-        :label="$t('menu.purchasingOrders')"
+        :label="$translate(configs.store, 'purchasingOrders', 'tab')"
       />
 
       <q-tab
         :name="'franchise'"
-        :label="$t('menu.franchise')"
+        :label="$translate(configs.store, 'franchise', 'tab')"
         v-if="
           currentPerson.peopleType == 'J' &&
           defaultCompany.id == currentPerson.id
@@ -119,8 +125,14 @@
 
       <q-tab-panel name="attendances">
         <q-tabs v-model="attendanceTab" class="text-primary">
-          <q-tab :name="'crm'" :label="$t('menu.attendances')" />
-          <q-tab :name="'tasks'" :label="$t('menu.tasks')" />
+          <q-tab
+            :name="'crm'"
+            :label="$translate(configs.store, 'attendances', 'tab')"
+          />
+          <q-tab
+            :name="'tasks'"
+            :label="$translate(configs.store, 'tasks', 'tab')"
+          />
         </q-tabs>
 
         <q-tab-panels v-model="attendanceTab">

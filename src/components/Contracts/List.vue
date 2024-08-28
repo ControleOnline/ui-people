@@ -41,7 +41,6 @@ export default {
             size: "24px",
             class: "q-mr-sm",
           },
-          text: this.$t('contracts.title')
         },
       };
     },

@@ -42,7 +42,6 @@ export default {
             size: "24px",
             class: "q-mr-sm",
           },
-          text: this.$t('companies.title')
         },
       };
     },
