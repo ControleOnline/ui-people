@@ -6,6 +6,10 @@ export default function getConfigs(context, myCompany) {
     extraFields: {
       context: context,
     },
+    import: {
+      context: context,
+      people: myCompany,
+    },
     companyParam: inner ? false : "company",
     context: context,
     filters: true,
