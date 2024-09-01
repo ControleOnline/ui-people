@@ -18,7 +18,7 @@ export default {
         sortable: true,
         name: "nickname",
         editable: false,
-        label: "Apelido",
+        label: "nickname",
         align: "left",
         format(value, column, row) {
           return row.nickname;
@@ -38,7 +38,7 @@ export default {
         sortable: true,
         name: "street",
         editable: false,
-        label: "Rua",
+        label: "street",
         align: "left",
         format(value, column, row) {
           return row.street?.street;
@@ -48,7 +48,7 @@ export default {
         sortable: true,
         name: "number",
         editable: false,
-        label: "Número",
+        label: "number",
         align: "left",
         format(value, column, row) {
           return row.number;
@@ -58,7 +58,7 @@ export default {
         sortable: true,
         name: "complement",
         editable: false,
-        label: "Complemento",
+        label: "complement",
         align: "left",
         format(value, column, row) {
           return row.complement;
@@ -68,7 +68,7 @@ export default {
         sortable: true,
         name: "district",
         editable: false,
-        label: "Bairro",
+        label: "district",
         align: "left",
         format(value, column, row) {
           return row.street?.district?.district;
@@ -78,7 +78,7 @@ export default {
         sortable: true,
         name: "city",
         editable: false,
-        label: "Cidade",
+        label: "city",
         align: "left",
         format(value, column, row) {
           return row.street?.district?.city?.city;
@@ -88,7 +88,7 @@ export default {
         sortable: true,
         name: "state",
         editable: false,
-        label: "Estado",
+        label: "state",
         align: "left",
         format(value, column, row) {
           return row.street?.district?.city?.state?.state;
@@ -98,7 +98,7 @@ export default {
         sortable: true,
         name: "country",
         editable: false,
-        label: "País",
+        label: "country",
         align: "left",
         format(value, column, row) {
           return row.street?.district?.city?.state?.country?.countryname;
@@ -108,7 +108,7 @@ export default {
         sortable: true,
         name: "searchFor",
         editable: false,
-        label: "Referencia",
+        label: "searchFor",
         align: "left",
         format(value, column, row) {
           return row.searchFor;
@@ -118,7 +118,7 @@ export default {
         sortable: true,
         name: "openingHours",
         editable: false,
-        label: "Horário",
+        label: "openingHours",
         align: "left",
         format(value, column, row) {
           return row.openingHours;

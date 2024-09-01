@@ -14,45 +14,45 @@
     <q-tabs v-model="tab" class="tab-people">
       <q-tab
         :name="'details'"
-        :label="$translate(configs.store, 'details', 'tab')"
+        :label="$tt(configs.store, 'tab', 'details')"
       />
       <q-tab
         :name="'peoples'"
         :label="
           currentPerson.peopleType == 'J'
-            ? $translate(configs.store, 'employes', 'tab')
-            : $translate(configs.store, 'companies', 'tab')
+            ? $tt(configs.store, 'tab', 'employes')
+            : $tt(configs.store, 'tab', 'companies')
         "
       />
 
       <q-tab
         v-if="context == 'customers' || context == 'franchisee'"
         :name="'financial'"
-        :label="$translate(configs.store, 'receive', 'tab')"
+        :label="$tt(configs.store, 'tab', 'receive')"
       />
       <q-tab
         v-else
         :name="'financial'"
-        :label="$translate(configs.store, 'expense', 'tab')"
+        :label="$tt(configs.store, 'tab', 'expense')"
       />
       <q-tab
         :name="'attendances'"
-        :label="$translate(configs.store, 'attendances', 'tab')"
+        :label="$tt(configs.store, 'tab', 'attendances')"
       />
       <q-tab
         v-if="context == 'customers'"
         :name="'orders'"
-        :label="$translate(configs.store, 'salesOrders', 'tab')"
+        :label="$tt(configs.store, 'tab', 'salesOrders')"
       />
       <q-tab
         v-if="context == 'providers'"
         :name="'orders'"
-        :label="$translate(configs.store, 'purchasingOrders', 'tab')"
+        :label="$tt(configs.store, 'tab', 'purchasingOrders')"
       />
 
       <q-tab
         :name="'franchise'"
-        :label="$translate(configs.store, 'franchise', 'tab')"
+        :label="$tt(configs.store, 'tab', 'franchise')"
         v-if="
           currentPerson.peopleType == 'J' &&
           defaultCompany.id == currentPerson.id
@@ -127,11 +127,11 @@
         <q-tabs v-model="attendanceTab" class="text-primary">
           <q-tab
             :name="'crm'"
-            :label="$translate(configs.store, 'attendances', 'tab')"
+            :label="$tt(configs.store, 'tab', 'attendances')"
           />
           <q-tab
             :name="'tasks'"
-            :label="$translate(configs.store, 'tasks', 'tab')"
+            :label="$tt(configs.store, 'tab', 'tasks')"
           />
         </q-tabs>
 
