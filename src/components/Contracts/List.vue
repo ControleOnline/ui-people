@@ -15,7 +15,7 @@ import DefaultTable from '@controleonline/ui-default/src/components/Default/Defa
 
 export default {
   components: {
-    DefaultTable,
+    
   },
   props: {
     loaded: {

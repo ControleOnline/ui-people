@@ -2,13 +2,13 @@
   <DefaultTable :configs="configs" v-if="loaded" />
 </template>
 <script>
-import DefaultTable from "@controleonline/ui-default/src/components/Default/DefaultTable";
+
 import { mapActions, mapGetters } from "vuex";
 import getConfigs from "./Configs";
 
 export default {
   components: {
-    DefaultTable,
+    
   },
   props: {
     context: {
