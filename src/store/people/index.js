@@ -49,6 +49,22 @@ export default {
         label: "alias",
         externalFilter: true,
       },
+       /*{
+        externalFilter: true,
+        inputType: "date",
+        sortable: true,
+        editable: true,
+        name: "fundationDate",
+        align: "center",
+        label: "fundationDate",
+        externalFilter: true,
+        saveFormat: function (value) {
+          return undefined;
+        },
+        format: function (value) {
+          return Formatter.formatDateYmdTodmY(value);
+        },
+      },   */
       {
         editable: true,
         sortable: true,

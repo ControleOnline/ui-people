@@ -11,11 +11,9 @@
 </template>
 
 <script>
-import DefaultTable from '@controleonline/ui-default/src/components/Default/DefaultTable.vue';
 
 export default {
   components: {
-    
   },
   props: {
     loaded: {
