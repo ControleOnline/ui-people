@@ -214,7 +214,7 @@ import EmailsList from "../Emails/ListEmails.vue";
 import PhonesList from "../Phones/List.vue";
 import AddressesList from "../Addresses/List.vue";
 import DocumentsList from "../Documents/List.vue";
-import UsersList from "../Users/List.vue";
+import UsersList from "@controleonline/ui-users/src/components/Users/List.vue";
 import CompaniesList from "../Companies/List.vue";
 import ContractsList from "../Contracts/List.vue";
 import PeopleList from "../People/List.vue";
@@ -291,7 +291,7 @@ export default {
           this.$store.commit("addresses/SET_FILTERS", filters);
           this.$store.commit("documents/SET_FILTERS", filters);
           this.$store.commit("contracts/SET_FILTERS", filters);
-          this.$store.commit("usersCustomer/SET_FILTERS", filters);
+          this.$store.commit("users/SET_FILTERS", filters);
         })
         .finally(() => {
           this.loaded = true;
