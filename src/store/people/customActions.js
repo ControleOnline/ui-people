@@ -1,5 +1,5 @@
 import { api } from "@controleonline/../../src/boot/api";
-import SubmissionError from "@controleonline/ui-common/src/error/SubmissionError";
+
 import * as customTypes from "./mutation_types";
 import * as types from "@controleonline/ui-default/src/store/default/mutation_types";
 
@@ -35,7 +35,7 @@ export const company = ({ commit }, values) => {
     .catch((e) => {
       commit(types.SET_ISLOADING, false);
 
-      if (e instanceof SubmissionError) throw new Error(e.errors._error);
+      if (e instanceof Error) throw new Error(e.errors._error);
 
       throw new Error(e.message);
     });
@@ -59,15 +59,8 @@ export const searchPeople = ({ commit }, search) => {
     })
     .catch((e) => {
       commit(types.SET_ISLOADING, false);
-
-      if (e instanceof SubmissionError) {
-        commit(types.SET_VIOLATIONS, e.errors);
-        // eslint-disable-next-line
-        commit(types.SET_ERROR, e.errors._error);
-        return;
-      }
-
       commit(types.SET_ERROR, e.message);
+      throw e;
     });
 };
 
@@ -90,7 +83,7 @@ export const contact = ({ commit }, { params = {} }) => {
     .catch((e) => {
       commit(types.SET_ISLOADING, false);
 
-      if (e instanceof SubmissionError) throw new Error(e.errors._error);
+      if (e instanceof Error) throw new Error(e.errors._error);
 
       throw new Error(e.message);
     });
@@ -115,7 +108,7 @@ export const createContact = ({ commit }, values) => {
     .catch((e) => {
       commit(types.SET_ISLOADING, false);
 
-      if (e instanceof SubmissionError) throw new Error(e.errors._error);
+      if (e instanceof Error) throw new Error(e.errors._error);
 
       throw new Error(e.message);
     });
@@ -142,15 +135,8 @@ export const myCompanies = ({ commit, dispatch }) => {
       dispatch("auth/logOut", null, { root: true });
       localStorage.remove("session");
       //location.reload();
-
-      if (e instanceof SubmissionError) {
-        commit(types.SET_VIOLATIONS, e.errors);
-        // eslint-disable-next-line
-        commit(types.SET_ERROR, e.errors._error);
-        return;
-      }
-
       commit(types.SET_ERROR, e.message);
+      throw e;
     });
 };
 
@@ -171,15 +157,8 @@ export const mySaleCompanies = ({ commit }) => {
     })
     .catch((e) => {
       commit(types.SET_ISLOADING, false);
-
-      if (e instanceof SubmissionError) {
-        commit(types.SET_VIOLATIONS, e.errors);
-        // eslint-disable-next-line
-        commit(types.SET_ERROR, e.errors._error);
-        return;
-      }
-
       commit(types.SET_ERROR, e.message);
+      throw e;
     });
 };
 
@@ -196,14 +175,8 @@ export const defaultCompany = ({ commit, dispatch }) => {
       dispatch("auth/logOut", null, { root: true });
       localStorage.remove("session");
       // location.reload();
-
-      if (e instanceof SubmissionError) {
-        commit(types.SET_VIOLATIONS, e.errors);
-        commit(types.SET_ERROR, e.errors._error);
-        return;
-      }
-
       commit(types.SET_ERROR, e.message);
+      throw e;
     })
     .finally(() => {
       commit(types.SET_ISLOADING, false);
