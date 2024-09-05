@@ -14,7 +14,7 @@ export default {
     totalItems: 0,
     filters: {},
     columns: [
-      {
+      //{
         // isIdentity: true,
         // sortable: true,
         // name: "id",
@@ -23,9 +23,8 @@ export default {
         // format(value) {
         //   return "#" + value;
         // },
-      },
+     // },
       {
-        isIdentity: true,
         sortable: true,
         name: "ddd",
         label: "ddd",

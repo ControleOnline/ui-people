@@ -3,10 +3,7 @@
     <q-card class="q-mb-md q-pa-none">
       <q-card-section class="q-pa-none">
         <div class="q-pa-none">
-          <DefaultTable
-            :configs="configsPhones"
-            v-if="loaded && configsPhones"
-          />
+          <DefaultTable :configs="configsPhones" v-if="loaded && configsPhones" />
         </div>
       </q-card-section>
     </q-card>
@@ -17,7 +14,7 @@
 
 export default {
   components: {
-    
+
   },
   props: {
     loaded: {
@@ -29,6 +26,7 @@ export default {
     configsPhones() {
       return {
         externalFilters: false,
+        companyParam: false,
         filters: false,
         controls: false,
         totalItems: 50,
