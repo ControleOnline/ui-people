@@ -1,7 +1,7 @@
 <template>
   <q-page v-if="currentPerson">
     <div class="q-pt-lg q-pa-md">
-      <div class="q-mb-md q-pa-none">
+      <div class="full-height q-mb-md q-pa-none">
         <DefaultDetail
           :cardClass="'full-width'"
           :sectionClass="'full-width'"
@@ -64,7 +64,7 @@
           v-if="currentPerson.peopleType !== 'J'"
         >
           <div class="col-12 col-md-6">
-            <q-card class="q-mb-md q-pa-none">
+            <q-card class="full-height q-mb-md q-pa-none">
               <q-card-section class="q-pa-none">
                 <div class="q-pa-none">
                   <EmailsList :loaded="loaded" />
@@ -73,7 +73,7 @@
             </q-card>
           </div>
           <div class="col-12 col-md-6">
-            <q-card class="q-mb-md q-pa-none">
+            <q-card class="full-height q-mb-md q-pa-none">
               <q-card-section class="q-pa-none">
                 <div class="q-pa-none">
                   <PhonesList :loaded="loaded" />
@@ -88,7 +88,7 @@
               currentPerson.peopleType == 'F' ? 'col-12 col-md-6' : 'col-12'
             "
           >
-            <q-card class="q-mb-md q-pa-none">
+            <q-card class="full-height q-mb-md q-pa-none">
               <q-card-section class="q-pa-none">
                 <div class="q-pa-none">
                   <DocumentsList :loaded="loaded" />
@@ -98,7 +98,7 @@
           </div>
 
           <div class="col-12 col-md-6" v-if="currentPerson.peopleType == 'F'">
-            <q-card class="q-mb-md q-pa-none">
+            <q-card class="full-height q-mb-md q-pa-none">
               <q-card-section class="q-pa-none">
                 <div class="q-pa-none">
                   <UsersList :people="peopleId" />
@@ -133,7 +133,7 @@
       </q-tab-panel>
       <q-tab-panel name="financial">
         <div class="q-pt-lg">
-          <q-card class="q-mb-md q-pa-none">
+          <q-card class="full-height q-mb-md q-pa-none">
             <q-card-section class="q-pa-none">
               <div class="q-pa-none">
                 <Invoice
@@ -166,7 +166,7 @@
         <q-tab-panels v-model="attendanceTab">
           <q-tab-panel name="crm">
             <div class="q-pt-lg">
-              <q-card class="q-mb-md q-pa-none">
+              <q-card class="full-height q-mb-md q-pa-none">
                 <q-card-section class="q-pa-none">
                   <div class="q-pa-none">
                     <CRMDetails
@@ -182,7 +182,7 @@
 
           <q-tab-panel name="tasks">
             <div class="q-pt-lg">
-              <q-card class="q-mb-md q-pa-none">
+              <q-card class="full-height q-mb-md q-pa-none">
                 <q-card-section class="q-pa-none">
                   <div class="q-pa-none">
                     <TaskDetails
@@ -200,7 +200,7 @@
 
       <q-tab-panel name="orders">
         <div class="q-pt-lg">
-          <q-card class="q-mb-md q-pa-none">
+          <q-card class="full-height q-mb-md q-pa-none">
             <q-card-section class="q-pa-none">
               <div class="q-pa-none">
                 <Orders
