@@ -65,20 +65,12 @@
         >
           <div class="col-12 col-md-6">
             <q-card class="full-height q-mb-md q-pa-none">
-              <q-card-section class="q-pa-none">
-                <div class="q-pa-none">
-                  <EmailsList :loaded="loaded" />
-                </div>
-              </q-card-section>
+              <EmailsList :loaded="loaded" />
             </q-card>
           </div>
           <div class="col-12 col-md-6">
             <q-card class="full-height q-mb-md q-pa-none">
-              <q-card-section class="q-pa-none">
-                <div class="q-pa-none">
-                  <PhonesList :loaded="loaded" />
-                </div>
-              </q-card-section>
+              <PhonesList :loaded="loaded" />
             </q-card>
           </div>
         </div>
@@ -89,26 +81,22 @@
             "
           >
             <q-card class="full-height q-mb-md q-pa-none">
-              <q-card-section class="q-pa-none">
-                <div class="q-pa-none">
-                  <DocumentsList :loaded="loaded" />
-                </div>
-              </q-card-section>
+              <DocumentsList :loaded="loaded" />
             </q-card>
           </div>
 
           <div class="col-12 col-md-6" v-if="currentPerson.peopleType == 'F'">
             <q-card class="full-height q-mb-md q-pa-none">
-              <q-card-section class="q-pa-none">
-                <div class="q-pa-none">
-                  <UsersList :people="peopleId" />
-                </div>
-              </q-card-section>
+              <UsersList :people="peopleId" />
             </q-card>
           </div>
         </div>
         <div class="q-pt-lg">
-          <AddressesList :loaded="loaded" />
+          <div class="q-pt-lg">
+            <q-card class="full-height q-mb-md q-pa-none">
+              <AddressesList :loaded="loaded" />
+            </q-card>
+          </div>
         </div>
 
         <div class="q-pt-lg">
@@ -134,22 +122,18 @@
       <q-tab-panel name="financial">
         <div class="q-pt-lg">
           <q-card class="full-height q-mb-md q-pa-none">
-            <q-card-section class="q-pa-none">
-              <div class="q-pa-none">
-                <Invoice
-                  v-if="context == 'customers' || context == 'franchisee'"
-                  :loaded="loaded"
-                  :context="'receive'"
-                  :peopleId="currentPerson.id"
-                />
-                <Invoice
-                  v-else
-                  :loaded="loaded"
-                  :context="'expense'"
-                  :peopleId="currentPerson.id"
-                />
-              </div>
-            </q-card-section>
+            <Invoice
+              v-if="context == 'customers' || context == 'franchisee'"
+              :loaded="loaded"
+              :context="'receive'"
+              :peopleId="currentPerson.id"
+            />
+            <Invoice
+              v-else
+              :loaded="loaded"
+              :context="'expense'"
+              :peopleId="currentPerson.id"
+            />
           </q-card>
         </div>
       </q-tab-panel>
@@ -167,15 +151,11 @@
           <q-tab-panel name="crm">
             <div class="q-pt-lg">
               <q-card class="full-height q-mb-md q-pa-none">
-                <q-card-section class="q-pa-none">
-                  <div class="q-pa-none">
-                    <CRMDetails
-                      :loaded="loaded"
-                      :context="'relationship'"
-                      :peopleId="currentPerson"
-                    />
-                  </div>
-                </q-card-section>
+                <CRMDetails
+                  :loaded="loaded"
+                  :context="'relationship'"
+                  :peopleId="currentPerson"
+                />
               </q-card>
             </div>
           </q-tab-panel>
@@ -183,15 +163,11 @@
           <q-tab-panel name="tasks">
             <div class="q-pt-lg">
               <q-card class="full-height q-mb-md q-pa-none">
-                <q-card-section class="q-pa-none">
-                  <div class="q-pa-none">
-                    <TaskDetails
-                      :loaded="loaded"
-                      :context="'support'"
-                      :peopleId="currentPerson"
-                    />
-                  </div>
-                </q-card-section>
+                <TaskDetails
+                  :loaded="loaded"
+                  :context="'support'"
+                  :peopleId="currentPerson"
+                />
               </q-card>
             </div>
           </q-tab-panel>
@@ -201,22 +177,18 @@
       <q-tab-panel name="orders">
         <div class="q-pt-lg">
           <q-card class="full-height q-mb-md q-pa-none">
-            <q-card-section class="q-pa-none">
-              <div class="q-pa-none">
-                <Orders
-                  v-if="context == 'customers'"
-                  :loaded="loaded"
-                  context="sales"
-                  :peopleId="currentPerson.id"
-                />
-                <Orders
-                  v-if="context == 'providers'"
-                  :loaded="loaded"
-                  context="purchasing"
-                  :peopleId="currentPerson.id"
-                />
-              </div>
-            </q-card-section>
+            <Orders
+              v-if="context == 'customers'"
+              :loaded="loaded"
+              context="sales"
+              :peopleId="currentPerson.id"
+            />
+            <Orders
+              v-if="context == 'providers'"
+              :loaded="loaded"
+              context="purchasing"
+              :peopleId="currentPerson.id"
+            />
           </q-card>
         </div>
       </q-tab-panel>

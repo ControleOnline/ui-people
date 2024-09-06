@@ -1,13 +1,7 @@
 <template>
-  <div class="q-pt-lg">
-    <q-card class="q-mb-md q-pa-none">
-      <q-card-section class="q-pa-none">
-        <div class="q-pa-none">
+
           <DefaultTable :configs="configsAddresses" v-if="loaded && configsAddresses" />
-        </div>
-      </q-card-section>
-    </q-card>
-  </div>
+
 </template>
 
 <script>
