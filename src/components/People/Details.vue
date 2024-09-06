@@ -78,7 +78,7 @@
           <AddressesList :loaded="loaded" />
         </div>
         <div class="q-pt-lg" v-if="currentPerson.peopleType == 'F'">
-          <UsersList :loaded="loaded" />
+          <UsersList :people="peopleId" />
         </div>
         <div class="q-pt-lg">
           <!-- <ContractsList :loaded="loaded"  :peopleId="currentPerson" /> -->
@@ -291,7 +291,7 @@ export default {
           this.$store.commit("addresses/SET_FILTERS", filters);
           this.$store.commit("documents/SET_FILTERS", filters);
           this.$store.commit("contracts/SET_FILTERS", filters);
-          this.$store.commit("users/SET_FILTERS", filters);
+
         })
         .finally(() => {
           this.loaded = true;
