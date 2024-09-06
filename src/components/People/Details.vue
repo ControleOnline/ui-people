@@ -12,10 +12,7 @@
     </div>
 
     <q-tabs v-model="tab" class="tab-people">
-      <q-tab
-        :name="'details'"
-        :label="$tt(configs.store, 'tab', 'details')"
-      />
+      <q-tab :name="'details'" :label="$tt(configs.store, 'tab', 'details')" />
       <q-tab
         :name="'peoples'"
         :label="
@@ -62,24 +59,58 @@
 
     <q-tab-panels v-model="tab">
       <q-tab-panel name="details">
-        <div class="q-pt-lg">
-          <div
-            class="row q-col-gutter-md"
-            v-if="currentPerson.peopleType !== 'J'"
-          >
-            <EmailsList :loaded="loaded" />
-            <PhonesList :loaded="loaded" />
+        <div
+          class="q-pt-lg row q-col-gutter-md"
+          v-if="currentPerson.peopleType !== 'J'"
+        >
+          <div class="col-12 col-md-6">
+            <q-card class="q-mb-md q-pa-none">
+              <q-card-section class="q-pa-none">
+                <div class="q-pa-none">
+                  <EmailsList :loaded="loaded" />
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+          <div class="col-12 col-md-6">
+            <q-card class="q-mb-md q-pa-none">
+              <q-card-section class="q-pa-none">
+                <div class="q-pa-none">
+                  <PhonesList :loaded="loaded" />
+                </div>
+              </q-card-section>
+            </q-card>
           </div>
         </div>
-        <div class="q-pt-lg">
-          <DocumentsList :loaded="loaded" />
+        <div class="q-pt-lg row q-col-gutter-md">
+          <div
+            :class="
+              currentPerson.peopleType == 'F' ? 'col-12 col-md-6' : 'col-12'
+            "
+          >
+            <q-card class="q-mb-md q-pa-none">
+              <q-card-section class="q-pa-none">
+                <div class="q-pa-none">
+                  <DocumentsList :loaded="loaded" />
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <div class="col-12 col-md-6" v-if="currentPerson.peopleType == 'F'">
+            <q-card class="q-mb-md q-pa-none">
+              <q-card-section class="q-pa-none">
+                <div class="q-pa-none">
+                  <UsersList :people="peopleId" />
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
         </div>
         <div class="q-pt-lg">
           <AddressesList :loaded="loaded" />
         </div>
-        <div class="q-pt-lg" v-if="currentPerson.peopleType == 'F'">
-          <UsersList :people="peopleId" />
-        </div>
+
         <div class="q-pt-lg">
           <!-- <ContractsList :loaded="loaded"  :peopleId="currentPerson" /> -->
         </div>
@@ -129,10 +160,7 @@
             :name="'crm'"
             :label="$tt(configs.store, 'tab', 'attendances')"
           />
-          <q-tab
-            :name="'tasks'"
-            :label="$tt(configs.store, 'tab', 'tasks')"
-          />
+          <q-tab :name="'tasks'" :label="$tt(configs.store, 'tab', 'tasks')" />
         </q-tabs>
 
         <q-tab-panels v-model="attendanceTab">
@@ -225,7 +253,7 @@ import getConfigs from "./Configs";
 export default {
   components: {
     DefaultDetail,
-    
+
     Invoice,
     Orders,
     CRMDetails,
@@ -291,7 +319,6 @@ export default {
           this.$store.commit("addresses/SET_FILTERS", filters);
           this.$store.commit("documents/SET_FILTERS", filters);
           this.$store.commit("contracts/SET_FILTERS", filters);
-
         })
         .finally(() => {
           this.loaded = true;

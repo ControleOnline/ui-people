@@ -1,24 +1,10 @@
 <template>
-  <div class="q-pt-lg">
-    <q-card class="q-mb-md q-pa-none">
-      <q-card-section class="q-pa-none">
-        <div class="q-pa-none">
-          <DefaultTable
-            :configs="configsDocuments"
-            v-if="loaded && configsDocuments"
-          />
-        </div>
-      </q-card-section>
-    </q-card>
-  </div>
+  <DefaultTable :configs="configsDocuments" v-if="loaded && configsDocuments" />
 </template>
 
 <script>
-
 export default {
-  components: {
-    
-  },
+  components: {},
   props: {
     loaded: {
       type: Boolean,

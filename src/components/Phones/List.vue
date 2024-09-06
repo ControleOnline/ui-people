@@ -1,21 +1,10 @@
 <template>
-  <div class="col-12 col-md-6">
-    <q-card class="q-mb-md q-pa-none">
-      <q-card-section class="q-pa-none">
-        <div class="q-pa-none">
-          <DefaultTable :configs="configsPhones" v-if="loaded && configsPhones" />
-        </div>
-      </q-card-section>
-    </q-card>
-  </div>
+  <DefaultTable :configs="configsPhones" v-if="loaded && configsPhones" />
 </template>
 
 <script>
-
 export default {
-  components: {
-
-  },
+  components: {},
   props: {
     loaded: {
       type: Boolean,
