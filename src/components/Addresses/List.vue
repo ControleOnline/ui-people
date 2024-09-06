@@ -1,14 +1,13 @@
 <template>
-
-          <DefaultTable :configs="configsAddresses" v-if="loaded && configsAddresses" />
-
+  <DefaultTable :configs="configsAddresses" v-if="loaded && configsAddresses" />
 </template>
 
 <script>
 
+import Details from "./Details";
+
 export default {
-  components: {
-  },
+  components: { Details },
   props: {
     loaded: {
       type: Boolean,
@@ -24,10 +23,22 @@ export default {
         totalItems: 50,
         "full-height": false,
         store: "addresses",
-        add: true,
+        add: false,
+        editable: false,
         delete: true,
         selection: false,
         search: false,
+        components: {
+          headerActions: {
+            component: Details,
+            props: {
+              people: this.people,
+            },
+          },
+          tableActions: {
+            component: Details,
+          },
+        },
         title: {
           class: "text-primary text-h6 q-mb-md",
           icon: {
@@ -37,7 +48,7 @@ export default {
           },
         },
       };
-    }
-  }
-}
+    },
+  },
+};
 </script>
