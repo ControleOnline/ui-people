@@ -6,7 +6,7 @@
     @click="openModal = true"
   >
     <q-tooltip>
-      {{ $tt("address", "btn", this.row.id ? "editAddress" : "addAddress") }}
+      {{ $tt("address", "btn", this.row.id ? "edit" : "add") }}
     </q-tooltip>
   </q-btn>
   <q-dialog v-model="openModal" full-width full-height>
@@ -14,7 +14,7 @@
       <q-card-section class="q-pa-md row col-12 q-pa-sm">
         <q-toolbar class="">
           <q-toolbar-title class="">{{
-            $tt("address", "title", this.row.id ? "editAddress" : "addAddress")
+            $tt("address", "title", this.row.id ? "edit" : "add")
           }}</q-toolbar-title>
           <q-btn
             class="btn-primary"
