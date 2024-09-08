@@ -30,36 +30,35 @@
       <q-card-section class="q-pa-md row items-start card-address">
         <div class="col-12 col-md-6">
           <div class="row q-pa-md">
+            <SelectInput
+              :disable="editable == false"
+              :store="configs.store"
+              :label="configs.store"
+              :initialValue="''"
+              :multiple="false"
+              searchAction="gmaps/geoplace"
+              :formatOptions="formatOptions"
+              searchParam="input"
+              @keydown="this.$emit('keydown', $event)"
+              @blur="this.$emit('blur', $event)"
+              @update="this.$emit('update', $event)"
+              @selected="onSelect"
+            />
             <DefaultForm
               :configs="configs"
               @saved="saved"
               @error="error"
-              :data="row"
+              :data="data"
               :index="index"
+              :key="key"
             />
           </div>
           <div class="row q-pa-md card-street">
-            <iframe
-              :src="getstreetview()"
-              width="100%"
-              height="100%"
-              style="border: 0"
-              allowfullscreen=""
-              loading="lazy"
-            >
-            </iframe>
+            <StreetView :address="data" />
           </div>
         </div>
         <div class="col-12 col-md-6 q-pa-md card-map">
-          <iframe
-            :src="getMap()"
-            width="100%"
-            height="100%"
-            style="border: 0"
-            allowfullscreen=""
-            loading="lazy"
-          >
-          </iframe>
+          <Map :address="data" />
         </div>
       </q-card-section>
     </q-card>
@@ -67,15 +66,21 @@
 </template>
 
 <script>
+import SelectInput from "@controleonline/ui-default/src/components/Default/Common/Inputs/SelectInput";
 import { mapActions, mapGetters } from "vuex";
+import Map from "./Map/Map";
+import StreetView from "./Map/StreetView";
 
 export default {
+  components: {
+    SelectInput,
+    StreetView,
+    Map,
+  },
   data() {
     return {
       openModal: false,
-      apiKey:
-        process.env.GMAPS_GOOGLE_CLIENT_ID ||
-        "AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8",
+      key: 0,
     };
   },
   props: {
@@ -93,27 +98,40 @@ export default {
     },
   },
   created() {
-    console.log(this.row);
+    this.data = this.formatData(this.$copyObject(this.row));
   },
   methods: {
-    ...mapActions({
-      changeApiKey: "address/changeApiKey",
-    }),
-    getMap() {
-      let url = `https://www.google.com/maps/embed/v1/place?key=${this.apiKey}&q=`;
-      return url + "Alameda+Yayá,+424";
+    ...mapActions({}),
+
+    formatOptions(result) {
+      return {
+        label: result.description,
+        value: result,
+      };
     },
-    getstreetview() {
-      const latitude = -23.5386;
-      const longitude = -46.6934;
 
-      let url = `https://www.google.com/maps/embed/v1/streetview?key=${this.apiKey}&location=${latitude},${longitude}`;
-
-      // Parâmetros adicionais
-      const heading = 210; // Direção da câmera (ajuste conforme necessário)
-      const pitch = 10; // Inclinação da câmera
-
-      return `${url}&heading=${heading}&pitch=${pitch}`;
+    onSelect(selected) {
+      let data = selected?.value;
+      if (!data) return;
+      this.data = this.formatData(data);
+      this.key++;
+    },
+    formatData(data) {
+      return {
+        "@id": "/addresses/" + data.id,
+        id: data.id,
+        nickname: data.nickname || "",
+        complement: data.complement || "",
+        street: data.street?.street || data.street,
+        district: data.street?.district?.district || data.district,
+        city: data.street?.district?.city?.city || data.city,
+        state: data.street?.district?.city?.state?.state || data.state,
+        cep: data.street?.cep?.cep || data.postal_code,
+        number: data.number,
+        country:
+          data.street?.district?.city?.state?.country?.countryname ||
+          data.country,
+      };
     },
   },
 };

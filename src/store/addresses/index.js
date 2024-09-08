@@ -3,7 +3,6 @@ import * as getters from "@controleonline/ui-default/src/store/default/getters";
 import mutations from "@controleonline/ui-default/src/store/default/mutations";
 import Formatter from "@controleonline/ui-common/src/utils/formatter.js";
 
-
 export default {
   namespaced: true,
   state: {
@@ -31,7 +30,7 @@ export default {
         label: "CEP",
         align: "left",
         format(value, column, row) {
-          return row.street?.cep?.cep;
+          return row.street?.cep?.cep || row.postal_code || row.cep;
         },
       },
       {
@@ -41,7 +40,7 @@ export default {
         label: "street",
         align: "left",
         format(value, column, row) {
-          return row.street?.street;
+          return row.street?.street || row.street;
         },
       },
       {
@@ -71,7 +70,7 @@ export default {
         label: "district",
         align: "left",
         format(value, column, row) {
-          return row.street?.district?.district;
+          return row.street?.district?.district || row.district;
         },
       },
       {
@@ -81,7 +80,7 @@ export default {
         label: "city",
         align: "left",
         format(value, column, row) {
-          return row.street?.district?.city?.city;
+          return row.street?.district?.city?.city || row.city;
         },
       },
       {
@@ -91,7 +90,7 @@ export default {
         label: "state",
         align: "left",
         format(value, column, row) {
-          return row.street?.district?.city?.state?.state;
+          return row.street?.district?.city?.state?.state || row.state;
         },
       },
       {
@@ -101,7 +100,8 @@ export default {
         label: "country",
         align: "left",
         format(value, column, row) {
-          return row.street?.district?.city?.state?.country?.countryname;
+          return row.street?.district?.city?.state?.country?.countryname
+            || row.countryname || row.country;
         },
       },
       {
@@ -123,8 +123,8 @@ export default {
         format(value, column, row) {
           return row.openingHours;
         },
-      }
-    ]
+      },
+    ],
   },
   actions: actions,
   getters,
