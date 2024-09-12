@@ -1,7 +1,11 @@
 <template>
   <q-page v-if="currentPerson">
-    <div class="q-pt-lg q-pa-md">
-      <div class="full-height q-mb-md q-pa-none">
+    <div class="q-pt-lg q-pa-md flex-container full-height full-width">
+      <div class="left-column full-height">
+        <Image :item="currentPerson" />
+      </div>
+
+      <div class="full-height q-mb-md q-pa-none right-column">
         <DefaultDetail
           :cardClass="'full-width'"
           :sectionClass="'full-width'"
@@ -204,6 +208,7 @@
 
 <script>
 import DefaultDetail from "@controleonline/ui-default/src/components/Default/Common/DefaultDetail.vue";
+import Image from "@controleonline/ui-default/src/components/Default/Common/Inputs/Image.vue";
 
 import CRMDetails from "../../../../ui-crm/src/pages/CRM";
 import TaskDetails from "../../../../ui-tasks/src/components/Tasks";
@@ -225,7 +230,6 @@ import getConfigs from "./Configs";
 export default {
   components: {
     DefaultDetail,
-
     Invoice,
     Orders,
     CRMDetails,
@@ -238,6 +242,7 @@ export default {
     CompaniesList,
     ContractsList,
     PeopleList,
+    Image,
   },
   props: {
     context: {
@@ -299,9 +304,44 @@ export default {
   },
 };
 </script>
-<style>
+<style scoped>
 .tab-people {
   background-color: var(--secondary) !important;
   color: var(--text-secondary);
+}
+.flex-container {
+  display: flex;
+  align-items: flex-start; /* Alinhar itens ao topo */
+  flex-wrap: wrap; /* Permitir que o conteúdo "quebre" para a próxima linha no mobile */
+}
+
+.left-column {
+  flex: 0 0 200px; /* Largura fixa para a coluna esquerda no desktop */
+  padding-right: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative; /* Necessário para o ícone de upload posicionado */
+}
+
+.right-column {
+  width: 100%; /* Garante que o componente use a largura completa */
+}
+/* Media query para mobile */
+@media (max-width: 768px) {
+  .flex-container {
+    flex-direction: column; /* Empilha as colunas no mobile */
+    align-items: center; /* Centraliza os itens */
+  }
+
+  .left-column {
+    flex: 0 0 auto; /* Deixa a largura da coluna automática no mobile */
+    padding-right: 0; /* Remove o padding da direita */
+    margin-bottom: 20px; /* Adiciona um espaçamento inferior */
+  }
+
+  .right-column {
+    flex: 0 0 auto; /* Deixa a largura da coluna automática no mobile */
+  }
 }
 </style>
