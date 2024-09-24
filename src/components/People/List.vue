@@ -2,14 +2,11 @@
   <DefaultTable :configs="configs" v-if="loaded" />
 </template>
 <script>
-
 import { mapActions, mapGetters } from "vuex";
 import getConfigs from "./Configs";
 
 export default {
-  components: {
-    
-  },
+  components: {},
   props: {
     context: {
       required: true,
@@ -78,7 +75,7 @@ export default {
       }
 
       if (this.context == "employee") {
-        delete filters.company;
+        delete filters.link;
         filters.company = "/people/" + this.myCompany?.id;
         filters.link_type = "employee";
       }
