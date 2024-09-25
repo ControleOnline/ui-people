@@ -42,9 +42,6 @@ export default {
         inputType: "file",
         accept: ".jpg, .pdf, image/*",
         externalFilter: true,
-        saveFormat: function (value) {
-          return value['@id'];
-        },
       },
       {
         icon: "person",
