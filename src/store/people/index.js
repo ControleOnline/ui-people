@@ -36,6 +36,17 @@ export default {
       {
         editable: true,
         sortable: true,
+        name: "image",
+        align: "left",
+        label: "image",
+        inputType: "file",
+        accept: ".jpg, .pdf, image/*",
+        externalFilter: true,
+      },
+      {
+        icon: "person",
+        editable: true,
+        sortable: true,
         name: "name",
         align: "left",
         label: "name",
@@ -49,7 +60,7 @@ export default {
         label: "alias",
         externalFilter: true,
       },
-       /*{
+      /*{
         externalFilter: true,
         inputType: "date",
         sortable: true,

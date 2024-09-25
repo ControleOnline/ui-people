@@ -1,10 +1,6 @@
 <template>
   <q-page v-if="currentPerson">
     <div class="q-pt-lg q-pa-md flex-container full-height full-width">
-      <div class="left-column full-height">
-        <Image :item="currentPerson" />
-      </div>
-
       <div class="full-height q-mb-md q-pa-none right-column">
         <DefaultDetail
           :cardClass="'full-width'"
@@ -208,7 +204,6 @@
 
 <script>
 import DefaultDetail from "@controleonline/ui-default/src/components/Default/Common/DefaultDetail.vue";
-import Image from "@controleonline/ui-default/src/components/Default/Common/Inputs/Image.vue";
 
 import CRMDetails from "../../../../ui-crm/src/pages/CRM";
 import TaskDetails from "../../../../ui-tasks/src/components/Tasks";
@@ -242,7 +237,6 @@ export default {
     CompaniesList,
     ContractsList,
     PeopleList,
-    Image,
   },
   props: {
     context: {
