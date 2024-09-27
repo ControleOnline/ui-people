@@ -40,7 +40,7 @@ export default {
         align: "left",
         label: "image",
         inputType: "file",
-        accept: ".jpg, .pdf, image/*",
+        fileType: ["image"],
         externalFilter: true,
       },
       {
