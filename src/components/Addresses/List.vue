@@ -29,12 +29,12 @@ export default {
         selection: false,
         search: false,
         components: {
-          headerActions: {
+          headerActions: [{
             component: Details,
             props: {
               people: this.people,
             },
-          },
+          }],
           tableActions: {
             component: Details,
           },

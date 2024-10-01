@@ -289,7 +289,7 @@ export default {
           this.$store.commit("phones/SET_FILTERS", filters);
           this.$store.commit("addresses/SET_FILTERS", filters);
           this.$store.commit("documents/SET_FILTERS", filters);
-          this.$store.commit("contracts/SET_FILTERS", filters);
+          this.$store.commit("contract/SET_FILTERS", filters);
         })
         .finally(() => {
           this.loaded = true;

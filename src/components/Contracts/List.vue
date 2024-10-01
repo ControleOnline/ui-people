@@ -28,7 +28,7 @@ export default {
         externalFilters: false,
         filters: true,
         "full-height": false,
-        store: "contracts",
+        store: "contract",
         add: true,
         delete: true,
         selection: false,
