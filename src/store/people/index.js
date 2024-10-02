@@ -4,6 +4,7 @@ import mutations from "@controleonline/ui-default/src/store/default/mutations";
 import * as customActions from "./customActions";
 import customMutations from "./mutations";
 import * as customGetters from "./getters";
+import Formatter from "@controleonline/ui-common/src/utils/formatter.js";
 
 export default {
   namespaced: true,
@@ -60,22 +61,20 @@ export default {
         label: "alias",
         externalFilter: true,
       },
-      /*{
-        externalFilter: true,
-        inputType: "date",
+      {
+        inputType: "date-range",
         sortable: true,
-        editable: true,
-        name: "fundationDate",
-        align: "center",
-        label: "fundationDate",
+        name: "foundationDate",
+        align: "left",
+        label: "foundationDate",
         externalFilter: true,
         saveFormat: function (value) {
-          return undefined;
+          return Formatter.buildAmericanDate(value);
         },
         format: function (value) {
           return Formatter.formatDateYmdTodmY(value);
         },
-      },   */
+      },
       {
         editable: true,
         sortable: true,
