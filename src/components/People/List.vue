@@ -56,6 +56,7 @@ export default {
             params: {
               id: value,
             },
+            target:'__blank'
           };
         };
 
