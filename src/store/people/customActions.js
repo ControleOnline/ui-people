@@ -17,21 +17,13 @@ export const company = ({ commit }, values) => {
       return response;
     })
     .then((data) => {
-      if (data.response && data.response.success) {
-        if (data.response.data)
-          commit(customTypes.SET_COMPANY, {
-            id: data.response.data.people.id,
-          });
-      }
-
-      return data.response ? data.response : null;
+      return data;
     })
     .catch((e) => {
       commit(types.SET_ISLOADING, false);
+      commit(types.SET_ERROR, e.message);
+      throw e;
 
-      if (e instanceof Error) throw new Error(e.errors._error);
-
-      throw new Error(e.message);
     });
 };
 
