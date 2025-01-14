@@ -29,7 +29,7 @@ export default {
         name: "id",
         align: "left",
         label: "id",
-        externalFilter: true,
+        externalFilter: false,
         format: function (value) {
           return "#" + value;
         },
@@ -42,7 +42,7 @@ export default {
         label: "image",
         inputType: "file",
         fileType: ["image"],
-        externalFilter: true,
+        externalFilter: false,
       },
       {
         icon: "person",
@@ -51,7 +51,7 @@ export default {
         name: "name",
         align: "left",
         label: "name",
-        externalFilter: true,
+        externalFilter: false,
       },
       {
         editable: true,
@@ -59,7 +59,7 @@ export default {
         name: "alias",
         align: "left",
         label: "alias",
-        externalFilter: true,
+        externalFilter: false,
       },
       {
         inputType: "date-range",
@@ -67,7 +67,7 @@ export default {
         name: "foundationDate",
         align: "left",
         label: "foundationDate",
-        externalFilter: true,
+        externalFilter: false,
         saveFormat: function (value) {
           return Formatter.buildAmericanDate(value);
         },
@@ -91,7 +91,7 @@ export default {
         name: "peopleType",
         align: "left",
         label: "peopleType",
-        externalFilter: true,
+        externalFilter: false,
       },
     ],
   },
