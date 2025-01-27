@@ -22,7 +22,7 @@ export default {
         label: "type",
         align: "left",
         format(value, column, row) {
-          return row.documentType.documentType;
+          return row?.documentType?.documentType;
         },
       },
       {

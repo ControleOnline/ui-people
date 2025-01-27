@@ -94,7 +94,7 @@
         <div class="q-pt-lg">
           <div class="q-pt-lg">
             <q-card class="full-height q-mb-md q-pa-none">
-              <AddressesList :loaded="loaded" />
+              <AddressList :loaded="loaded" />
             </q-card>
           </div>
         </div>
@@ -212,7 +212,7 @@ import Orders from "../../../../ui-orders/src/components/Orders.vue";
 
 import EmailsList from "../Emails/ListEmails.vue";
 import PhonesList from "../Phones/List.vue";
-import AddressesList from "../Addresses/List.vue";
+import AddressList from "../Address/List.vue";
 import DocumentsList from "../Documents/List.vue";
 import UsersList from "@controleonline/ui-users/src/components/Users/List.vue";
 import CompaniesList from "../Companies/List.vue";
@@ -231,7 +231,7 @@ export default {
     TaskDetails,
     EmailsList,
     PhonesList,
-    AddressesList,
+    AddressList,
     DocumentsList,
     UsersList,
     CompaniesList,
@@ -287,7 +287,7 @@ export default {
           // Seta os filtros de People:
           this.$store.commit("emails/SET_FILTERS", filters);
           this.$store.commit("phones/SET_FILTERS", filters);
-          this.$store.commit("addresses/SET_FILTERS", filters);
+          this.$store.commit("address/SET_FILTERS", filters);
           this.$store.commit("documents/SET_FILTERS", filters);
           this.$store.commit("contract/SET_FILTERS", filters);
         })

@@ -20,7 +20,7 @@ export default {
         label: "nickname",
         align: "left",
         format(value, column, row) {
-          return row.nickname;
+          return row?.nickname;
         },
       },
       {
@@ -30,7 +30,7 @@ export default {
         label: "CEP",
         align: "left",
         format(value, column, row) {
-          return row.street?.cep?.cep || row.postal_code || row.cep;
+          return row?.street?.cep?.cep || row?.postal_code || row?.cep;
         },
       },
       {
@@ -40,7 +40,7 @@ export default {
         label: "street",
         align: "left",
         format(value, column, row) {
-          return row.street?.street || row.street;
+          return row?.street?.street || row?.street;
         },
       },
       {
@@ -50,7 +50,7 @@ export default {
         label: "number",
         align: "left",
         format(value, column, row) {
-          return row.number;
+          return row?.number;
         },
       },
       {
@@ -60,7 +60,7 @@ export default {
         label: "complement",
         align: "left",
         format(value, column, row) {
-          return row.complement;
+          return row?.complement;
         },
       },
       {
@@ -70,7 +70,7 @@ export default {
         label: "district",
         align: "left",
         format(value, column, row) {
-          return row.street?.district?.district || row.district;
+          return row?.street?.district?.district || row?.district;
         },
       },
       {
@@ -80,7 +80,7 @@ export default {
         label: "city",
         align: "left",
         format(value, column, row) {
-          return row.street?.district?.city?.city || row.city;
+          return row?.street?.district?.city?.city || row?.city;
         },
       },
       {
@@ -90,7 +90,7 @@ export default {
         label: "state",
         align: "left",
         format(value, column, row) {
-          return row.street?.district?.city?.state?.state || row.state;
+          return row?.street?.district?.city?.state?.state || row?.state;
         },
       },
       {
@@ -100,8 +100,11 @@ export default {
         label: "country",
         align: "left",
         format(value, column, row) {
-          return row.street?.district?.city?.state?.country?.countryname
-            || row.countryname || row.country;
+          return (
+            row?.street?.district?.city?.state?.country?.countryname ||
+            row?.countryname ||
+            row?.country
+          );
         },
       },
       {
@@ -111,7 +114,7 @@ export default {
         label: "searchFor",
         align: "left",
         format(value, column, row) {
-          return row.searchFor;
+          return row?.searchFor;
         },
       },
       {
@@ -121,7 +124,7 @@ export default {
         label: "openingHours",
         align: "left",
         format(value, column, row) {
-          return row.openingHours;
+          return row?.openingHours;
         },
       },
     ],

@@ -1,5 +1,5 @@
 <template>
-  <DefaultTable :configs="configsAddresses" v-if="loaded && configsAddresses" />
+  <DefaultTable :configs="configsAddress" v-if="loaded && configsAddress" />
 </template>
 
 <script>
@@ -15,14 +15,14 @@ export default {
     },
   },
   computed: {
-    configsAddresses() {
+    configsAddress() {
       return {
         externalFilters: false,
         filters: false,
         controls: false,
         totalItems: 50,
         "full-height": false,
-        store: "addresses",
+        store: "address",
         add: false,
         editable: false,
         delete: true,

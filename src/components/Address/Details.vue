@@ -118,7 +118,7 @@ export default {
     },
     formatData(data) {
       return {
-        "@id": data["@id"] || "/addresses/" + data.id,
+        "@id": data["@id"] || "/address/" + data.id,
         id: data.id,
         nickname: data.nickname || "",
         complement: data.complement || "",
