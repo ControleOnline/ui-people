@@ -49,7 +49,6 @@
               @saved="saved"
               @error="error"
               :data="data"
-              :index="index"
               :key="key"
             />
           </div>
@@ -91,10 +90,6 @@ export default {
     configs: {
       type: Object,
       default: {},
-    },
-    index: {
-      type: Number,
-      required: false,
     },
   },
   created() {
