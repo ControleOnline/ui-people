@@ -2,11 +2,11 @@
   <q-btn
     class="q-pa-xs btn-primary"
     dense
-    :icon="this.row.id ? 'edit' : 'add'"
+    :icon="row?.id ? 'edit' : 'add'"
     @click="openModal = true"
   >
     <q-tooltip>
-      {{ $tt("address", "btn", this.row.id ? "edit" : "add") }}
+      {{ $tt("address", "btn", row?.id ? "edit" : "add") }}
     </q-tooltip>
   </q-btn>
   <q-dialog v-model="openModal" full-width full-height>
@@ -14,7 +14,7 @@
       <q-card-section class="q-pa-md row col-12 q-pa-sm">
         <q-toolbar class="">
           <q-toolbar-title class="">{{
-            $tt("address", "title", this.row.id ? "edit" : "add")
+            $tt("address", "title", row?.id ? "edit" : "add")
           }}</q-toolbar-title>
           <q-btn
             class="btn-primary"
@@ -112,6 +112,7 @@ export default {
       this.key++;
     },
     formatData(data) {
+      if (!data) return {};
       return {
         "@id": data["@id"] || "/address/" + data.id,
         id: data.id,
