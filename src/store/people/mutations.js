@@ -1,45 +1,20 @@
-import { LocalStorage } from 'quasar';
-import * as types from './mutation_types';
+import * as types from "./mutation_types";
 
 export default {
-
-  [types.SET_COMPANY  ](state, company) {
-    Object.assign(state, { company });
+  [types.SET_COMPANIES](state, payload) {
+    if (!payload?.companies) Object.assign(state, { companies: payload });
+    return { ...state, companies: payload?.companies || payload };
   },
 
-  [types.SET_COMPANIES](state, companies) {
-    Object.assign(state, { companies });
+  [types.SET_CURRENT_COMPANY](state, payload) {
+    if (!payload?.currentCompany)
+      Object.assign(state, { currentCompany: payload });
+    return { ...state, currentCompany: payload?.currentCompany || payload };
   },
 
-  [types.SET_CURRENT_COMPANY](state, company) {
-    try {
-      let session = LocalStorage.has('session') ? LocalStorage.getItem('session') : {};
-
-      if (session.company) {
-        session.company = company.id;  
-      }
-
-      LocalStorage.set('session', session);
-
-      Object.assign(state, { currentCompany: company });
-
-    } catch(e) {
-
-    }
-  },
-
-  [types.SET_DEFAULT_COMPANY](state, company) {
-    try {
-      let session = LocalStorage.has('session') ? LocalStorage.getItem('session') : {};
-
-      session.default = company.id;  
-
-      LocalStorage.set('session', session);
-
-      Object.assign(state, { defaultCompany: company });
-
-    } catch(e) {
-
-    }
+  [types.SET_DEFAULT_COMPANY](state, payload) {
+    if (!payload?.defaultCompany)
+      Object.assign(state, { defaultCompany: payload });
+    return { ...state, defaultCompany: payload?.defaultCompany || payload };
   },
 };

@@ -15,7 +15,6 @@ export default {
     violations: null,
     totalItems: 0,
     filters: {},
-    company: null,
     item: {},
     currentCompany: null,
     defaultCompany: null,
