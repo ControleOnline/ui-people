@@ -34,7 +34,6 @@
               :disable="editable == false"
               :store="configs.store"
               :label="configs.store"
-              :initialValue="''"
               :multiple="false"
               searchAction="gmaps/geoplace"
               :formatOptions="formatOptions"
