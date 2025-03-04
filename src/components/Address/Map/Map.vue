@@ -11,12 +11,10 @@
 </template>
 
 <script>
-import SelectInput from "@controleonline/ui-default/src/components/Default/Common/Inputs/SelectInput";
 import { mapActions, mapGetters } from "vuex";
 
 export default {
   components: {
-    SelectInput,
   },
   data() {
     return {
