@@ -275,11 +275,11 @@ export default {
   methods: {
     ...mapActions({
       getPeople: "people/get",
-      setEmailFilters: "emails/SET_FILTERS",
-      setPhoneFilters: "phones/SET_FILTERS",
-      setAddressFilters: "address/SET_FILTERS",
-      setDocumentFilters: "documents/SET_FILTERS",
-      setContractFilters: "contract/SET_FILTERS",
+      setEmailFilters: "emails/setFilters",
+      setPhoneFilters: "phones/setFilters",
+      setAddressFilters: "address/setFilters",
+      setDocumentFilters: "documents/setFilters",
+      setContractFilters: "contract/setFilters",
     }),
     init() {
       this.getPeople(this.peopleId)
