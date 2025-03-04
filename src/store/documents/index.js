@@ -10,6 +10,7 @@ export default {
   state: {
  item:{},
 items:[],
+filters:{},
     resourceEndpoint: "documents",
     isLoading: false,
     error: "",

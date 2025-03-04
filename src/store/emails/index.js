@@ -9,6 +9,7 @@ export default {
   state: {
  item:{},
 items:[],
+filters:{},
     resourceEndpoint: "emails",
     isLoading: false,
     error: "",

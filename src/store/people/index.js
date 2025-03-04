@@ -11,6 +11,7 @@ export default {
   state: {
  item:{},
 items:[],
+filters:{},
     resourceEndpoint: "people",
     isLoading: false,
     error: "",
