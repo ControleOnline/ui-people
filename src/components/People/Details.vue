@@ -275,6 +275,11 @@ export default {
   methods: {
     ...mapActions({
       getPeople: "people/get",
+      setEmailFilters: "emails/SET_FILTERS",
+      setPhoneFilters: "phones/SET_FILTERS",
+      setAddressFilters: "address/SET_FILTERS",
+      setDocumentFilters: "documents/SET_FILTERS",
+      setContractFilters: "contract/SET_FILTERS",
     }),
     init() {
       this.getPeople(this.peopleId)
@@ -285,11 +290,11 @@ export default {
             people: "/people/" + this.peopleId,
           };
           // Seta os filtros de People:
-          this.$store.commit("emails/SET_FILTERS", filters);
-          this.$store.commit("phones/SET_FILTERS", filters);
-          this.$store.commit("address/SET_FILTERS", filters);
-          this.$store.commit("documents/SET_FILTERS", filters);
-          this.$store.commit("contract/SET_FILTERS", filters);
+          this.setEmailFilters(filters);
+          this.setPhoneFilters(filters);
+          this.setAddressFilters(filters);
+          this.setDocumentFilters(filters);
+          this.setContractFilters(filters);
         })
         .finally(() => {
           this.loaded = true;
