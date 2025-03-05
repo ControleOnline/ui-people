@@ -53,7 +53,7 @@
               :configs="configs"
               @saved="saved"
               @error="error"
-              :data="data"
+              :row="data"
               :key="key"
             />
           </div>
