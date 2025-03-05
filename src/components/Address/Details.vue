@@ -31,13 +31,19 @@
         <div class="col-12 col-md-6">
           <div class="row q-pa-md">
             <SelectInput
-              :disable="editable == false"
-              :store="configs.store"
-              :label="configs.store"
+              :configs="configs"
+              :column="{
+                label: configs.store,
+                formatList(result) {
+                  return {
+                    label: result.description,
+                    value: result,
+                  };
+                },
+                searchParam:'input',
+                list:'gmaps/geoplace'
+              }"
               :multiple="false"
-              searchAction="gmaps/geoplace"
-              :formatOptions="formatOptions"
-              searchParam="input"
               @keydown="this.$emit('keydown', $event)"
               @blur="this.$emit('blur', $event)"
               @update="this.$emit('update', $event)"
@@ -64,7 +70,7 @@
 </template>
 
 <script>
-import SelectInput from "@controleonline/ui-default/src/components/Default/Common/Inputs/SelectInput";
+import SelectInput from "@controleonline/ui-default/src/components/Default/Inputs/Components/SelectInput";
 import { mapActions, mapGetters } from "vuex";
 import Map from "./Map/Map";
 import StreetView from "./Map/StreetView";
@@ -96,13 +102,6 @@ export default {
   },
   methods: {
     ...mapActions({}),
-
-    formatOptions(result) {
-      return {
-        label: result.description,
-        value: result,
-      };
-    },
 
     onSelect(selected) {
       let data = selected?.value;
