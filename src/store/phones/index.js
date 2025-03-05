@@ -9,7 +9,6 @@ export default {
   state: {
  item:{},
 items:[],
-filters:{},
     resourceEndpoint: "phones",
     isLoading: false,
     error: "",

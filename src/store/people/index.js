@@ -9,9 +9,8 @@ import Formatter from "@controleonline/ui-common/src/utils/formatter.js";
 export default {
   namespaced: true,
   state: {
- item:{},
-items:[],
-filters:{},
+    item: {},
+    items: [],
     resourceEndpoint: "people",
     isLoading: false,
     error: "",
@@ -22,7 +21,6 @@ filters:{},
     currentCompany: null,
     defaultCompany: null,
     companies: [],
-
     columns: [
       {
         editable: false,
