@@ -34,12 +34,7 @@
               :configs="configs"
               :column="{
                 label: configs.store,
-                formatList(result) {
-                  return {
-                    label: result.description,
-                    value: result,
-                  };
-                },
+
                 searchParam:'input',
                 list:'gmaps/geoplace'
               }"
