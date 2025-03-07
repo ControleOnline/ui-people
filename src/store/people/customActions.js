@@ -45,10 +45,7 @@ export const myCompanies = ({ commit, dispatch }) => {
     })
     .catch((e) => {
       commit(types.SET_ISLOADING, false);
-
-      dispatch("auth/logOut", null, { root: true });
-      localStorage.remove("session");
-      //location.reload();
+      dispatch("auth/logOut");
       commit(types.SET_ERROR, e.message);
       throw e;
     });
@@ -64,9 +61,6 @@ export const defaultCompany = ({ commit, dispatch }) => {
       return data.response;
     })
     .catch((e) => {
-      dispatch("auth/logOut", null, { root: true });
-      localStorage.remove("session");
-      // location.reload();
       commit(types.SET_ERROR, e.message);
       throw e;
     })
