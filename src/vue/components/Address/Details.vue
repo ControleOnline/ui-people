@@ -65,7 +65,7 @@
 </template>
 
 <script>
-import SelectInput from "@controleonline/ui-default/src/components/Default/Inputs/Components/SelectInput";
+import SelectInput from "@controleonline/ui-default/src/vue/components/Default/Inputs/Components/SelectInput";
 import { mapActions, mapGetters } from "vuex";
 import Map from "./Map/Map";
 import StreetView from "./Map/StreetView";

@@ -203,18 +203,18 @@
 </template>
 
 <script>
-import DefaultDetail from "@controleonline/ui-default/src/components/Default/Common/DefaultDetail.vue";
+import DefaultDetail from "@controleonline/ui-default/src/vue/components/Default/Common/DefaultDetail.vue";
 
-import CRMDetails from "../../../../ui-crm/src/pages/CRM";
-import TaskDetails from "../../../../ui-tasks/src/components/Tasks";
-import Invoice from "../../../../ui-financial/src/components/Invoice";
-import Orders from "../../../../ui-orders/src/components/Orders.vue";
+import CRMDetails from "@controleonline/ui-crm/src/vue/pages/CRM";
+import TaskDetails from "@controleonline/ui-tasks/src/vue/components/Tasks";
+import Invoice from "@controleonline/ui-financial/src/vue/components/Invoice";
+import Orders from "@controleonline/ui-orders/src/vue/components/Orders.vue";
 
 import EmailsList from "../Emails/ListEmails.vue";
 import PhonesList from "../Phones/List.vue";
 import AddressList from "../Address/List.vue";
 import DocumentsList from "../Documents/List.vue";
-import UsersList from "@controleonline/ui-users/src/components/Users/List.vue";
+import UsersList from "@controleonline/ui-users/src/vue/components/Users/List.vue";
 import CompaniesList from "../Companies/List.vue";
 import ContractsList from "../Contracts/List.vue";
 import PeopleList from "../People/List.vue";

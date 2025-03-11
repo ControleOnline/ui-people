@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import Address from "@controleonline/ui-people/src/components/Address/Details.vue";
+import Address from "@controleonline/ui-people/src/vue/components/Address/Details.vue";
 
 export default {
   components: { Address },
