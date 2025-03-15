@@ -12,7 +12,7 @@ items:[],
     resourceEndpoint: "phones",
     isLoading: false,
     error: "",
-    violations: null,
+    
     totalItems: 0,
     filters: {},
     columns: [

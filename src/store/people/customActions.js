@@ -1,66 +1,65 @@
-import { api } from "@controleonline/ui-common/src/api";
+import {api} from '@controleonline/ui-common/src/api';
 
+import * as customTypes from './mutation_types';
+import * as types from '@controleonline/ui-default/src/store/default/mutation_types';
 
-import * as customTypes from "./mutation_types";
-import * as types from "@controleonline/ui-default/src/store/default/mutation_types";
+const RESOURCE_ENDPOINT = '/people';
 
-const RESOURCE_ENDPOINT = "/people";
-
-export const company = ({ commit }, values) => {
-  commit(types.SET_ERROR, "");
+export const company = ({commit}, values) => {
+  commit(types.SET_ERROR, '');
   commit(types.SET_ISLOADING);
 
   return api
-    .fetch(RESOURCE_ENDPOINT, { method: "POST", body: values })
-    .then((response) => {
+    .fetch(RESOURCE_ENDPOINT, {method: 'POST', body: values})
+    .then(response => {
       commit(types.SET_ISLOADING, false);
 
       return response;
     })
-    .then((data) => {
+    .then(data => {
       return data;
     })
-    .catch((e) => {
+    .catch(e => {
       commit(types.SET_ISLOADING, false);
       commit(types.SET_ERROR, e.message);
       throw e;
-
     });
 };
 
-export const myCompanies = ({ commit, dispatch }) => {
+export const myCompanies = ({commit, dispatch}) => {
   commit(types.SET_ISLOADING, false);
 
   return api
     .fetch(`${RESOURCE_ENDPOINT}/companies/my`)
 
-    .then((data) => {
+    .then(data => {
       commit(types.SET_ISLOADING, false);
 
-      if (data.response) {
+      if (data.response?.data) {
         commit(customTypes.SET_COMPANIES, data.response.data);
+        commit(customTypes.SET_CURRENT_COMPANY, data.response.data[0]);
       }
 
       return data.response;
     })
-    .catch((e) => {
+    .catch(e => {
       commit(types.SET_ISLOADING, false);
-      dispatch("auth/logOut");
+      dispatch('auth/logOut');
       commit(types.SET_ERROR, e.message);
       throw e;
     });
 };
 
-export const defaultCompany = ({ commit, dispatch }) => {
+export const defaultCompany = ({commit, dispatch}) => {
   commit(types.SET_ISLOADING, false);
 
   return api
     .fetch(`${RESOURCE_ENDPOINT}/company/default`)
-    .then((data) => {
+    .then(data => {
       commit(customTypes.SET_DEFAULT_COMPANY, data.response.data);
       return data.response;
     })
-    .catch((e) => {
+    .catch(e => {
       commit(types.SET_ERROR, e.message);
       throw e;
     })
@@ -69,17 +68,17 @@ export const defaultCompany = ({ commit, dispatch }) => {
     });
 };
 
-export const currentCompany = ({ commit }, company) => {
+export const currentCompany = ({commit}, company) => {
   if (company) {
     commit(customTypes.SET_CURRENT_COMPANY, company);
   }
 };
 
-export const getPeople = ({ commit }, id) => {
+export const getPeople = ({commit}, id) => {
   return api
     .fetch(`${RESOURCE_ENDPOINT}/${id}`)
 
-    .then((data) => {
+    .then(data => {
       return data;
     });
 };
