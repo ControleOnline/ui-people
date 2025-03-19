@@ -34,17 +34,14 @@ export const myCompanies = ({commit, dispatch}) => {
 
     .then(data => {
       commit(types.SET_ISLOADING, false);
-
       if (data.response?.data) {
         commit(customTypes.SET_COMPANIES, data.response.data);
         commit(customTypes.SET_CURRENT_COMPANY, data.response.data[0]);
       }
-
       return data.response;
     })
     .catch(e => {
       commit(types.SET_ISLOADING, false);
-      dispatch('auth/logOut');
       commit(types.SET_ERROR, e.message);
       throw e;
     });
