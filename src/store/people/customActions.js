@@ -16,9 +16,7 @@ export const company = ({commit}, values) => {
 
       return response;
     })
-    .then(data => {
-      return data;
-    })
+
     .catch(e => {
       commit(types.SET_ISLOADING, false);
       commit(types.SET_ERROR, e.message);
@@ -53,7 +51,9 @@ export const defaultCompany = ({commit, dispatch}) => {
   return api
     .fetch(`${RESOURCE_ENDPOINT}/company/default`)
     .then(data => {
-      commit(customTypes.SET_DEFAULT_COMPANY, data.response.data);
+      console.log('yyyyyyyyyyyy', data);
+
+      commit(customTypes.SET_DEFAULT_COMPANY, data.response?.data);
       return data.response;
     })
     .catch(e => {
