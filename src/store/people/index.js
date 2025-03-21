@@ -10,7 +10,7 @@ export default {
   namespaced: true,
   state: {
     item: {},
-    items: [],
+    items: null,
     resourceEndpoint: 'people',
     isLoading: false,
     error: '',

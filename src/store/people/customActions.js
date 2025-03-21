@@ -51,8 +51,6 @@ export const defaultCompany = ({commit, dispatch}) => {
   return api
     .fetch(`${RESOURCE_ENDPOINT}/company/default`)
     .then(data => {
-      console.log('yyyyyyyyyyyy', data);
-
       commit(customTypes.SET_DEFAULT_COMPANY, data.response?.data);
       return data.response;
     })
