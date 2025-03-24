@@ -24,12 +24,12 @@ export const company = ({commit}, values) => {
     });
 };
 
-export const myCompanies = ({commit, dispatch}) => {
+export const myCompanies = ({commit, dispatch}, device) => {
   commit(types.SET_ISLOADING, false);
-
+  let url = `${RESOURCE_ENDPOINT}/companies/my`;
+  if (device) url += `?device=${device}`;
   return api
-    .fetch(`${RESOURCE_ENDPOINT}/companies/my`)
-
+    .fetch(url)
     .then(data => {
       commit(types.SET_ISLOADING, false);
       if (data.response?.data) {
