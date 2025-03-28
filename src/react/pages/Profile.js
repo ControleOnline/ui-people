@@ -16,17 +16,15 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const Profile = ({navigation}) => {
   const {styles, globalStyles} = css();
-  const {actions: authActions} = getStore('auth');
-  const [user, setUser] = useState(null);
+  const {getters: userGetters, actions: authActions} = getStore('auth');
+  const {user} = userGetters;
   const [phones, setPhones] = useState([]);
   const [emails, setEmails] = useState([]);
 
   // Fetch user data synchronously
   const fetchUser = useCallback(() => {
-    const userData = authActions.getLoggedUser();
-    setUser(userData);
-    setPhones(userData.phone ? [userData.phone] : []);
-    setEmails(userData.email ? [userData.email] : []);
+    setPhones(user.phone ? [user.phone] : []);
+    setEmails(user.email ? [user.email] : []);
   }, [authActions]);
 
   // Fetch user when screen is focused
