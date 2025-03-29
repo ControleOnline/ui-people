@@ -23,8 +23,8 @@ const Profile = ({navigation}) => {
 
   // Fetch user data synchronously
   const fetchUser = useCallback(() => {
-    setPhones(user.phone ? [user.phone] : []);
-    setEmails(user.email ? [user.email] : []);
+    setPhones(user?.phone ? [user.phone] : []);
+    setEmails(user?.email ? [user.email] : []);
   }, [authActions]);
 
   // Fetch user when screen is focused
