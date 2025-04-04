@@ -21,29 +21,29 @@ const Profile = ({navigation}) => {
   const [phones, setPhones] = useState([]);
   const [emails, setEmails] = useState([]);
 
-  // Fetch user data synchronously
   const fetchUser = useCallback(() => {
     setPhones(user?.phone ? [user.phone] : []);
     setEmails(user?.email ? [user.email] : []);
   }, [authActions]);
 
-  // Fetch user when screen is focused
   useFocusEffect(
     useCallback(() => {
       fetchUser();
     }, [fetchUser]),
   );
 
-  // Get Gravatar URL
   const getAvatarUrl = () => {
     if (!user?.email) return 'https://www.gravatar.com/avatar/?d=identicon';
     const emailHash = md5(user.email.trim().toLowerCase());
     return `https://www.gravatar.com/avatar/${emailHash}?s=200&d=identicon`;
   };
 
-  // Handle logout
   const handleLogout = () => {
     authActions.logOut();
+    navigation.reset({
+      index: 0,
+      routes: [{name: 'SignInPage'}],
+    });
   };
 
   const renderEditableList = (items, setItems, type) => (
