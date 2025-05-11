@@ -14,7 +14,7 @@ export default {
     resourceEndpoint: 'people',
     isLoading: false,
     error: '',
-    totalItems: 0,
+    totalItems: 0,messages:[], message:{},
     filters: {},
     item: {},
     currentCompany: {},
