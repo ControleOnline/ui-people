@@ -55,6 +55,10 @@
           defaultCompany.id == currentPerson.id
         "
       />
+      <q-tab
+        :name="'connections'"
+        :label="$tt(configs.store, 'tab', 'connections')"
+      />
     </q-tabs>
 
     <q-tab-panels v-model="tab">
@@ -198,6 +202,11 @@
           <PeopleList context="franchisee" :myCompany="currentPerson" />
         </div>
       </q-tab-panel>
+      <q-tab-panel class="items-center" name="connections">
+        <div class="q-pt-lg">
+          <Connections  :currentPerson="currentPerson" />
+        </div>
+      </q-tab-panel>
     </q-tab-panels>
   </q-page>
 </template>
@@ -209,6 +218,7 @@ import CRMDetails from "@controleonline/ui-crm/src/vue/pages/CRM";
 import TaskDetails from "@controleonline/ui-tasks/src/vue/components/Tasks";
 import Invoice from "@controleonline/ui-financial/src/vue/components/Invoice";
 import Orders from "@controleonline/ui-orders/src/vue/components/Orders.vue";
+import Connections from "@controleonline/ui-common/src/vue/components/Common/Connections";
 
 import EmailsList from "../Emails/ListEmails.vue";
 import PhonesList from "../Phones/List.vue";
@@ -225,6 +235,7 @@ import getConfigs from "./Configs";
 export default {
   components: {
     DefaultDetail,
+    Connections,
     Invoice,
     Orders,
     CRMDetails,
