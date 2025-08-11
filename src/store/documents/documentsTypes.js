@@ -8,7 +8,7 @@ export default {
   state: {
     item: {},
     items: [],
-    resourceEndpoint: 'documents',
+    resourceEndpoint: 'document_types',
     isLoading: false,
     error: '',
 
@@ -16,28 +16,7 @@ export default {
     messages: [],
     message: {},
     filters: {},
-    columns: [
-      {
-        sortable: true,
-        name: 'type',
-        editable: false,
-        label: 'type',
-        align: 'left',
-        format(value, column, row) {
-          return row?.documentType?.documentType;
-        },
-      },
-      {
-        sortable: true,
-        name: 'document',
-        editable: false,
-        label: 'document',
-        align: 'left',
-        format(value, column, row) {
-          return value;
-        },
-      },
-    ],
+    columns: [],
   },
   actions: actions,
   getters,

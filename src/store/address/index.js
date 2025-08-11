@@ -1,106 +1,108 @@
-import * as actions from "@controleonline/ui-default/src/store/default/actions";
-import * as getters from "@controleonline/ui-default/src/store/default/getters";
-import mutations from "@controleonline/ui-default/src/store/default/mutations";
-import Formatter from "@controleonline/ui-common/src/utils/formatter.js";
+import * as actions from '@controleonline/ui-default/src/store/default/actions';
+import * as getters from '@controleonline/ui-default/src/store/default/getters';
+import mutations from '@controleonline/ui-default/src/store/default/mutations';
+import Formatter from '@controleonline/ui-common/src/utils/formatter.js';
 
 export default {
   namespaced: true,
   state: {
- item:{},
-items:[],
-    resourceEndpoint: "addresses",
+    item: {},
+    items: [],
+    resourceEndpoint: 'addresses',
     isLoading: false,
-    error: "",
-    
-    totalItems: 0,messages:[], message:{},
+    error: '',
+
+    totalItems: 0,
+    messages: [],
+    message: {},
     filters: {},
     columns: [
       {
         sortable: true,
-        name: "nickname",
+        name: 'nickname',
         editable: false,
-        label: "nickname",
-        align: "left",
+        label: 'nickname',
+        align: 'left',
         format(value, column, row) {
           return row?.nickname;
         },
       },
       {
         sortable: true,
-        name: "cep",
+        name: 'cep',
         editable: false,
-        label: "CEP",
-        align: "left",
+        label: 'CEP',
+        align: 'left',
         format(value, column, row) {
           return row?.street?.cep?.cep || row?.postal_code || row?.cep;
         },
       },
       {
         sortable: true,
-        name: "street",
+        name: 'street',
         editable: false,
-        label: "street",
-        align: "left",
+        label: 'street',
+        align: 'left',
         format(value, column, row) {
           return row?.street?.street || row?.street;
         },
       },
       {
         sortable: true,
-        name: "number",
+        name: 'number',
         editable: false,
-        label: "number",
-        align: "left",
+        label: 'number',
+        align: 'left',
         format(value, column, row) {
           return row?.number;
         },
       },
       {
         sortable: true,
-        name: "complement",
+        name: 'complement',
         editable: false,
-        label: "complement",
-        align: "left",
+        label: 'complement',
+        align: 'left',
         format(value, column, row) {
           return row?.complement;
         },
       },
       {
         sortable: true,
-        name: "district",
+        name: 'district',
         editable: false,
-        label: "district",
-        align: "left",
+        label: 'district',
+        align: 'left',
         format(value, column, row) {
           return row?.street?.district?.district || row?.district;
         },
       },
       {
         sortable: true,
-        name: "city",
+        name: 'city',
         editable: false,
-        label: "city",
-        align: "left",
+        label: 'city',
+        align: 'left',
         format(value, column, row) {
           return row?.street?.district?.city?.city || row?.city;
         },
       },
       {
         sortable: true,
-        name: "state",
+        name: 'state',
         editable: false,
-        label: "state",
-        align: "left",
+        label: 'state',
+        align: 'left',
         format(value, column, row) {
           return row?.street?.district?.city?.state?.state || row?.state;
         },
       },
       {
         sortable: true,
-        name: "country",
+        name: 'country',
         editable: false,
-        label: "country",
-        align: "left",
+        label: 'country',
+        align: 'left',
         format(value, column, row) {
           return (
             row?.street?.district?.city?.state?.country?.countryname ||
@@ -111,20 +113,20 @@ items:[],
       },
       {
         sortable: true,
-        name: "searchFor",
+        name: 'searchFor',
         editable: false,
-        label: "searchFor",
-        align: "left",
+        label: 'searchFor',
+        align: 'left',
         format(value, column, row) {
           return row?.searchFor;
         },
       },
       {
         sortable: true,
-        name: "openingHours",
+        name: 'openingHours',
         editable: false,
-        label: "openingHours",
-        align: "left",
+        label: 'openingHours',
+        align: 'left',
         format(value, column, row) {
           return row?.openingHours;
         },
