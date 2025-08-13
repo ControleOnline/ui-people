@@ -1,11 +1,7 @@
-import { StyleSheet } from 'react-native';
+import {StyleSheet} from 'react-native';
 import globalStyles from '@controleonline/ui-layout/src/react/styles/global';
-import { getStore } from '@store';
 
 const css = () => {
-  const { getters } = getStore('theme');
-  const { colors } = getters;
-
   const styles = StyleSheet.create({
     Profile: {
       flex: 1,
@@ -99,7 +95,7 @@ const css = () => {
     },
   });
 
-  return { styles, globalStyles: globalStyles() };
+  return {styles, globalStyles: globalStyles()};
 };
 
 export default css;

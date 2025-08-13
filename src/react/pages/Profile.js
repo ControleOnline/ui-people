@@ -9,14 +9,16 @@ import {
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import css from '@controleonline/ui-people/src/react/css/people';
-import {getStore} from '@store';
-import {useNavigation, useFocusEffect} from '@react-navigation/native';
+import {useStores} from '@store';
+import {useFocusEffect} from '@react-navigation/native';
 import md5 from 'md5';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const Profile = ({navigation}) => {
-  const {styles, globalStyles} = css();
-  const {getters: userGetters, actions: authActions} = getStore('auth');
+  const {styles} = css();
+  const authStore = useStores(state => state.auth);
+  const userGetters = authStore.getters;
+  const authActions = authStore.actions;
   const {user} = userGetters;
   const [phones, setPhones] = useState([]);
   const [emails, setEmails] = useState([]);
@@ -33,7 +35,9 @@ const Profile = ({navigation}) => {
   );
 
   const getAvatarUrl = () => {
-    if (!user?.email) return 'https://www.gravatar.com/avatar/?d=identicon';
+    if (!user?.email) {
+      return 'https://www.gravatar.com/avatar/?d=identicon';
+    }
     const emailHash = md5(user.email.trim().toLowerCase());
     return `https://www.gravatar.com/avatar/${emailHash}?s=200&d=identicon`;
   };
