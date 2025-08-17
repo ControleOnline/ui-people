@@ -14,11 +14,12 @@ export default {
     resourceEndpoint: 'people',
     isLoading: false,
     error: '',
-    totalItems: 0,messages:[], message:{},
+    totalItems: 0,
+    messages: [],
+    message: {},
     filters: {},
-    item: {},
     currentCompany: {},
-    defaultCompany:{},
+    defaultCompany: {},
     companies: [],
     columns: [
       {

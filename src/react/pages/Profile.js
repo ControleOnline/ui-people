@@ -10,12 +10,12 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import css from '@controleonline/ui-people/src/react/css/people';
 import {getStore} from '@store';
-import {useNavigation, useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import md5 from 'md5';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const Profile = ({navigation}) => {
-  const {styles, globalStyles} = css();
+  const {styles} = css();
   const {getters: userGetters, actions: authActions} = getStore('auth');
   const {user} = userGetters;
   const [phones, setPhones] = useState([]);
