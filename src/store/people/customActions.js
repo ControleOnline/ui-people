@@ -1,59 +1,61 @@
-import {api} from '@controleonline/ui-common/src/api';
+import { api } from "@controleonline/ui-common/src/api";
+import {APP_ENV} from '../../../../../../config/env';
+import * as customTypes from "./mutation_types";
+import * as types from "@controleonline/ui-default/src/store/default/mutation_types";
 
-import * as customTypes from './mutation_types';
-import * as types from '@controleonline/ui-default/src/store/default/mutation_types';
+const RESOURCE_ENDPOINT = "/people";
 
-const RESOURCE_ENDPOINT = '/people';
-
-export const company = ({commit}, values) => {
-  commit(types.SET_ERROR, '');
+export const company = ({ commit }, values) => {
+  commit(types.SET_ERROR, "");
   commit(types.SET_ISLOADING);
 
   return api
-    .fetch(RESOURCE_ENDPOINT, {method: 'POST', body: values})
-    .then(response => {
+    .fetch(RESOURCE_ENDPOINT, { method: "POST", body: values })
+    .then((response) => {
       commit(types.SET_ISLOADING, false);
 
       return response;
     })
 
-    .catch(e => {
+    .catch((e) => {
       commit(types.SET_ISLOADING, false);
       commit(types.SET_ERROR, e.message);
       throw e;
     });
 };
 
-export const myCompanies = ({commit, getters}) => {
+export const myCompanies = ({ commit, getters }) => {
   commit(types.SET_ISLOADING, false);
   let url = `${RESOURCE_ENDPOINT}/companies/my`;
   return api
     .fetch(url)
-    .then(data => {
+    .then((data) => {
       commit(types.SET_ISLOADING, false);
       if (data.response?.data) {
         commit(customTypes.SET_COMPANIES, data.response.data);
       }
-      setCurrentCompany({commit, getters});
+      setCurrentCompany({ commit, getters });
       return data.response;
     })
-    .catch(e => {
+    .catch((e) => {
       commit(types.SET_ISLOADING, false);
       commit(types.SET_ERROR, e.message);
       throw e;
     });
 };
 
-export const defaultCompany = ({commit, getters}) => {
+export const defaultCompany = ({ commit, getters }) => {
   commit(types.SET_ISLOADING, false);
 
+  const values = { "app-domain": APP_ENV.DOMAIN || location.host};
+
   return api
-    .fetch(`${RESOURCE_ENDPOINT}/company/default`)
-    .then(data => {
+    .fetch(`${RESOURCE_ENDPOINT}/company/default`, { params: values })
+    .then((data) => {
       commit(customTypes.SET_DEFAULT_COMPANY, data.response?.data);
       return data.response;
     })
-    .catch(e => {
+    .catch((e) => {
       commit(types.SET_ERROR, e.message);
       throw e;
     })
@@ -62,8 +64,8 @@ export const defaultCompany = ({commit, getters}) => {
     });
 };
 
-export const setCurrentCompany = ({commit, getters}, company = null) => {
-  let session = JSON.parse(localStorage.getItem('session') || '{}');
+export const setCurrentCompany = ({ commit, getters }, company = null) => {
+  let session = JSON.parse(localStorage.getItem("session") || "{}");
   let selected = company?.id || session.mycompany;
   let currentCompany;
 
@@ -76,7 +78,7 @@ export const setCurrentCompany = ({commit, getters}, company = null) => {
 
   if (selected != -1) {
     currentCompany = getters.companies.find(
-      companies => companies.id === selected,
+      (companies) => companies.id === selected
     );
   } else {
     currentCompany = selected;
@@ -87,14 +89,14 @@ export const setCurrentCompany = ({commit, getters}, company = null) => {
   }
 
   session.mycompany = selected;
-  localStorage.setItem('session', JSON.stringify(session));
+  localStorage.setItem("session", JSON.stringify(session));
 };
 
-export const getPeople = ({commit}, id) => {
+export const getPeople = ({ commit }, id) => {
   return api
     .fetch(`${RESOURCE_ENDPOINT}/${id}`)
 
-    .then(data => {
+    .then((data) => {
       return data;
     });
 };
