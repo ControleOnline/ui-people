@@ -1,5 +1,5 @@
 import { api } from "@controleonline/ui-common/src/api";
-import {APP_ENV} from '../../../../../../config/env';
+import { APP_ENV } from "../../../../../../config/env";
 import * as customTypes from "./mutation_types";
 import * as types from "@controleonline/ui-default/src/store/default/mutation_types";
 
@@ -24,7 +24,7 @@ export const company = ({ commit }, values) => {
     });
 };
 
-export const myCompanies = ({ commit, getters }) => {
+export const myCompanies = ({ commit, getters }, payload) => {
   commit(types.SET_ISLOADING, false);
   let url = `${RESOURCE_ENDPOINT}/companies/my`;
   return api
@@ -32,6 +32,21 @@ export const myCompanies = ({ commit, getters }) => {
     .then((data) => {
       commit(types.SET_ISLOADING, false);
       if (data.response?.data) {
+        data.response.data.push({
+          id: payload.user.id,
+          alias: payload.user.realname,
+          enabled: true,
+          logo: null,
+          permission: ["guest"],
+          user: {
+            alias: payload.user.realname,
+            employee_enabled: true,
+            enabled: true,
+            id: payload.user.id,
+            name: payload.user.realname,
+            salesman_enabled: false,
+          },
+        });        
         commit(customTypes.SET_COMPANIES, data.response.data);
       }
       setCurrentCompany({ commit, getters });
@@ -47,7 +62,7 @@ export const myCompanies = ({ commit, getters }) => {
 export const defaultCompany = ({ commit, getters }) => {
   commit(types.SET_ISLOADING, false);
 
-  const values = { "app-domain": APP_ENV.DOMAIN || location.host};
+  const values = { "app-domain": APP_ENV.DOMAIN || location.host };
 
   return api
     .fetch(`${RESOURCE_ENDPOINT}/company/default`, { params: values })
