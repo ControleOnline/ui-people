@@ -32,18 +32,19 @@ export const myCompanies = ({ commit, getters }, payload) => {
     .then((data) => {
       commit(types.SET_ISLOADING, false);
       if (data.response?.data) {
+        let payload = data.response?.data;
         data.response.data.push({
-          id: payload.user.id,
-          alias: payload.user.realname,
+          id: payload.id,
+          alias: payload.realname,
           enabled: true,
           logo: null,
           permission: ["guest"],
           user: {
-            alias: payload.user.realname,
+            alias: payload.realname,
             employee_enabled: true,
             enabled: true,
-            id: payload.user.id,
-            name: payload.user.realname,
+            id: payload.id,
+            name: payload.realname,
             salesman_enabled: false,
           },
         });        
