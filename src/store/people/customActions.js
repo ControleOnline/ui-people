@@ -31,25 +31,7 @@ export const myCompanies = ({ commit, getters }, payload) => {
     .fetch(url)
     .then((data) => {
       commit(types.SET_ISLOADING, false);
-      if (data.response?.data) {
-        let payload = data.response?.data;
-        data.response.data.push({
-          id: payload.id,
-          alias: payload.realname,
-          enabled: true,
-          logo: null,
-          permission: ["guest"],
-          user: {
-            alias: payload.realname,
-            employee_enabled: true,
-            enabled: true,
-            id: payload.id,
-            name: payload.realname,
-            salesman_enabled: false,
-          },
-        });        
-        commit(customTypes.SET_COMPANIES, data.response.data);
-      }
+      commit(customTypes.SET_COMPANIES, data.response?.data || []);
       setCurrentCompany({ commit, getters });
       return data.response;
     })
