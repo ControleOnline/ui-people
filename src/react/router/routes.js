@@ -1,12 +1,18 @@
 import Profile from '@controleonline/ui-people/src/react/pages/Profile';
-import ShopLayout from '@controleonline/ui-layout/src/react/layouts/ShopLayout';
+// import ShopLayout from '@controleonline/ui-layout/src/react/layouts/ShopLayout';
+import CrmLayout from '@controleonline/ui-layout/src/react/layouts/CrmLayout';
 
 import React from 'react';
 
+// const WrappedProfile = ({navigation, route}) => (
+//   <ShopLayout navigation={navigation} route={route}>
+//     <Profile navigation={navigation} route={route} />
+//   </ShopLayout>
+// );
 const WrappedProfile = ({navigation, route}) => (
-  <ShopLayout navigation={navigation} route={route}>
+  <CrmLayout navigation={navigation} route={route}>
     <Profile navigation={navigation} route={route} />
-  </ShopLayout>
+  </CrmLayout>
 );
 
 const peopleRoutes = [
