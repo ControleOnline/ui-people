@@ -9,14 +9,16 @@ import {
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import css from '@controleonline/ui-people/src/react/css/people';
-import {getStore} from '@store';
+import {useStores} from '@store';
 import {useFocusEffect} from '@react-navigation/native';
 import md5 from 'md5';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const Profile = ({navigation}) => {
   const {styles} = css();
-  const {getters: userGetters, actions: authActions} = getStore('auth');
+  const authStore = useStores(state => state.auth);
+  const userGetters = authStore.getters;
+  const authActions = authStore.actions;
   const {user} = userGetters;
   const [phones, setPhones] = useState([]);
   const [emails, setEmails] = useState([]);
