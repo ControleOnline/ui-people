@@ -4,10 +4,10 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
+  SafeAreaView,
   TextInput,
   Image,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import css from '@controleonline/ui-people/src/react/css/people';
 import {useStore} from '@store';
 import {useFocusEffect} from '@react-navigation/native';
