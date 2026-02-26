@@ -1,88 +1,192 @@
-import {StyleSheet} from 'react-native';
+import { StyleSheet } from 'react-native';
+import { colors } from '@controleonline/../../src/styles/colors';
 import globalStyles from '@controleonline/ui-layout/src/react/styles/global';
 
 const css = () => {
   const styles = StyleSheet.create({
     Profile: {
       flex: 1,
-      backgroundColor: '#f5f5f5',
+      backgroundColor: colors.background,
     },
     scrollContent: {
-      paddingBottom: 20,
+      paddingBottom: 40,
     },
     headerContainer: {
       alignItems: 'center',
-      padding: 20,
-      backgroundColor: '#1E88E5',
+      paddingTop: 32,
+      paddingBottom: 24,
+      backgroundColor: colors.background,
+    },
+    avatarContainer: {
+      position: 'relative',
+      marginBottom: 16,
     },
     avatar: {
-      width: 100,
-      height: 100,
-      borderRadius: 50,
-      marginBottom: 10,
-      borderWidth: 2,
-      borderColor: '#fff',
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: colors.white,
+      borderWidth: 4,
+      borderColor: colors.white,
+      shadowColor: '#64748B',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.1,
+      shadowRadius: 16,
+      elevation: 4,
+    },
+    editAvatarButton: {
+      position: 'absolute',
+      bottom: 0,
+      right: 0,
+      backgroundColor: colors.primary,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 3,
+      borderColor: colors.white,
     },
     userName: {
-      fontSize: 20,
+      fontSize: 24,
       fontWeight: 'bold',
-      color: '#fff',
-      marginBottom: 15,
+      color: colors.text,
+      marginBottom: 4,
       textAlign: 'center',
     },
-    logoutButton: {
-      paddingVertical: 8,
-      paddingHorizontal: 20,
-      backgroundColor: '#fff',
-      borderRadius: 20,
-    },
-    logoutButtonText: {
-      color: '#1E88E5',
-      fontWeight: '600',
+    userEmail: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: 'center',
     },
     contentContainer: {
-      padding: 20,
+      paddingHorizontal: 20,
     },
-    listContainer: {
-      marginBottom: 20,
+    sectionContainer: {
+      marginBottom: 24,
     },
     sectionHeader: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 10,
+      justifyContent: 'space-between',
+      marginBottom: 12,
+      paddingHorizontal: 4,
     },
     sectionTitle: {
       fontSize: 18,
-      fontWeight: '600',
-      color: '#333',
+      fontWeight: '700',
+      color: colors.text,
     },
-    addIcon: {
-      color: '#1E88E5',
+    addButton: {
+      backgroundColor: colors.primary,
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
-    listItem: {
+    cardItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 10,
-      backgroundColor: '#fff',
-      borderRadius: 8,
-      padding: 10,
+      backgroundColor: colors.white,
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 8,
+      shadowColor: '#64748B',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 1,
+    },
+    cardIcon: {
+      marginRight: 12,
     },
     input: {
       flex: 1,
-      fontSize: 16,
-      borderWidth: 1,
-      borderColor: '#ddd',
-      borderRadius: 4,
-      padding: 8,
-      marginRight: 10,
-      color: '#333',
-      backgroundColor: '#fff',
+      fontSize: 15,
+      color: colors.text,
+      padding: 0,
+      outlineStyle: 'none',
     },
-    deleteButton: {
-      fontSize: 24,
-      color: '#ff4444',
-      marginLeft: 10,
+    deleteAction: {
+      padding: 4,
+    },
+    menuItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.white,
+      borderRadius: 16,
+      padding: 16,
+      shadowColor: '#64748B',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    menuIconContainer: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 16,
+    },
+    menuItemText: {
+      flex: 1,
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    logoutButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#FEF2F2',
+      borderRadius: 12,
+      paddingVertical: 16,
+      marginTop: 8,
+      marginBottom: 24,
+      borderWidth: 1,
+      borderColor: '#FEE2E2',
+    },
+    saveButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      paddingVertical: 14,
+      marginBottom: 12,
+      shadowColor: '#0F172A',
+      shadowOffset: {width: 0, height: 4},
+      shadowOpacity: 0.12,
+      shadowRadius: 10,
+      elevation: 3,
+    },
+    saveButtonDisabled: {
+      opacity: 0.65,
+    },
+    saveButtonText: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.white,
+    },
+    logoutButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.error,
+    },
+    versionText: {
+      textAlign: 'center',
+      color: colors.textSecondary,
+      fontSize: 12,
+      marginBottom: 20,
+    },
+    emptyText: {
+      color: colors.textSecondary,
+      fontStyle: 'italic',
+      fontSize: 14,
+      marginLeft: 4,
     },
     errorContainer: {
       flex: 1,
@@ -91,11 +195,11 @@ const css = () => {
     },
     errorText: {
       fontSize: 16,
-      color: '#333',
+      color: colors.text,
     },
   });
 
-  return {styles, globalStyles: globalStyles()};
+  return { styles, globalStyles: globalStyles() };
 };
 
 export default css;

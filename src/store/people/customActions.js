@@ -5,6 +5,19 @@ import * as types from "@controleonline/ui-default/src/store/default/mutation_ty
 
 const RESOURCE_ENDPOINT = "/people";
 
+const unwrapResponseData = (data) => data?.response?.data ?? data?.data ?? data;
+
+const normalizeCollection = (payload) => {
+  if (Array.isArray(payload)) return payload;
+  if (!payload || typeof payload !== "object") return [];
+
+  if (Array.isArray(payload.member)) return payload.member;
+  if (Array.isArray(payload["hydra:member"])) return payload["hydra:member"];
+  if (Array.isArray(payload.items)) return payload.items;
+
+  return [];
+};
+
 export const company = ({ commit }, values) => {
   commit(types.SET_ERROR, "");
   commit(types.SET_ISLOADING);
@@ -30,10 +43,11 @@ export const myCompanies = ({ commit, getters }, payload) => {
   return api
     .fetch(url)
     .then((data) => {
+      const companies = normalizeCollection(unwrapResponseData(data));
       commit(types.SET_ISLOADING, false);
-      commit(customTypes.SET_COMPANIES, data.response?.data || []);
+      commit(customTypes.SET_COMPANIES, companies);
       setCurrentCompany({ commit, getters });
-      return data.response;
+      return companies;
     })
     .catch((e) => {
       commit(types.SET_ISLOADING, false);
@@ -50,8 +64,17 @@ export const defaultCompany = ({ commit, getters }) => {
   return api
     .fetch(`${RESOURCE_ENDPOINT}/company/default`, { params: values })
     .then((data) => {
-      commit(customTypes.SET_DEFAULT_COMPANY, data.response?.data);
-      return data.response;
+      const company = unwrapResponseData(data) || {};
+      commit(customTypes.SET_DEFAULT_COMPANY, company);
+
+      if (
+        company?.id &&
+        (!getters.currentCompany || !getters.currentCompany.id)
+      ) {
+        commit(customTypes.SET_CURRENT_COMPANY, company);
+      }
+
+      return company;
     })
     .catch((e) => {
       commit(types.SET_ERROR, e.message);
@@ -63,30 +86,56 @@ export const defaultCompany = ({ commit, getters }) => {
 };
 
 export const setCurrentCompany = ({ commit, getters }, company = null) => {
-  let session = JSON.parse(localStorage.getItem("session") || "{}");
-  let selected = company?.id || session.mycompany;
-  let currentCompany;
+  const session = JSON.parse(localStorage.getItem("session") || "{}");
+  const companies = Array.isArray(getters.companies) ? getters.companies : [];
+  const defaultCompany = getters.defaultCompany || {};
 
-  for (let index in getters.companies) {
-    let item = getters.companies[index];
-    if (item.enabled && !selected) {
-      selected = item;
-    }
+  let selectedId = company?.id ?? session.mycompany ?? null;
+
+  if (!selectedId && companies.length > 0) {
+    const firstEnabled = companies.find((item) => item?.enabled !== false);
+    selectedId = firstEnabled?.id ?? companies[0]?.id ?? null;
   }
 
-  if (selected != -1) {
-    currentCompany = getters.companies.find(
-      (companies) => companies.id === selected
-    );
-  } else {
-    currentCompany = selected;
+  let currentCompany =
+    companies.find((item) => String(item?.id) === String(selectedId)) || null;
+
+  if (!currentCompany && company && typeof company === "object") {
+    currentCompany = company;
   }
 
-  if (currentCompany) {
+  if (
+    !currentCompany &&
+    defaultCompany?.id &&
+    String(defaultCompany.id) === String(selectedId)
+  ) {
+    currentCompany = defaultCompany;
+  }
+
+  if (
+    currentCompany &&
+    (!currentCompany?.theme || !currentCompany?.theme?.colors) &&
+    defaultCompany?.id &&
+    String(defaultCompany.id) === String(currentCompany.id) &&
+    defaultCompany?.theme
+  ) {
+    currentCompany = {
+      ...currentCompany,
+      theme: defaultCompany.theme,
+      logo: currentCompany.logo || defaultCompany.logo,
+      alias: currentCompany.alias || defaultCompany.alias,
+      name: currentCompany.name || defaultCompany.name,
+      configs: currentCompany.configs || defaultCompany.configs,
+    };
+  }
+
+  if (currentCompany?.id) {
     commit(customTypes.SET_CURRENT_COMPANY, currentCompany);
+    session.mycompany = currentCompany.id;
+  } else {
+    session.mycompany = selectedId || null;
   }
 
-  session.mycompany = selected;
   localStorage.setItem("session", JSON.stringify(session));
 };
 
