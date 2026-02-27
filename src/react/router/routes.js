@@ -8,7 +8,7 @@ const peopleRoutes = [
     options: {
       headerShown: true,
       headerBackVisible: false,
-      tabBarVisible: true,
+      showBottomToolBar: true,
       title: 'Perfil',
     },
     initialParams: {store: 'auth'},
