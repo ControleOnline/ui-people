@@ -7,6 +7,7 @@ import {
   TextInput,
   Image,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import css from '@controleonline/ui-people/src/react/css/people';
@@ -16,6 +17,7 @@ import md5 from 'md5';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '@controleonline/../../src/styles/colors';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
+import {APP_ENV} from '@env';
 
 const {version: appVersion} = require('../../../../../../package.json');
 
@@ -126,6 +128,70 @@ const toEmailItem = entry => {
   };
 };
 
+const getPrimaryEmail = value => {
+  if (!value) {
+    return '';
+  }
+
+  if (typeof value === 'string') {
+    return value.trim();
+  }
+
+  if (Array.isArray(value) && value.length > 0) {
+    const first = value[0];
+    if (typeof first === 'string') {
+      return first.trim();
+    }
+    return String(first?.email || first?.value || '').trim();
+  }
+
+  if (typeof value === 'object') {
+    return String(value?.email || value?.value || '').trim();
+  }
+
+  return '';
+};
+
+const getPrimaryPhone = value => {
+  if (!value) {
+    return '';
+  }
+
+  if (typeof value === 'string' || typeof value === 'number') {
+    return formatPhoneValue(value);
+  }
+
+  if (Array.isArray(value) && value.length > 0) {
+    const first = value[0];
+    if (typeof first === 'string' || typeof first === 'number') {
+      return formatPhoneValue(first);
+    }
+    return formatPhoneValue(`${first?.ddd || ''}${first?.phone || first?.value || ''}`);
+  }
+
+  if (typeof value === 'object') {
+    return formatPhoneValue(`${value?.ddd || ''}${value?.phone || value?.value || ''}`);
+  }
+
+  return '';
+};
+
+const getDisplayName = user =>
+  String(user?.realname || user?.name || user?.username || 'Usuário').trim();
+
+const getAvatarFromUser = user => {
+  if (typeof user?.avatarUrl === 'string' && user.avatarUrl) {
+    return user.avatarUrl;
+  }
+
+  if (user?.avatar?.url) {
+    const domain = user?.avatar?.domain || APP_ENV?.API_ENTRYPOINT || '';
+    return `${domain}${user.avatar.url}`;
+  }
+
+  return '';
+};
+
 const validateEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 const normalizeEmailValue = value => String(value || '').trim().toLowerCase();
 
@@ -170,37 +236,69 @@ const isSameList = (left, right) => {
 const Profile = ({ navigation }) => {
   const { styles } = css();
   const authStore = useStore('auth');
+  const peopleStore = useStore('people');
   const phonesStore = useStore('phones');
   const emailsStore = useStore('emails');
   const {showSuccess, showError} = useMessage() || {};
   const userGetters = authStore.getters;
+  const peopleGetters = peopleStore.getters;
   const authActions = authStore.actions;
   const phonesActions = phonesStore.actions;
   const emailsActions = emailsStore.actions;
   const { user } = userGetters;
+  const {currentCompany} = peopleGetters;
   const [phones, setPhones] = useState([]);
   const [emails, setEmails] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingAvatar, setIsSavingAvatar] = useState(false);
+  const [avatarOverride, setAvatarOverride] = useState('');
   const originalPhoneIds = useRef([]);
   const originalEmailIds = useRef([]);
   const originalPhonesSnapshot = useRef([]);
   const originalEmailsSnapshot = useRef([]);
 
-  const fetchUser = useCallback(() => {
-    const parsedPhones = (Array.isArray(user?.phone) ? user.phone : [user?.phone])
+  const fetchUser = useCallback(async () => {
+    const fallbackPhones = (Array.isArray(user?.phone) ? user.phone : [user?.phone])
       .map(toPhoneItem)
       .filter(item => item && item.value);
-    const parsedEmails = (Array.isArray(user?.email) ? user.email : [user?.email])
+    const fallbackEmails = (Array.isArray(user?.email) ? user.email : [user?.email])
       .map(toEmailItem)
       .filter(item => item && item.value);
 
+    let parsedPhones = fallbackPhones;
+    let parsedEmails = fallbackEmails;
+    const peopleIri = toPeopleIri(user);
+
+    if (peopleIri) {
+      try {
+        const [remotePhones, remoteEmails] = await Promise.all([
+          phonesActions.getItems({people: peopleIri}),
+          emailsActions.getItems({people: peopleIri}),
+        ]);
+
+        const normalizedRemotePhones = (Array.isArray(remotePhones) ? remotePhones : [])
+          .map(toPhoneItem)
+          .filter(item => item && item.value);
+        const normalizedRemoteEmails = (Array.isArray(remoteEmails) ? remoteEmails : [])
+          .map(toEmailItem)
+          .filter(item => item && item.value);
+
+        parsedPhones = normalizedRemotePhones;
+        parsedEmails = normalizedRemoteEmails;
+      } catch (error) {
+        parsedPhones = fallbackPhones;
+        parsedEmails = fallbackEmails;
+      }
+    }
+
     setPhones(parsedPhones);
     setEmails(parsedEmails);
+    setAvatarOverride(getAvatarFromUser(user));
     originalPhoneIds.current = parsedPhones.map(item => item.id).filter(Boolean);
     originalEmailIds.current = parsedEmails.map(item => item.id).filter(Boolean);
     originalPhonesSnapshot.current = normalizePhonesForCompare(parsedPhones);
     originalEmailsSnapshot.current = normalizeEmailsForCompare(parsedEmails);
-  }, [user]);
+  }, [emailsActions, phonesActions, user]);
 
   useFocusEffect(
     useCallback(() => {
@@ -209,8 +307,17 @@ const Profile = ({ navigation }) => {
   );
 
   const getAvatarUrl = () => {
-    if (!user?.email) return 'https://www.gravatar.com/avatar/?d=identicon';
-    const emailHash = md5(user.email.trim().toLowerCase());
+    const persistedAvatar = avatarOverride || getAvatarFromUser(user);
+    if (persistedAvatar) {
+      return persistedAvatar;
+    }
+
+    const firstEmail = emails[0]?.value || getPrimaryEmail(user?.email);
+    if (!firstEmail) {
+      return 'https://www.gravatar.com/avatar/?d=identicon';
+    }
+
+    const emailHash = md5(firstEmail.trim().toLowerCase());
     return `https://www.gravatar.com/avatar/${emailHash}?s=200&d=identicon`;
   };
 
@@ -220,6 +327,93 @@ const Profile = ({ navigation }) => {
       index: 0,
       routes: [{ name: 'SignInPage' }],
     });
+  };
+
+  const uploadAvatarFile = async file => {
+    const session = JSON.parse(localStorage.getItem('session') || '{}');
+    const token = user?.api_key || session?.api_key || session?.token;
+    if (!token) {
+      throw new Error('Sessão inválida para upload da foto.');
+    }
+
+    const peopleIri = toPeopleIri(user);
+    const peopleId = extractId(peopleIri);
+    const companyId = extractId(currentCompany?.id || session?.mycompany || peopleId);
+    const host = APP_ENV?.DOMAIN || (typeof location !== 'undefined' ? location.host : '');
+
+    const formData = new FormData();
+    formData.append('file', file);
+    if (companyId) {
+      formData.append('people', companyId);
+    }
+    if (peopleId) {
+      formData.append('id', peopleId);
+    }
+    formData.append('context', 'profile');
+
+    const apiEntryPoint = String(APP_ENV?.API_ENTRYPOINT || '').replace(/\/$/, '');
+    const response = await fetch(`${apiEntryPoint}/files/upload`, {
+      method: 'POST',
+      headers: {
+        'API-TOKEN': token,
+        'App-Domain': host,
+        Accept: 'application/json',
+      },
+      body: formData,
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || result?.['@type'] === 'Error') {
+      throw new Error(result?.description || result?.message || 'Falha ao enviar foto do perfil.');
+    }
+
+    const fileId = extractId(result?.id || result?.['@id']);
+    if (!fileId) {
+      throw new Error('Upload concluído, mas não retornou o arquivo.');
+    }
+
+    return `${apiEntryPoint}/files/${fileId}/download?app-domain=${encodeURIComponent(host)}`;
+  };
+
+  const handleChangeAvatar = async () => {
+    if (isSavingAvatar) {
+      return;
+    }
+
+    if (Platform.OS !== 'web' || typeof document === 'undefined') {
+      showError?.('Troca de foto disponível somente no modo web nesta versão.');
+      return;
+    }
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+
+    input.onchange = async event => {
+      const file = event?.target?.files?.[0];
+      if (!file) {
+        return;
+      }
+
+      setIsSavingAvatar(true);
+      try {
+        const avatarUrl = await uploadAvatarFile(file);
+        setAvatarOverride(avatarUrl);
+
+        authActions.logIn({
+          ...user,
+          avatarUrl,
+        });
+
+        showSuccess?.('Foto do perfil atualizada com sucesso.');
+      } catch (error) {
+        showError?.(error?.message || 'Não foi possível atualizar a foto do perfil.');
+      } finally {
+        setIsSavingAvatar(false);
+      }
+    };
+
+    input.click();
   };
 
   const syncRemovedItems = async (originalIds, currentIds, removeAction) => {
@@ -365,8 +559,9 @@ const Profile = ({ navigation }) => {
 
       authActions.logIn({
         ...user,
-        phone: persistedPhones[0]?.value || '',
-        email: persistedEmails[0]?.value || '',
+        phone: persistedPhones[0]?.value || getPrimaryPhone(user?.phone),
+        email: persistedEmails[0]?.value || getPrimaryEmail(user?.email),
+        avatarUrl: avatarOverride || user?.avatarUrl || '',
       });
 
       showSuccess?.('Dados do perfil salvos com sucesso.');
@@ -448,12 +643,20 @@ const Profile = ({ navigation }) => {
         <View style={styles.headerContainer}>
           <View style={styles.avatarContainer}>
             <Image source={{ uri: getAvatarUrl() }} style={styles.avatar} />
-            <TouchableOpacity style={styles.editAvatarButton}>
-              <Icon name="camera-alt" size={20} color={colors.white} />
+            <TouchableOpacity
+              style={styles.editAvatarButton}
+              onPress={handleChangeAvatar}
+              activeOpacity={0.85}
+              disabled={isSavingAvatar}>
+              {isSavingAvatar ? (
+                <ActivityIndicator size="small" color={colors.white} />
+              ) : (
+                <Icon name="camera-alt" size={20} color={colors.white} />
+              )}
             </TouchableOpacity>
           </View>
-          <Text style={styles.userName}>{user.realname}</Text>
-          <Text style={styles.userEmail}>{user.email}</Text>
+          <Text style={styles.userName}>{getDisplayName(user)}</Text>
+          <Text style={styles.userEmail}>{emails[0]?.value || getPrimaryEmail(user?.email)}</Text>
         </View>
 
         <View style={styles.contentContainer}>
