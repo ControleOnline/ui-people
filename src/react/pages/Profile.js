@@ -17,6 +17,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '@controleonline/../../src/styles/colors';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 
+const {version: appVersion} = require('../../../../../../package.json');
+
 const extractPhoneDigits = value =>
   String(value || '')
     .replace(/\D/g, '')
@@ -423,7 +425,7 @@ const Profile = ({ navigation }) => {
         </View>
       ))}
       {items.length === 0 && (
-        <Text style={styles.emptyText}>Nenhum {type === 'phone' ? 'telefone' : 'e-mail'} cadastrado</Text>
+        <Text style={styles.emptyText}>Nenhum {type === 'phone' ? global.t?.t("profile", "text", "phone") : 'e-mail'} cadastrado</Text>
       )}
     </View>
   );
@@ -474,7 +476,7 @@ const Profile = ({ navigation }) => {
                     color={colors.white}
                     style={{marginRight: 8}}
                   />
-                  <Text style={styles.saveButtonText}>Salvar alteracoes</Text>
+                  <Text style={styles.saveButtonText}>{global.t?.t("profile", "label", "save")}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -482,10 +484,10 @@ const Profile = ({ navigation }) => {
 
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
             <Icon name="logout" size={20} color={colors.error} style={{ marginRight: 8 }} />
-            <Text style={styles.logoutButtonText}>Sair da conta</Text>
+            <Text style={styles.logoutButtonText}>{global.t?.t("profile", "label", "logout")}</Text>
           </TouchableOpacity>
 
-          <Text style={styles.versionText}>{'Vers\u00E3o 1.0.0'}</Text>
+          <Text style={styles.versionText}>{`${global.t?.t("profile", "label", "version")} ${appVersion}`}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
