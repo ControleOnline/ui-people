@@ -7,7 +7,8 @@ const peopleRoutes = [
     component: Profile,
     options: {
       headerShown: true,
-      headerBackVisible: true,
+      headerBackVisible: false,
+      tabBarVisible: true,
       title: 'Perfil',
     },
     initialParams: {store: 'auth'},
