@@ -381,7 +381,7 @@ const Profile = ({ navigation }) => {
     <View style={styles.sectionContainer}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>
-          {type === 'phone' ? 'Telefones' : 'E-mails'}
+          {type === 'phone' ? global.t?.t("profile", "label", "phones") : global.t?.t("profile", "text", "email")}
         </Text>
         <TouchableOpacity
           onPress={() => setItems([...items, {id: '', value: ''}])}
