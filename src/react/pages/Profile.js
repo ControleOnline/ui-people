@@ -194,6 +194,10 @@ const getAvatarFromUser = user => {
 
 const validateEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 const normalizeEmailValue = value => String(value || '').trim().toLowerCase();
+const normalizeNameValue = value =>
+  String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 const normalizePhonesForCompare = items =>
   (Array.isArray(items) ? items : [])
@@ -243,61 +247,75 @@ const Profile = ({ navigation }) => {
   const userGetters = authStore.getters;
   const peopleGetters = peopleStore.getters;
   const authActions = authStore.actions;
+  const peopleActions = peopleStore.actions;
   const phonesActions = phonesStore.actions;
   const emailsActions = emailsStore.actions;
   const { user } = userGetters;
   const {currentCompany} = peopleGetters;
   const [phones, setPhones] = useState([]);
   const [emails, setEmails] = useState([]);
+  const [profileName, setProfileName] = useState('');
+  const [isEditingName, setIsEditingName] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isFetchingProfile, setIsFetchingProfile] = useState(true);
   const [isSavingAvatar, setIsSavingAvatar] = useState(false);
   const [avatarOverride, setAvatarOverride] = useState('');
   const originalPhoneIds = useRef([]);
   const originalEmailIds = useRef([]);
   const originalPhonesSnapshot = useRef([]);
   const originalEmailsSnapshot = useRef([]);
+  const originalNameSnapshot = useRef('');
 
   const fetchUser = useCallback(async () => {
-    const fallbackPhones = (Array.isArray(user?.phone) ? user.phone : [user?.phone])
-      .map(toPhoneItem)
-      .filter(item => item && item.value);
-    const fallbackEmails = (Array.isArray(user?.email) ? user.email : [user?.email])
-      .map(toEmailItem)
-      .filter(item => item && item.value);
+    setIsFetchingProfile(true);
+    try {
+      const fallbackPhones = (Array.isArray(user?.phone) ? user.phone : [user?.phone])
+        .map(toPhoneItem)
+        .filter(item => item && item.value);
+      const fallbackEmails = (Array.isArray(user?.email) ? user.email : [user?.email])
+        .map(toEmailItem)
+        .filter(item => item && item.value);
 
-    let parsedPhones = fallbackPhones;
-    let parsedEmails = fallbackEmails;
-    const peopleIri = toPeopleIri(user);
+      let parsedPhones = fallbackPhones;
+      let parsedEmails = fallbackEmails;
+      const peopleIri = toPeopleIri(user);
 
-    if (peopleIri) {
-      try {
-        const [remotePhones, remoteEmails] = await Promise.all([
-          phonesActions.getItems({people: peopleIri}),
-          emailsActions.getItems({people: peopleIri}),
-        ]);
+      if (peopleIri) {
+        try {
+          const [remotePhones, remoteEmails] = await Promise.all([
+            phonesActions.getItems({people: peopleIri}),
+            emailsActions.getItems({people: peopleIri}),
+          ]);
 
-        const normalizedRemotePhones = (Array.isArray(remotePhones) ? remotePhones : [])
-          .map(toPhoneItem)
-          .filter(item => item && item.value);
-        const normalizedRemoteEmails = (Array.isArray(remoteEmails) ? remoteEmails : [])
-          .map(toEmailItem)
-          .filter(item => item && item.value);
+          const normalizedRemotePhones = (Array.isArray(remotePhones) ? remotePhones : [])
+            .map(toPhoneItem)
+            .filter(item => item && item.value);
+          const normalizedRemoteEmails = (Array.isArray(remoteEmails) ? remoteEmails : [])
+            .map(toEmailItem)
+            .filter(item => item && item.value);
 
-        parsedPhones = normalizedRemotePhones;
-        parsedEmails = normalizedRemoteEmails;
-      } catch (error) {
-        parsedPhones = fallbackPhones;
-        parsedEmails = fallbackEmails;
+          parsedPhones = normalizedRemotePhones;
+          parsedEmails = normalizedRemoteEmails;
+        } catch (error) {
+          parsedPhones = fallbackPhones;
+          parsedEmails = fallbackEmails;
+        }
       }
-    }
 
-    setPhones(parsedPhones);
-    setEmails(parsedEmails);
-    setAvatarOverride(getAvatarFromUser(user));
-    originalPhoneIds.current = parsedPhones.map(item => item.id).filter(Boolean);
-    originalEmailIds.current = parsedEmails.map(item => item.id).filter(Boolean);
-    originalPhonesSnapshot.current = normalizePhonesForCompare(parsedPhones);
-    originalEmailsSnapshot.current = normalizeEmailsForCompare(parsedEmails);
+      setPhones(parsedPhones);
+      setEmails(parsedEmails);
+      setAvatarOverride(getAvatarFromUser(user));
+      const loadedName = normalizeNameValue(getDisplayName(user));
+      setProfileName(loadedName);
+      setIsEditingName(false);
+      originalPhoneIds.current = parsedPhones.map(item => item.id).filter(Boolean);
+      originalEmailIds.current = parsedEmails.map(item => item.id).filter(Boolean);
+      originalPhonesSnapshot.current = normalizePhonesForCompare(parsedPhones);
+      originalEmailsSnapshot.current = normalizeEmailsForCompare(parsedEmails);
+      originalNameSnapshot.current = loadedName;
+    } finally {
+      setIsFetchingProfile(false);
+    }
   }, [emailsActions, phonesActions, user]);
 
   useFocusEffect(
@@ -526,12 +544,14 @@ const Profile = ({ navigation }) => {
   const hasUnsavedChanges = useMemo(() => {
     const currentPhones = normalizePhonesForCompare(phones);
     const currentEmails = normalizeEmailsForCompare(emails);
+    const currentName = normalizeNameValue(profileName);
 
     return (
       !isSameList(currentPhones, originalPhonesSnapshot.current) ||
-      !isSameList(currentEmails, originalEmailsSnapshot.current)
+      !isSameList(currentEmails, originalEmailsSnapshot.current) ||
+      currentName !== originalNameSnapshot.current
     );
-  }, [phones, emails]);
+  }, [phones, emails, profileName]);
 
   const handleSave = async () => {
     if (isSaving || !hasUnsavedChanges) {
@@ -547,18 +567,56 @@ const Profile = ({ navigation }) => {
     setIsSaving(true);
 
     try {
-      const persistedPhones = await savePhones(peopleIri);
-      const persistedEmails = await saveEmails(peopleIri);
+      const normalizedName = normalizeNameValue(profileName);
+      if (!normalizedName) {
+        throw new Error('Informe um nome valido.');
+      }
+
+      const phonesChanged = !isSameList(
+        normalizePhonesForCompare(phones),
+        originalPhonesSnapshot.current,
+      );
+      const emailsChanged = !isSameList(
+        normalizeEmailsForCompare(emails),
+        originalEmailsSnapshot.current,
+      );
+      const nameChanged = normalizedName !== originalNameSnapshot.current;
+
+      let persistedPhones = phones;
+      let persistedEmails = emails;
+
+      if (phonesChanged) {
+        persistedPhones = await savePhones(peopleIri);
+      }
+
+      if (emailsChanged) {
+        persistedEmails = await saveEmails(peopleIri);
+      }
+
+      if (nameChanged) {
+        const peopleId = extractId(peopleIri);
+        if (peopleId && peopleActions?.save) {
+          await peopleActions.save({
+            id: peopleId,
+            name: normalizedName,
+          });
+        }
+      }
 
       setPhones(persistedPhones);
       setEmails(persistedEmails);
+      setProfileName(normalizedName);
+      setIsEditingName(false);
       originalPhoneIds.current = persistedPhones.map(item => item.id).filter(Boolean);
       originalEmailIds.current = persistedEmails.map(item => item.id).filter(Boolean);
       originalPhonesSnapshot.current = normalizePhonesForCompare(persistedPhones);
       originalEmailsSnapshot.current = normalizeEmailsForCompare(persistedEmails);
+      originalNameSnapshot.current = normalizedName;
 
       authActions.logIn({
         ...user,
+        realname: normalizedName,
+        name: normalizedName,
         phone: persistedPhones[0]?.value || getPrimaryPhone(user?.phone),
         email: persistedEmails[0]?.value || getPrimaryEmail(user?.email),
         avatarUrl: avatarOverride || user?.avatarUrl || '',
@@ -589,7 +647,7 @@ const Profile = ({ navigation }) => {
           <Icon
             name={type === 'phone' ? 'phone' : 'email'}
             size={20}
-            color={colors.textSecondary}
+            color={colors.primary}
             style={styles.cardIcon}
           />
           <TextInput
@@ -625,6 +683,33 @@ const Profile = ({ navigation }) => {
     </View>
   );
 
+  const renderProfileSkeleton = () => (
+    <SafeAreaView style={styles.Profile}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.loadingSkeletonContainer}>
+          <View style={styles.skeletonAvatar} />
+          <View style={styles.skeletonName} />
+          <View style={styles.skeletonEmail} />
+        </View>
+
+        <View style={styles.contentContainer}>
+          <View style={styles.skeletonSection}>
+            <View style={styles.skeletonSectionHeader} />
+            <View style={styles.skeletonLine} />
+            <View style={styles.skeletonLine} />
+            <View style={styles.skeletonLine} />
+          </View>
+
+          <View style={styles.skeletonSection}>
+            <View style={styles.skeletonSectionHeader} />
+            <View style={styles.skeletonLine} />
+            <View style={styles.skeletonLine} />
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+
   if (!user) {
     return (
       <SafeAreaView style={styles.Profile}>
@@ -635,6 +720,10 @@ const Profile = ({ navigation }) => {
         </View>
       </SafeAreaView>
     );
+  }
+
+  if (isFetchingProfile) {
+    return renderProfileSkeleton();
   }
 
   return (
@@ -655,8 +744,38 @@ const Profile = ({ navigation }) => {
               )}
             </TouchableOpacity>
           </View>
-          <Text style={styles.userName}>{getDisplayName(user)}</Text>
-          <Text style={styles.userEmail}>{emails[0]?.value || getPrimaryEmail(user?.email)}</Text>
+          <View style={styles.userNameRow}>
+            {isEditingName ? (
+              <TextInput
+                style={styles.userNameInput}
+                value={profileName}
+                onChangeText={setProfileName}
+                placeholder="Nome do usuario"
+                placeholderTextColor={colors.textSecondary}
+                maxLength={80}
+                returnKeyType="done"
+                onBlur={() => setIsEditingName(false)}
+                onSubmitEditing={() => setIsEditingName(false)}
+              />
+            ) : (
+              <Text style={styles.userName} numberOfLines={1} ellipsizeMode="tail">
+                {profileName || getDisplayName(user)}
+              </Text>
+            )}
+            <TouchableOpacity
+              style={styles.editNameButton}
+              onPress={() => setIsEditingName(prev => !prev)}
+              activeOpacity={0.85}>
+              <Icon
+                name={isEditingName ? 'check' : 'edit'}
+                size={18}
+                color={colors.primary}
+              />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.userEmail} numberOfLines={1} ellipsizeMode="tail">
+            {emails[0]?.value || getPrimaryEmail(user?.email)}
+          </Text>
         </View>
 
         <View style={styles.contentContainer}>
