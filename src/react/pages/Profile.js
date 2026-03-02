@@ -250,7 +250,19 @@ const Profile = ({ navigation }) => {
   const peopleActions = peopleStore.actions;
   const phonesActions = phonesStore.actions;
   const emailsActions = emailsStore.actions;
-  const { user } = userGetters;
+  const { user: storeUser } = userGetters;
+  const user = useMemo(() => {
+    if (storeUser && Object.keys(storeUser).length > 0) {
+      return storeUser;
+    }
+
+    try {
+      const sessionUser = JSON.parse(localStorage.getItem('session') || '{}');
+      return sessionUser && Object.keys(sessionUser).length > 0 ? sessionUser : null;
+    } catch (error) {
+      return null;
+    }
+  }, [storeUser]);
   const {currentCompany} = peopleGetters;
   const [phones, setPhones] = useState([]);
   const [emails, setEmails] = useState([]);
@@ -710,7 +722,7 @@ const Profile = ({ navigation }) => {
     </SafeAreaView>
   );
 
-  if (!user) {
+  if (!user || !user?.id) {
     return (
       <SafeAreaView style={styles.Profile}>
         <View style={styles.errorContainer}>
