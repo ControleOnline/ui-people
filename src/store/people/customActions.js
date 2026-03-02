@@ -7,6 +7,12 @@ const RESOURCE_ENDPOINT = "/people";
 
 const unwrapResponseData = (data) => data?.response?.data ?? data?.data ?? data;
 
+const normalizeId = (value) => {
+  if (value == null) return null;
+  const match = String(value).match(/\d+/);
+  return match?.[0] || null;
+};
+
 const normalizeCollection = (payload) => {
   if (Array.isArray(payload)) return payload;
   if (!payload || typeof payload !== "object") return [];
@@ -56,7 +62,7 @@ export const myCompanies = ({ commit, getters }, payload) => {
     });
 };
 
-export const defaultCompany = ({ commit, getters }) => {
+export const defaultCompany = ({ commit }) => {
   commit(types.SET_ISLOADING, false);
 
   const values = { "app-domain": APP_ENV.DOMAIN || location.host };
@@ -66,13 +72,6 @@ export const defaultCompany = ({ commit, getters }) => {
     .then((data) => {
       const company = unwrapResponseData(data) || {};
       commit(customTypes.SET_DEFAULT_COMPANY, company);
-
-      if (
-        company?.id &&
-        (!getters.currentCompany || !getters.currentCompany.id)
-      ) {
-        commit(customTypes.SET_CURRENT_COMPANY, company);
-      }
 
       return company;
     })
@@ -90,7 +89,11 @@ export const setCurrentCompany = ({ commit, getters }, company = null) => {
   const companies = Array.isArray(getters.companies) ? getters.companies : [];
   const defaultCompany = getters.defaultCompany || {};
 
-  let selectedId = company?.id ?? session.mycompany ?? null;
+  let selectedId =
+    normalizeId(company?.id) ||
+    normalizeId(session.mycompany) ||
+    normalizeId(session.people) ||
+    null;
 
   if (!selectedId && companies.length > 0) {
     const firstEnabled = companies.find((item) => item?.enabled !== false);
@@ -102,6 +105,10 @@ export const setCurrentCompany = ({ commit, getters }, company = null) => {
 
   if (!currentCompany && company && typeof company === "object") {
     currentCompany = company;
+  }
+
+  if (!currentCompany && selectedId) {
+    currentCompany = { id: Number(selectedId) };
   }
 
   if (
@@ -133,6 +140,7 @@ export const setCurrentCompany = ({ commit, getters }, company = null) => {
     commit(customTypes.SET_CURRENT_COMPANY, currentCompany);
     session.mycompany = currentCompany.id;
   } else {
+    commit(customTypes.SET_CURRENT_COMPANY, {});
     session.mycompany = selectedId || null;
   }
 
