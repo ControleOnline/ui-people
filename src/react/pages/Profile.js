@@ -637,6 +637,14 @@ const Profile = ({ navigation }) => {
     );
   }, [phones, emails, profileName, profileAlias]);
 
+  const isEditingProfileIdentity = isEditingName || isEditingAlias;
+
+  const toggleIdentityEditing = useCallback(() => {
+    const next = !isEditingProfileIdentity;
+    setIsEditingName(next);
+    setIsEditingAlias(next);
+  }, [isEditingProfileIdentity]);
+
   const handleSave = async () => {
     if (isSaving || !hasUnsavedChanges) {
       return;
@@ -849,9 +857,7 @@ const Profile = ({ navigation }) => {
                 placeholder="Nome do usuario"
                 placeholderTextColor={colors.textSecondary}
                 maxLength={80}
-                returnKeyType="done"
-                onBlur={() => setIsEditingName(false)}
-                onSubmitEditing={() => setIsEditingName(false)}
+                returnKeyType="next"
               />
             ) : (
               <Text style={styles.userName} numberOfLines={1} ellipsizeMode="tail">
@@ -860,10 +866,10 @@ const Profile = ({ navigation }) => {
             )}
             <TouchableOpacity
               style={styles.editNameButton}
-              onPress={() => setIsEditingName(prev => !prev)}
+              onPress={toggleIdentityEditing}
               activeOpacity={0.85}>
               <Icon
-                name={isEditingName ? 'check' : 'edit'}
+                name={isEditingProfileIdentity ? 'check' : 'edit'}
                 size={18}
                 color={colors.primary}
               />
@@ -879,24 +885,12 @@ const Profile = ({ navigation }) => {
                 placeholderTextColor={colors.textSecondary}
                 maxLength={40}
                 returnKeyType="done"
-                onBlur={() => setIsEditingAlias(false)}
-                onSubmitEditing={() => setIsEditingAlias(false)}
               />
             ) : (
               <Text style={styles.userAlias} numberOfLines={1} ellipsizeMode="tail">
                 {profileAlias || getDisplayAlias(user) || '-'}
               </Text>
             )}
-            <TouchableOpacity
-              style={styles.editAliasButton}
-              onPress={() => setIsEditingAlias(prev => !prev)}
-              activeOpacity={0.85}>
-              <Icon
-                name={isEditingAlias ? 'check' : 'edit'}
-                size={14}
-                color={colors.primary}
-              />
-            </TouchableOpacity>
           </View>
           <Text style={styles.userEmail} numberOfLines={1} ellipsizeMode="tail">
             {emails[0]?.value || getPrimaryEmail(user?.email)}
