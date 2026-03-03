@@ -67,32 +67,55 @@ const extractId = value => {
   return normalized || '';
 };
 
-const toPeopleIri = user => {
-  let sessionPeople = '';
+const getSessionData = () => {
   try {
-    sessionPeople = JSON.parse(localStorage.getItem('session') || '{}')?.people;
+    return JSON.parse(localStorage.getItem('session') || '{}');
   } catch (error) {
-    sessionPeople = '';
+    return {};
+  }
+};
+
+const toPeopleIri = user => {
+  const session = getSessionData();
+  const candidates = [
+    session?.people,
+    session?.person,
+    session?.peopleId,
+    session?.people_id,
+    user?.people?.['@id'],
+    user?.people?.id,
+    user?.people,
+    user?.person?.['@id'],
+    user?.person?.id,
+    user?.person,
+    user?.peopleId,
+    user?.people_id,
+    user?.person_id,
+    user?.['@id'],
+    user?.id,
+  ];
+
+  for (const candidate of candidates) {
+    if (!candidate) {
+      continue;
+    }
+
+    const normalized = String(candidate).trim();
+    if (!normalized) {
+      continue;
+    }
+
+    if (normalized.includes('/people/')) {
+      return normalized;
+    }
+
+    const id = extractId(normalized);
+    if (id) {
+      return `/people/${id}`;
+    }
   }
 
-  const directIri =
-    user?.['@id'] ||
-    user?.people?.['@id'] ||
-    user?.people?.id ||
-    user?.people ||
-    sessionPeople ||
-    user?.id;
-
-  if (!directIri) {
-    return '';
-  }
-
-  if (typeof directIri === 'string' && directIri.includes('/people/')) {
-    return directIri;
-  }
-
-  const id = extractId(directIri);
-  return id ? `/people/${id}` : '';
+  return '';
 };
 
 const toPhoneItem = entry => {
@@ -177,7 +200,10 @@ const getPrimaryPhone = value => {
 };
 
 const getDisplayName = user =>
-  String(user?.realname || user?.name || user?.username || 'Usuário').trim();
+  String(user?.realname || user?.name || user?.username || 'Usuario').trim();
+
+const getDisplayAlias = user =>
+  String(user?.alias || user?.nickname || '').trim();
 
 const getAvatarFromUser = user => {
   if (typeof user?.avatarUrl === 'string' && user.avatarUrl) {
@@ -195,6 +221,11 @@ const getAvatarFromUser = user => {
 const validateEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 const normalizeEmailValue = value => String(value || '').trim().toLowerCase();
 const normalizeNameValue = value =>
+  String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const normalizeAliasValue = value =>
   String(value || '')
     .replace(/\s+/g, ' ')
     .trim();
@@ -267,7 +298,9 @@ const Profile = ({ navigation }) => {
   const [phones, setPhones] = useState([]);
   const [emails, setEmails] = useState([]);
   const [profileName, setProfileName] = useState('');
+  const [profileAlias, setProfileAlias] = useState('');
   const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingAlias, setIsEditingAlias] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isFetchingProfile, setIsFetchingProfile] = useState(true);
   const [isSavingAvatar, setIsSavingAvatar] = useState(false);
@@ -277,6 +310,7 @@ const Profile = ({ navigation }) => {
   const originalPhonesSnapshot = useRef([]);
   const originalEmailsSnapshot = useRef([]);
   const originalNameSnapshot = useRef('');
+  const originalAliasSnapshot = useRef('');
 
   const fetchUser = useCallback(async () => {
     setIsFetchingProfile(true);
@@ -318,13 +352,17 @@ const Profile = ({ navigation }) => {
       setEmails(parsedEmails);
       setAvatarOverride(getAvatarFromUser(user));
       const loadedName = normalizeNameValue(getDisplayName(user));
+      const loadedAlias = normalizeAliasValue(getDisplayAlias(user));
       setProfileName(loadedName);
+      setProfileAlias(loadedAlias);
       setIsEditingName(false);
+      setIsEditingAlias(false);
       originalPhoneIds.current = parsedPhones.map(item => item.id).filter(Boolean);
       originalEmailIds.current = parsedEmails.map(item => item.id).filter(Boolean);
       originalPhonesSnapshot.current = normalizePhonesForCompare(parsedPhones);
       originalEmailsSnapshot.current = normalizeEmailsForCompare(parsedEmails);
       originalNameSnapshot.current = loadedName;
+      originalAliasSnapshot.current = loadedAlias;
     } finally {
       setIsFetchingProfile(false);
     }
@@ -473,6 +511,22 @@ const Profile = ({ navigation }) => {
       throw new Error('Telefone com DDD deve ter 10 ou 11 digitos.');
     }
 
+    const duplicatedPhone = (() => {
+      const seen = new Set();
+      for (const item of filtered) {
+        const digits = extractPhoneDigits(item.value);
+        if (seen.has(digits)) {
+          return item;
+        }
+        seen.add(digits);
+      }
+      return null;
+    })();
+
+    if (duplicatedPhone) {
+      throw new Error('Nao e permitido salvar telefones duplicados.');
+    }
+
     const currentIds = filtered.map(item => extractId(item.id)).filter(Boolean);
     await syncRemovedItems(
       originalPhoneIds.current,
@@ -524,6 +578,22 @@ const Profile = ({ navigation }) => {
       throw new Error('Informe um e-mail valido.');
     }
 
+    const duplicatedEmail = (() => {
+      const seen = new Set();
+      for (const item of filtered) {
+        const normalizedEmail = normalizeEmailValue(item.value);
+        if (seen.has(normalizedEmail)) {
+          return item;
+        }
+        seen.add(normalizedEmail);
+      }
+      return null;
+    })();
+
+    if (duplicatedEmail) {
+      throw new Error('Nao e permitido salvar e-mails duplicados.');
+    }
+
     const currentIds = filtered.map(item => extractId(item.id)).filter(Boolean);
     await syncRemovedItems(
       originalEmailIds.current,
@@ -557,13 +627,15 @@ const Profile = ({ navigation }) => {
     const currentPhones = normalizePhonesForCompare(phones);
     const currentEmails = normalizeEmailsForCompare(emails);
     const currentName = normalizeNameValue(profileName);
+    const currentAlias = normalizeAliasValue(profileAlias);
 
     return (
       !isSameList(currentPhones, originalPhonesSnapshot.current) ||
       !isSameList(currentEmails, originalEmailsSnapshot.current) ||
-      currentName !== originalNameSnapshot.current
+      currentName !== originalNameSnapshot.current ||
+      currentAlias !== originalAliasSnapshot.current
     );
-  }, [phones, emails, profileName]);
+  }, [phones, emails, profileName, profileAlias]);
 
   const handleSave = async () => {
     if (isSaving || !hasUnsavedChanges) {
@@ -580,6 +652,7 @@ const Profile = ({ navigation }) => {
 
     try {
       const normalizedName = normalizeNameValue(profileName);
+      const normalizedAlias = normalizeAliasValue(profileAlias);
       if (!normalizedName) {
         throw new Error('Informe um nome valido.');
       }
@@ -593,6 +666,7 @@ const Profile = ({ navigation }) => {
         originalEmailsSnapshot.current,
       );
       const nameChanged = normalizedName !== originalNameSnapshot.current;
+      const aliasChanged = normalizedAlias !== originalAliasSnapshot.current;
 
       let persistedPhones = phones;
       let persistedEmails = emails;
@@ -605,30 +679,40 @@ const Profile = ({ navigation }) => {
         persistedEmails = await saveEmails(peopleIri);
       }
 
-      if (nameChanged) {
+      if (nameChanged || aliasChanged) {
         const peopleId = extractId(peopleIri);
         if (peopleId && peopleActions?.save) {
-          await peopleActions.save({
+          const peoplePayload = {
             id: peopleId,
             name: normalizedName,
-          });
+          };
+
+          if (aliasChanged || normalizedAlias) {
+            peoplePayload.alias = normalizedAlias;
+          }
+
+          await peopleActions.save(peoplePayload);
         }
       }
 
       setPhones(persistedPhones);
       setEmails(persistedEmails);
       setProfileName(normalizedName);
+      setProfileAlias(normalizedAlias);
       setIsEditingName(false);
+      setIsEditingAlias(false);
       originalPhoneIds.current = persistedPhones.map(item => item.id).filter(Boolean);
       originalEmailIds.current = persistedEmails.map(item => item.id).filter(Boolean);
       originalPhonesSnapshot.current = normalizePhonesForCompare(persistedPhones);
       originalEmailsSnapshot.current = normalizeEmailsForCompare(persistedEmails);
       originalNameSnapshot.current = normalizedName;
+      originalAliasSnapshot.current = normalizedAlias;
 
       authActions.logIn({
         ...user,
         realname: normalizedName,
         name: normalizedName,
+        alias: normalizedAlias,
         phone: persistedPhones[0]?.value || getPrimaryPhone(user?.phone),
         email: persistedEmails[0]?.value || getPrimaryEmail(user?.email),
         avatarUrl: avatarOverride || user?.avatarUrl || '',
@@ -781,6 +865,35 @@ const Profile = ({ navigation }) => {
               <Icon
                 name={isEditingName ? 'check' : 'edit'}
                 size={18}
+                color={colors.primary}
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.userAliasRow}>
+            {isEditingAlias ? (
+              <TextInput
+                style={styles.userAliasInput}
+                value={profileAlias}
+                onChangeText={setProfileAlias}
+                placeholder="Apelido"
+                placeholderTextColor={colors.textSecondary}
+                maxLength={40}
+                returnKeyType="done"
+                onBlur={() => setIsEditingAlias(false)}
+                onSubmitEditing={() => setIsEditingAlias(false)}
+              />
+            ) : (
+              <Text style={styles.userAlias} numberOfLines={1} ellipsizeMode="tail">
+                {profileAlias || getDisplayAlias(user) || '-'}
+              </Text>
+            )}
+            <TouchableOpacity
+              style={styles.editAliasButton}
+              onPress={() => setIsEditingAlias(prev => !prev)}
+              activeOpacity={0.85}>
+              <Icon
+                name={isEditingAlias ? 'check' : 'edit'}
+                size={14}
                 color={colors.primary}
               />
             </TouchableOpacity>
