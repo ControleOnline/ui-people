@@ -230,6 +230,44 @@ const normalizeAliasValue = value =>
     .replace(/\s+/g, ' ')
     .trim();
 
+const splitCombinedIdentity = (nameValue, aliasValue) => {
+  const normalizedName = normalizeNameValue(nameValue);
+  const normalizedAlias = normalizeAliasValue(aliasValue);
+
+  if (!normalizedName || normalizedAlias) {
+    return {
+      name: normalizedName,
+      alias: normalizedAlias,
+    };
+  }
+
+  const separators = [' - ', ' – ', ' — ', ' | '];
+  for (const separator of separators) {
+    if (!normalizedName.includes(separator)) {
+      continue;
+    }
+
+    const [possibleName, ...possibleAliasParts] = normalizedName
+      .split(separator)
+      .map(part => normalizeNameValue(part))
+      .filter(Boolean);
+
+    if (!possibleName || possibleAliasParts.length === 0) {
+      continue;
+    }
+
+    return {
+      name: possibleName,
+      alias: normalizeAliasValue(possibleAliasParts.join(' ')),
+    };
+  }
+
+  return {
+    name: normalizedName,
+    alias: normalizedAlias,
+  };
+};
+
 const normalizePhonesForCompare = items =>
   (Array.isArray(items) ? items : [])
     .map(item => {
@@ -351,8 +389,12 @@ const Profile = ({ navigation }) => {
       setPhones(parsedPhones);
       setEmails(parsedEmails);
       setAvatarOverride(getAvatarFromUser(user));
-      const loadedName = normalizeNameValue(getDisplayName(user));
-      const loadedAlias = normalizeAliasValue(getDisplayAlias(user));
+      const loadedIdentity = splitCombinedIdentity(
+        getDisplayName(user),
+        getDisplayAlias(user),
+      );
+      const loadedName = loadedIdentity.name;
+      const loadedAlias = loadedIdentity.alias;
       setProfileName(loadedName);
       setProfileAlias(loadedAlias);
       setIsEditingName(false);
@@ -659,8 +701,9 @@ const Profile = ({ navigation }) => {
     setIsSaving(true);
 
     try {
-      const normalizedName = normalizeNameValue(profileName);
-      const normalizedAlias = normalizeAliasValue(profileAlias);
+      const normalizedIdentity = splitCombinedIdentity(profileName, profileAlias);
+      const normalizedName = normalizedIdentity.name;
+      const normalizedAlias = normalizedIdentity.alias;
       if (!normalizedName) {
         throw new Error('Informe um nome valido.');
       }
@@ -693,11 +736,9 @@ const Profile = ({ navigation }) => {
           const peoplePayload = {
             id: peopleId,
             name: normalizedName,
+            alias: normalizedAlias,
+            nickname: normalizedAlias,
           };
-
-          if (aliasChanged || normalizedAlias) {
-            peoplePayload.alias = normalizedAlias;
-          }
 
           await peopleActions.save(peoplePayload);
         }
@@ -721,6 +762,7 @@ const Profile = ({ navigation }) => {
         realname: normalizedName,
         name: normalizedName,
         alias: normalizedAlias,
+        nickname: normalizedAlias,
         phone: persistedPhones[0]?.value || getPrimaryPhone(user?.phone),
         email: persistedEmails[0]?.value || getPrimaryEmail(user?.email),
         avatarUrl: avatarOverride || user?.avatarUrl || '',
