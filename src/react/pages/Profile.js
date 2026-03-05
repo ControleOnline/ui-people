@@ -780,7 +780,7 @@ const Profile = ({ navigation }) => {
     <View style={styles.sectionContainer}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>
-          {type === 'phone' ? global.t?.t("profile", "label", "phones") : global.t?.t("profile", "text", "email")}
+          {type === 'phone' ? global.t?.t("auth", "label", "phones") : global.t?.t("auth", "text", "email")}
         </Text>
         <TouchableOpacity
           onPress={() => setItems([...items, {id: '', value: ''}])}
@@ -824,7 +824,7 @@ const Profile = ({ navigation }) => {
         </View>
       ))}
       {items.length === 0 && (
-        <Text style={styles.emptyText}>Nenhum {type === 'phone' ? global.t?.t("profile", "text", "phone") : 'e-mail'} cadastrado</Text>
+        <Text style={styles.emptyText}>Nenhum {type === 'phone' ? global.t?.t("auth", "text", "phone") : 'e-mail'} cadastrado</Text>
       )}
     </View>
   );
@@ -959,7 +959,7 @@ const Profile = ({ navigation }) => {
                     color={colors.white}
                     style={{marginRight: 8}}
                   />
-                  <Text style={styles.saveButtonText}>{global.t?.t("profile", "label", "save")}</Text>
+                  <Text style={styles.saveButtonText}>{global.t?.t("auth", "label", "save")}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -967,10 +967,10 @@ const Profile = ({ navigation }) => {
 
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
             <Icon name="logout" size={20} color={colors.error} style={{ marginRight: 8 }} />
-            <Text style={styles.logoutButtonText}>{global.t?.t("profile", "label", "logout")}</Text>
+            <Text style={styles.logoutButtonText}>{global.t?.t("auth", "label", "logout")}</Text>
           </TouchableOpacity>
 
-          <Text style={styles.versionText}>{`${global.t?.t("profile", "label", "version")} ${appVersion}`}</Text>
+          <Text style={styles.versionText}>{`${global.t?.t("auth", "label", "version")} ${appVersion}`}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
