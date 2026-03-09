@@ -17,7 +17,7 @@ import md5 from 'md5';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '@controleonline/../../src/styles/colors';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
-import {APP_ENV} from '@env';
+import { env as APP_ENV } from '@env';
 
 const {version: appVersion} = require('../../../../../../package.json');
 
@@ -65,6 +65,36 @@ const splitPhoneValue = value => {
 const extractId = value => {
   const normalized = String(value || '').replace(/\D/g, '');
   return normalized || '';
+};
+
+const unwrapUploadFile = payload => {
+  const data = payload?.response?.data ?? payload?.data ?? payload;
+
+  if (!data) {
+    return null;
+  }
+
+  if (data?.file) {
+    return data.file;
+  }
+
+  if (Array.isArray(data)) {
+    return data[0] || null;
+  }
+
+  if (Array.isArray(data?.member)) {
+    return data.member[0] || null;
+  }
+
+  if (Array.isArray(data?.['hydra:member'])) {
+    return data['hydra:member'][0] || null;
+  }
+
+  if (Array.isArray(data?.files)) {
+    return data.files[0] || null;
+  }
+
+  return data;
 };
 
 const getSessionData = () => {
@@ -477,7 +507,13 @@ const Profile = ({ navigation }) => {
       throw new Error(result?.description || result?.message || 'Falha ao enviar foto do perfil.');
     }
 
-    const fileId = extractId(result?.id || result?.['@id']);
+    const uploadedFile = unwrapUploadFile(result);
+    const fileId = extractId(
+      uploadedFile?.id ||
+      uploadedFile?.['@id'] ||
+      result?.id ||
+      result?.['@id'],
+    );
     if (!fileId) {
       throw new Error('Upload concluído, mas não retornou o arquivo.');
     }
