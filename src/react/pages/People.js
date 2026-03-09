@@ -335,7 +335,6 @@ const People = ({ context = {} }) => {
       <AddCompanyModal
         visible={showAddCompanyModal}
         onClose={() => setShowAddCompanyModal(false)}
-        actions={actions}
         context={context}
         onSuccess={() => {
           fetchClients(searchQuery, 1);

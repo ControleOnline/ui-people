@@ -11,6 +11,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import AnimatedModal from '@controleonline/ui-crm/src/react/components/AnimatedModal';
 import { useMessage } from '@controleonline/ui-common/src/react/components/MessageService';
 
+
+
 const toBrDateString = date => {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
     return '';
@@ -22,9 +24,14 @@ const toBrDateString = date => {
   return `${day}/${month}/${year}`;
 };
 
-const AddCompanyModal = ({ visible, onClose, actions, context, onSuccess }) => {
+const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
+  const peopleStore = useStore('people');
+  const getters = peopleStore.getters;
+  const actions = peopleStore.actions;
+  const { currentCompany } = getters;
   const { showError } = useMessage();
   const defaultDate = new Date();
+
   const [formData, setFormData] = useState({
     name: '',
     alias: '',
@@ -107,7 +114,7 @@ const AddCompanyModal = ({ visible, onClose, actions, context, onSuccess }) => {
         peopleType: formData.peopleType,
         linkType: context.linkType,
         'extra-data': {},
-        company: context.currentCompany ? '/people/' + context.currentCompany.id : null,
+        company: currentCompany ? '/people/' + currentCompany.id : null,
       };
 
       if (isPessoaJuridica) {
