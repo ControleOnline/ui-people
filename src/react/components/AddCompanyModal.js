@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AnimatedModal from '@controleonline/ui-crm/src/react/components/AnimatedModal';
-import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
+import { useMessage } from '@controleonline/ui-common/src/react/components/MessageService';
 
 const toBrDateString = date => {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
@@ -23,7 +23,7 @@ const toBrDateString = date => {
 };
 
 const AddCompanyModal = ({ visible, onClose, actions, context, onSuccess }) => {
-  const {showError} = useMessage();
+  const { showError } = useMessage();
   const defaultDate = new Date();
   const [formData, setFormData] = useState({
     name: '',
@@ -107,6 +107,7 @@ const AddCompanyModal = ({ visible, onClose, actions, context, onSuccess }) => {
         peopleType: formData.peopleType,
         linkType: context.linkType,
         'extra-data': {},
+        company: context.currentCompany ? '/people/' + context.currentCompany.id : null,
       };
 
       if (isPessoaJuridica) {
