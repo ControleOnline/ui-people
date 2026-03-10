@@ -6,9 +6,8 @@ import {
   FlatList,
   TextInput,
   StyleSheet,
-  RefreshControl,
   Platform,
-  ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useStore } from '@store';
@@ -16,10 +15,13 @@ import { useMessage } from '@controleonline/ui-common/src/react/components/Messa
 import { colors } from '@controleonline/../../src/styles/colors';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import IconAdd from 'react-native-vector-icons/MaterialIcons';
+
 import AddCompanyModal from '@controleonline/ui-people/src/react/components/AddCompanyModal';
+import ImportsPage from '@controleonline/ui-common/src/react/pages/Imports';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
+
   subHeader: {
     paddingHorizontal: 16,
     paddingTop: 9,
@@ -28,7 +30,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
+
   searchRow: { flexDirection: 'row', alignItems: 'center' },
+
   searchInputContainer: {
     flex: 1,
     flexDirection: 'row',
@@ -40,6 +44,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     height: 40,
   },
+
   searchInput: {
     flex: 1,
     height: '100%',
@@ -49,7 +54,19 @@ const styles = StyleSheet.create({
     outlineStyle: 'none',
     outlineWidth: 0,
   },
+
   clearSearchButton: { padding: 4 },
+
+  importButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+    backgroundColor: '#E8F5E9',
+  },
+
   addButton: {
     backgroundColor: colors.primary,
     width: 40,
@@ -57,12 +74,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 12,
+    marginLeft: 8,
   },
+
   scrollContent: {
     padding: 16,
     paddingBottom: 32,
   },
+
   card: {
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -81,7 +100,9 @@ const styles = StyleSheet.create({
       web: { boxShadow: '0 8px 16px rgba(15, 23, 42, 0.1)' },
     }),
   },
+
   cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+
   avatar: {
     width: 48,
     height: 48,
@@ -91,7 +112,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
+
   avatarText: { color: '#fff', fontSize: 20, fontWeight: '700' },
+
   clientName: {
     flex: 1,
     fontWeight: '700',
@@ -99,7 +122,9 @@ const styles = StyleSheet.create({
     color: '#1E293B',
     lineHeight: 24,
   },
+
   cardBody: { marginTop: 4 },
+
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -108,6 +133,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 8,
   },
+
   infoText: {
     fontSize: 14,
     color: '#475569',
@@ -115,35 +141,21 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     flex: 1,
   },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 80,
-  },
-  emptyIcon: { marginBottom: 14 },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#0F172A',
-    marginBottom: 6,
-    textAlign: 'center',
-  },
-  emptySubtitle: { fontSize: 14, color: '#94A3B8', textAlign: 'center' },
 });
 
 const People = ({ context = {} }) => {
 
-  const linkType = context.linkType || 'client';
-  const title = context.title || 'Pessoas';
-  const searchPlaceholder = context.searchPlaceholder || 'Buscar...';
+  const linkType = context.context;
+  const title = context.title;
+  const searchPlaceholder = context.searchPlaceholder;
 
   const { showError } = useMessage();
+
   const peopleStore = useStore('people');
   const getters = peopleStore.getters;
   const actions = peopleStore.actions;
 
-  const { items: clients, totalItems, isLoading, error } = getters;
+  const { items: clients, isLoading } = getters;
   const { currentCompany } = getters;
 
   const navigation = useNavigation();
@@ -156,29 +168,28 @@ const People = ({ context = {} }) => {
 
   const [allClients, setAllClients] = useState([]);
 
-  const [refreshing, setRefreshing] = useState(false);
   const [showAddCompanyModal, setShowAddCompanyModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
-  const fetchClients = useCallback(
-    (query, page) => {
-      if (currentCompany && Object.keys(currentCompany).length > 0) {
+  const fetchClients = useCallback((query, page) => {
 
-        const params = {
-          company: '/people/' + currentCompany.id,
-          linkType: linkType,
-          page: page ?? currentPage,
-          itemsPerPage,
-        };
+    if (currentCompany && Object.keys(currentCompany).length > 0) {
 
-        if (String(query ?? searchQuery).trim()) {
-          params.name = String(query ?? searchQuery).trim();
-        }
+      const params = {
+        company: '/people/' + currentCompany.id,
+        linkType: linkType,
+        page: page ?? currentPage,
+        itemsPerPage,
+      };
 
-        actions.getItems(params);
+      if (String(query ?? searchQuery).trim()) {
+        params.name = String(query ?? searchQuery).trim();
       }
-    },
-    [currentCompany, currentPage, itemsPerPage, searchQuery, linkType],
-  );
+
+      actions.getItems(params);
+    }
+
+  }, [currentCompany, currentPage, itemsPerPage, searchQuery, linkType]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -228,19 +239,12 @@ const People = ({ context = {} }) => {
 
   }, [searchText]);
 
-  const onRefresh = useCallback(() => {
-
-    setRefreshing(true);
-
-    fetchClients(searchQuery, 1);
-    setCurrentPage(1);
-
-    setRefreshing(false);
-
-  }, [fetchClients, searchQuery]);
-
   const handleEdit = client => {
     navigation.navigate('ClientDetails', { client });
+  };
+
+  const openImport = () => {
+    setShowImportModal(true);
   };
 
   const renderClientCard = ({ item: client }) => (
@@ -249,7 +253,9 @@ const People = ({ context = {} }) => {
       onPress={() => handleEdit(client)}
       activeOpacity={0.8}
     >
+
       <View style={styles.cardHeader}>
+
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>
             {client.name?.charAt(0)?.toUpperCase() || 'C'}
@@ -261,6 +267,7 @@ const People = ({ context = {} }) => {
         </Text>
 
         <Icon name="chevron-right" size={14} color="#CBD5E1" />
+
       </View>
 
       <View style={styles.cardBody}>
@@ -284,6 +291,7 @@ const People = ({ context = {} }) => {
         )}
 
       </View>
+
     </TouchableOpacity>
   );
 
@@ -291,9 +299,11 @@ const People = ({ context = {} }) => {
     <View style={styles.container}>
 
       <View style={styles.subHeader}>
+
         <View style={styles.searchRow}>
 
           <View style={styles.searchInputContainer}>
+
             <Icon name="search" size={16} color="#94A3B8" />
 
             <TextInput
@@ -316,6 +326,13 @@ const People = ({ context = {} }) => {
           </View>
 
           <TouchableOpacity
+            style={styles.importButton}
+            onPress={openImport}
+          >
+            <Icon name="file-excel-o" size={18} color="#2E7D32" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={styles.addButton}
             onPress={() => setShowAddCompanyModal(true)}
           >
@@ -323,6 +340,7 @@ const People = ({ context = {} }) => {
           </TouchableOpacity>
 
         </View>
+
       </View>
 
       <FlatList
@@ -341,6 +359,17 @@ const People = ({ context = {} }) => {
           setCurrentPage(1);
         }}
       />
+
+      <Modal
+        visible={showImportModal}
+        animationType="slide"
+        transparent={false}
+      >
+        <ImportsPage
+          context={context}
+          onClose={() => setShowImportModal(false)}
+        />
+      </Modal>
 
     </View>
   );

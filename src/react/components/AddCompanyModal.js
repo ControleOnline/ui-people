@@ -112,7 +112,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
         alias: formData.alias.trim(),
         foundationDate: parsedFoundationDate.toISOString().split('T')[0],
         peopleType: formData.peopleType,
-        linkType: context.linkType,
+        linkType: context.context,
         'extra-data': {},
         company: currentCompany ? '/people/' + currentCompany.id : null,
       };
