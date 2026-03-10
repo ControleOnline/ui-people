@@ -384,6 +384,45 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
             </View>
           </View>
 
+          <View style={{ marginBottom: 30 }}>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: '600',
+                color: '#212529',
+                marginBottom: 8,
+              }}>
+              {dateLabel}
+            </Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: '#e9ecef',
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                backgroundColor: '#f8f9fa',
+              }}>
+              <Icon name="calendar-today" size={20} color="#6c757d" />
+              <TextInput
+                placeholder="DD/MM/AAAA"
+                value={formData.foundationDateInput}
+                onChangeText={handleDateChange}
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  paddingHorizontal: 12,
+                  fontSize: 16,
+                  color: '#212529',
+                }}
+                placeholderTextColor="#6c757d"
+                keyboardType="numeric"
+                maxLength={10}
+              />
+            </View>
+          </View>
+          
           {isPessoaJuridica && (
             <View style={{ marginBottom: 20 }}>
               <Text
@@ -439,44 +478,6 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
             </View>
           )}
 
-          <View style={{ marginBottom: 30 }}>
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                color: '#212529',
-                marginBottom: 8,
-              }}>
-              {dateLabel}
-            </Text>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                borderWidth: 1,
-                borderColor: '#e9ecef',
-                borderRadius: 12,
-                paddingHorizontal: 16,
-                backgroundColor: '#f8f9fa',
-              }}>
-              <Icon name="calendar-today" size={20} color="#6c757d" />
-              <TextInput
-                placeholder="DD/MM/AAAA"
-                value={formData.foundationDateInput}
-                onChangeText={handleDateChange}
-                style={{
-                  flex: 1,
-                  paddingVertical: 12,
-                  paddingHorizontal: 12,
-                  fontSize: 16,
-                  color: '#212529',
-                }}
-                placeholderTextColor="#6c757d"
-                keyboardType="numeric"
-                maxLength={10}
-              />
-            </View>
-          </View>
         </ScrollView>
 
         <View
