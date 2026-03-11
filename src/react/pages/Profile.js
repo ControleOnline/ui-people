@@ -446,6 +446,10 @@ const Profile = ({ navigation }) => {
     }, [fetchUser]),
   );
 
+  const canShowResyncTranslations = useMemo(() => {
+    return String(APP_ENV?.APP_TYPE || '').toUpperCase() !== 'POS';
+  }, []);
+
   const getAvatarUrl = () => {
     const persistedAvatar = avatarOverride || getAvatarFromUser(user);
     if (persistedAvatar) {
@@ -467,6 +471,24 @@ const Profile = ({ navigation }) => {
       index: 0,
       routes: [{ name: 'SignInPage' }],
     });
+  };
+
+  const handleClearTranslate = () => {
+    Promise.resolve(global.t?.reload?.())
+      .then(() => {
+        global.refreshTranslationsUI?.();
+
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+          window.location.reload();
+          return;
+        }
+
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'ProfilePage'}],
+        });
+      })
+      .catch(() => {});
   };
 
   const uploadAvatarFile = async file => {
@@ -998,6 +1020,23 @@ const Profile = ({ navigation }) => {
                   <Text style={styles.saveButtonText}>{global.t?.t("auth", "label", "save")}</Text>
                 </>
               )}
+            </TouchableOpacity>
+          )}
+
+          {canShowResyncTranslations && (
+            <TouchableOpacity
+              style={styles.profileActionButton}
+              onPress={handleClearTranslate}
+              activeOpacity={0.85}>
+              <Icon
+                name="add-circle"
+                size={20}
+                color={colors.white}
+                style={{marginRight: 8}}
+              />
+              <Text style={styles.profileActionButtonText}>
+                {global.t?.t("configs", "label", "resync translations")}
+              </Text>
             </TouchableOpacity>
           )}
 
