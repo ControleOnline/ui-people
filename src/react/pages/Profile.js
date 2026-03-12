@@ -495,7 +495,7 @@ const Profile = ({ navigation }) => {
     const session = JSON.parse(localStorage.getItem('session') || '{}');
     const token = user?.api_key || session?.api_key || session?.token;
     if (!token) {
-      throw new Error('Sessão inválida para upload da foto.');
+      throw new Error(global.t?.t("people", "error", "Invalid session for photo upload."));
     }
 
     const peopleIri = toPeopleIri(user);
@@ -526,7 +526,7 @@ const Profile = ({ navigation }) => {
 
     const result = await response.json().catch(() => ({}));
     if (!response.ok || result?.['@type'] === 'Error') {
-      throw new Error(result?.description || result?.message || 'Falha ao enviar foto do perfil.');
+      throw new Error(result?.description || result?.message ||  global.t?.t("people", "error", "Failed to upload profile photo."));
     }
 
     const uploadedFile = unwrapUploadFile(result);
@@ -537,7 +537,7 @@ const Profile = ({ navigation }) => {
       result?.['@id'],
     );
     if (!fileId) {
-      throw new Error('Upload concluído, mas não retornou o arquivo.');
+      throw new Error(global.t?.t("people", "error", "Upload completed, but file not returned."));
     }
 
     return `${apiEntryPoint}/files/${fileId}/download?app-domain=${encodeURIComponent(host)}`;
@@ -549,7 +549,7 @@ const Profile = ({ navigation }) => {
     }
 
     if (Platform.OS !== 'web' || typeof document === 'undefined') {
-      showError?.('Troca de foto disponível somente no modo web nesta versão.');
+      showError?.(global.t?.t("people", "error", "Photo change available only in web mode in this version."));
       return;
     }
 
@@ -573,9 +573,9 @@ const Profile = ({ navigation }) => {
           avatarUrl,
         });
 
-        showSuccess?.('Foto do perfil atualizada com sucesso.');
+        showSuccess?.(global.t?.t("people", "success", "Profile photo updated successfully."));
       } catch (error) {
-        showError?.(error?.message || 'Não foi possível atualizar a foto do perfil.');
+        showError?.(error?.message || global.t?.t("people", "error", "Unable to update profile photo."));
       } finally {
         setIsSavingAvatar(false);
       }
@@ -608,7 +608,7 @@ const Profile = ({ navigation }) => {
     });
 
     if (invalidPhone) {
-      throw new Error('Telefone com DDD deve ter 10 ou 11 digitos.');
+      throw new Error(global.t?.t("people", "error", "Phone number with area code must have 10 or 11 digits."));
     }
 
     const duplicatedPhone = (() => {
@@ -624,7 +624,7 @@ const Profile = ({ navigation }) => {
     })();
 
     if (duplicatedPhone) {
-      throw new Error('Nao e permitido salvar telefones duplicados.');
+      throw new Error(global.t?.t("people", "error", "Duplicate phone numbers are not allowed."));
     }
 
     const currentIds = filtered.map(item => extractId(item.id)).filter(Boolean);
@@ -675,7 +675,7 @@ const Profile = ({ navigation }) => {
 
     const invalidEmail = filtered.find(item => !validateEmail(item.value));
     if (invalidEmail) {
-      throw new Error('Informe um e-mail valido.');
+      throw new Error(global.t?.t("people", "error", "Please enter a valid email address."));
     }
 
     const duplicatedEmail = (() => {
@@ -691,7 +691,7 @@ const Profile = ({ navigation }) => {
     })();
 
     if (duplicatedEmail) {
-      throw new Error('Nao e permitido salvar e-mails duplicados.');
+      throw new Error(global.t?.t("people", "error", "Duplicate email addresses are not allowed."));
     }
 
     const currentIds = filtered.map(item => extractId(item.id)).filter(Boolean);
@@ -752,7 +752,7 @@ const Profile = ({ navigation }) => {
 
     const peopleIri = toPeopleIri(user);
     if (!peopleIri) {
-      showError?.('Nao foi possivel identificar o perfil para salvar os dados.');
+      showError?.(global.t?.t("people", "error", "Unable to identify profile to save data."));
       return;
     }
 
@@ -763,7 +763,7 @@ const Profile = ({ navigation }) => {
       const normalizedName = normalizedIdentity.name;
       const normalizedAlias = normalizedIdentity.alias;
       if (!normalizedName) {
-        throw new Error('Informe um nome valido.');
+        throw new Error(global.t?.t("people", "error", "Please enter a valid name."));
       }
 
       const phonesChanged = !isSameList(
@@ -826,9 +826,9 @@ const Profile = ({ navigation }) => {
         avatarUrl: avatarOverride || user?.avatarUrl || '',
       });
 
-      showSuccess?.('Dados do perfil salvos com sucesso.');
+      showSuccess?.(global.t?.t("people", "success", "Data saved successfully."));
     } catch (error) {
-      showError?.(error?.message || 'Nao foi possivel salvar os dados do perfil.');
+      showError?.(error?.message || global.t?.t("people", "error", "Unable to save profile data."));
     } finally {
       setIsSaving(false);
     }
@@ -838,7 +838,7 @@ const Profile = ({ navigation }) => {
     <View style={styles.sectionContainer}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>
-          {type === 'phone' ? global.t?.t("auth", "label", "phones") : global.t?.t("auth", "text", "email")}
+          {type === 'phone' ? global.t?.t("people", "label", "phones") : global.t?.t("people", "label", "email")}
         </Text>
         <TouchableOpacity
           onPress={() => setItems([...items, {id: '', value: ''}])}
@@ -882,7 +882,7 @@ const Profile = ({ navigation }) => {
         </View>
       ))}
       {items.length === 0 && (
-        <Text style={styles.emptyText}>Nenhum {type === 'phone' ? global.t?.t("auth", "text", "phone") : 'e-mail'} cadastrado</Text>
+        <Text style={styles.emptyText}>Nenhum {type === 'phone' ? global.t?.t("people", "label", "phone") : global.t?.t("people", "label", "email")} cadastrado</Text>
       )}
     </View>
   );
@@ -1017,7 +1017,7 @@ const Profile = ({ navigation }) => {
                     color={colors.white}
                     style={{marginRight: 8}}
                   />
-                  <Text style={styles.saveButtonText}>{global.t?.t("auth", "label", "save")}</Text>
+                  <Text style={styles.saveButtonText}>{global.t?.t("people", "label", "save")}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -1042,10 +1042,10 @@ const Profile = ({ navigation }) => {
 
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
             <Icon name="logout" size={20} color={colors.error} style={{ marginRight: 8 }} />
-            <Text style={styles.logoutButtonText}>{global.t?.t("auth", "label", "logout")}</Text>
+            <Text style={styles.logoutButtonText}>{global.t?.t("people", "label", "logout")}</Text>
           </TouchableOpacity>
 
-          <Text style={styles.versionText}>{`${global.t?.t("auth", "label", "version")} ${appVersion}`}</Text>
+          <Text style={styles.versionText}>{`${global.t?.t("people", "label", "version")} ${appVersion}`}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
