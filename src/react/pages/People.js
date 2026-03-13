@@ -177,7 +177,7 @@ const People = ({ context = {} }) => {
 
       const params = {
         company: '/people/' + currentCompany.id,
-        linkType: linkType,
+        'link.linkType': linkType,
         page: page ?? currentPage,
         itemsPerPage,
       };
