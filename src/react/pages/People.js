@@ -176,7 +176,7 @@ const People = ({ context = {} }) => {
     if (currentCompany && Object.keys(currentCompany).length > 0) {
 
       const params = {
-        company: '/people/' + currentCompany.id,
+        'link.company': '/people/' + currentCompany.id,
         'link.linkType': linkType,
         page: page ?? currentPage,
         itemsPerPage,
