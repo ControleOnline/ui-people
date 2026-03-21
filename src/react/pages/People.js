@@ -262,15 +262,23 @@ const People = ({ context = {} }) => {
           </Text>
         </View>
 
-        <Text style={styles.clientName} numberOfLines={1}>
-          {client.name}
-        </Text>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.clientName, { lineHeight: 30 }]} numberOfLines={1}>
+            {client.alias}
+            {client.peopleType === 'J' ? ' (PJ)' : ' (PF)'}
+          </Text>
+          <Text style={{ fontSize: 14, color: '#94A3B8', lineHeight: 18 }}>
+            {client.name}
+          </Text>
+        </View>
+      
 
         <Icon name="chevron-right" size={14} color="#CBD5E1" />
 
       </View>
 
-      <View style={styles.cardBody}>
+{/* ALEMAC // 20/03/2026 // NÃO FAZ SENTIDO TER ESSAS INFOS AQUI */}
+      {/* <View style={styles.cardBody}>
 
         {client.phone?.[0] && (
           <View style={styles.infoRow}>
@@ -290,7 +298,7 @@ const People = ({ context = {} }) => {
           </View>
         )}
 
-      </View>
+      </View> */}
 
     </TouchableOpacity>
   );
