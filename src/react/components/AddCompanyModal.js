@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,11 +6,20 @@ import {
   TouchableOpacity,
   ScrollView,
   Keyboard,
+  Platform,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AnimatedModal from '@controleonline/ui-crm/src/react/components/AnimatedModal';
 import { useMessage } from '@controleonline/ui-common/src/react/components/MessageService';
 import { useStore } from '@store';
+
+const LINK_TYPE_OPTIONS = [
+  { value: 'employee', translationKey: 'employee' },
+  { value: 'owner', translationKey: 'owner' },
+  { value: 'director', translationKey: 'director' },
+  { value: 'manager', translationKey: 'manager' },
+];
 
 
 const toBrDateString = date => {
@@ -31,6 +40,13 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
   const { currentCompany } = getters;
   const { showError } = useMessage();
   const defaultDate = new Date();
+  const pickerMode = Platform.OS === 'android' ? 'dropdown' : undefined;
+  const [linkTypeOptions, setLinkTypeOptions] = useState(
+    LINK_TYPE_OPTIONS.map(option => ({
+      value: option.value,
+      label: '',
+    })),
+  );
 
   const [formData, setFormData] = useState({
     name: '',
@@ -38,6 +54,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
     foundationDate: defaultDate,
     foundationDateInput: toBrDateString(defaultDate),
     peopleType: 'J',
+    linkType: 'employee',
     firstEmployeeName: '',
     firstEmployeeAlias: '',
   });
@@ -57,6 +74,15 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
     ? 'Data de Nascimento'
     : 'Data de Funda\u00E7\u00E3o';
   const modalTitle = isPessoaFisica ? 'Nova Pessoa' : 'Nova Empresa';
+
+  useEffect(() => {
+    setLinkTypeOptions(
+      LINK_TYPE_OPTIONS.map(option => ({
+        value: option.value,
+        label: global.t?.t('people', 'label', option.translationKey),
+      })),
+    );
+  }, []);
 
   const handleSave = async () => {
     if (!formData.name.trim() || !formData.alias.trim()) {
@@ -112,7 +138,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
         alias: formData.alias.trim(),
         foundationDate: parsedFoundationDate.toISOString().split('T')[0],
         peopleType: formData.peopleType,
-        linkType: context.context,
+        linkType: formData.linkType,
         'extra-data': {},
         company: currentCompany ? '/people/' + currentCompany.id : null,
       };
@@ -146,6 +172,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
       foundationDate: resetDate,
       foundationDateInput: toBrDateString(resetDate),
       peopleType: 'J',
+      linkType: 'employee',
       firstEmployeeName: '',
       firstEmployeeAlias: '',
     });
@@ -425,6 +452,8 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
           
           {isPessoaJuridica && (
             <View style={{ marginBottom: 20 }}>
+
+              
               <Text
                 style={{
                   fontSize: 16,
@@ -474,6 +503,41 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                   placeholderTextColor="#6c757d"
                 />
               </View>
+
+<Text
+              style={{
+                fontSize: 16,
+                fontWeight: '600',
+                color: '#212529',
+                marginBottom: 8,
+              }}>
+              Cargo do contato vinculado
+              </Text>
+
+            <View
+              style={{
+                borderWidth: 1,
+                borderColor: '#e9ecef',
+                borderRadius: 12,
+                backgroundColor: '#f8f9fa',
+                overflow: 'hidden',
+              }}>
+              <Picker
+                selectedValue={formData.linkType}
+                onValueChange={value =>
+                  setFormData(prev => ({ ...prev, linkType: value }))
+                }
+                mode={pickerMode}>
+                {linkTypeOptions.map(option => (
+                  <Picker.Item
+                    key={option.value}
+                    label={option.label}
+                    value={option.value}
+                  />
+                ))}
+              </Picker>
+            </View>
+
 
             </View>
           )}
