@@ -432,7 +432,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                   color: '#212529',
                   marginBottom: 8,
                 }}>
-                Funcionario vinculado (obrigatorio)
+                {global.t?.t('people','title','contactLinked')}
               </Text>
 
               <View style={{ marginBottom: 12 }}>
@@ -441,7 +441,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                   onChangeText={text =>
                     setFormData(prev => ({ ...prev, firstEmployeeName: text }))
                   }
-                  placeholder="Nome do funcionario *"
+                  placeholder={global.t?.t('people','placeholder','contactName')}
                   style={{
                     borderWidth: 1,
                     borderColor: '#e9ecef',
@@ -461,7 +461,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                   onChangeText={text =>
                     setFormData(prev => ({ ...prev, firstEmployeeAlias: text }))
                   }
-                  placeholder="Apelido do funcionario *"
+                  placeholder={global.t?.t('people','placeholder','contactAlias')}
                   style={{
                     borderWidth: 1,
                     borderColor: '#e9ecef',
