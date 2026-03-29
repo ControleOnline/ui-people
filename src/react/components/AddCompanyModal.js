@@ -34,11 +34,13 @@ const toBrDateString = date => {
 };
 
 const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
-  const peopleStore     = useStore('people');
-  const peopleLinkStore = useStore('people_link');
+  const peopleStore = useStore('people');
   const getters  = peopleStore.getters;
   const actions  = peopleStore.actions;
   const { currentCompany } = getters;
+
+  /* contextos de relacionamento externo não precisam de firstEmployee */
+  const isExternalContext = ['client', 'provider'].includes(context?.context);
   const { showError } = useMessage();
   const defaultDate = new Date();
   const pickerMode = Platform.OS === 'android' ? 'dropdown' : undefined;
@@ -95,7 +97,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
       return;
     }
 
-    if (isPessoaJuridica) {
+    if (isPessoaJuridica && !isExternalContext) {
       if (
         !String(formData.firstEmployeeName || '').trim() ||
         !String(formData.firstEmployeeAlias || '').trim()
@@ -134,35 +136,28 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
         parsedFoundationDate = candidate;
       }
 
+      /* linkType para o backend: contexto externo (client/provider) usa o context,
+         demais casos (criação de funcionário) usam o cargo selecionado no form */
+      const linkType = context?.context || formData.linkType;
+
       const companyData = {
         name: formData.name.trim(),
         alias: formData.alias.trim(),
         foundationDate: parsedFoundationDate.toISOString().split('T')[0],
         peopleType: formData.peopleType,
-        linkType: formData.linkType,
+        linkType,
         'extra-data': {},
         company: currentCompany ? '/people/' + currentCompany.id : null,
       };
 
-      if (isPessoaJuridica) {
+      if (isPessoaJuridica && !isExternalContext) {
         companyData.firstEmployee = {
           name: String(formData.firstEmployeeName || '').trim(),
           alias: String(formData.firstEmployeeAlias || '').trim(),
         };
       }
 
-      const savedPerson = await actions.save(companyData);
-
-      /* cria vínculo de contexto (client/provider) entre a nova pessoa e a empresa atual */
-      const contextType = context?.context;
-      const savedId = savedPerson?.id;
-      if (contextType && savedId && currentCompany?.id) {
-        await peopleLinkStore.actions.save({
-          company:  `/people/${currentCompany.id}`,
-          people:   `/people/${savedId}`,
-          linkType: contextType,
-        }).catch(() => {});
-      }
+      await actions.save(companyData);
 
       if (onSuccess) {
         onSuccess();
@@ -462,7 +457,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
             </View>
           </View>
           
-          {isPessoaJuridica && (
+          {isPessoaJuridica && !isExternalContext && (
             <View style={{ marginBottom: 20 }}>
 
               
