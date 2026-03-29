@@ -34,9 +34,10 @@ const toBrDateString = date => {
 };
 
 const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
-  const peopleStore = useStore('people');
-  const getters = peopleStore.getters;
-  const actions = peopleStore.actions;
+  const peopleStore     = useStore('people');
+  const peopleLinkStore = useStore('people_link');
+  const getters  = peopleStore.getters;
+  const actions  = peopleStore.actions;
   const { currentCompany } = getters;
   const { showError } = useMessage();
   const defaultDate = new Date();
@@ -150,7 +151,18 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
         };
       }
 
-      await actions.save(companyData);
+      const savedPerson = await actions.save(companyData);
+
+      /* cria vínculo de contexto (client/provider) entre a nova pessoa e a empresa atual */
+      const contextType = context?.context;
+      const savedId = savedPerson?.id;
+      if (contextType && savedId && currentCompany?.id) {
+        await peopleLinkStore.actions.save({
+          company:  `/people/${currentCompany.id}`,
+          people:   `/people/${savedId}`,
+          linkType: contextType,
+        }).catch(() => {});
+      }
 
       if (onSuccess) {
         onSuccess();
