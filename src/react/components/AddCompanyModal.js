@@ -8,7 +8,6 @@ import {
   Keyboard,
   Platform,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AnimatedModal from '@controleonline/ui-crm/src/react/components/AnimatedModal';
 import { useMessage } from '@controleonline/ui-common/src/react/components/MessageService';
@@ -39,11 +38,8 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
   const actions  = peopleStore.actions;
   const { currentCompany } = getters;
 
-  /* contextos de relacionamento externo não precisam de firstEmployee */
-  const isExternalContext = ['client', 'provider'].includes(context?.context);
   const { showError } = useMessage();
   const defaultDate = new Date();
-  const pickerMode = Platform.OS === 'android' ? 'dropdown' : undefined;
   const [linkTypeOptions, setLinkTypeOptions] = useState(
     LINK_TYPE_OPTIONS.map(option => ({
       value: option.value,
@@ -97,12 +93,12 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
       return;
     }
 
-    if (isPessoaJuridica && !isExternalContext) {
+    if (isPessoaJuridica) {
       if (
         !String(formData.firstEmployeeName || '').trim() ||
         !String(formData.firstEmployeeAlias || '').trim()
       ) {
-        showError('Para cadastrar empresa, informe nome e apelido de um funcionario.');
+        showError(global.t?.t('people', 'error', 'firstEmployeeRequired'));
         return;
       }
     }
@@ -150,14 +146,19 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
         company: currentCompany ? '/people/' + currentCompany.id : null,
       };
 
-      if (isPessoaJuridica && !isExternalContext) {
-        companyData.firstEmployee = {
-          name: String(formData.firstEmployeeName || '').trim(),
-          alias: String(formData.firstEmployeeAlias || '').trim(),
-        };
-      }
+      const savedCompany = await actions.save(companyData);
 
-      await actions.save(companyData);
+      /* cria o contato PF vinculado à empresa PJ recém criada */
+      if (isPessoaJuridica && savedCompany?.id) {
+        await actions.save({
+          name:           String(formData.firstEmployeeName || '').trim(),
+          alias:          String(formData.firstEmployeeAlias || '').trim(),
+          peopleType:     'F',
+          linkType:       formData.linkType,
+          company:        `/people/${savedCompany.id}`,
+          'extra-data':   {},
+        });
+      }
 
       if (onSuccess) {
         onSuccess();
@@ -457,7 +458,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
             </View>
           </View>
           
-          {isPessoaJuridica && !isExternalContext && (
+          {isPessoaJuridica && (
             <View style={{ marginBottom: 20 }}>
 
               
@@ -518,31 +519,34 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                 color: '#212529',
                 marginBottom: 8,
               }}>
-              Cargo do contato vinculado
+              {global.t?.t('people', 'label', 'contactRole')}
               </Text>
 
-            <View
-              style={{
-                borderWidth: 1,
-                borderColor: '#e9ecef',
-                borderRadius: 12,
-                backgroundColor: '#f8f9fa',
-                overflow: 'hidden',
-              }}>
-              <Picker
-                selectedValue={formData.linkType}
-                onValueChange={value =>
-                  setFormData(prev => ({ ...prev, linkType: value }))
-                }
-                mode={pickerMode}>
-                {linkTypeOptions.map(option => (
-                  <Picker.Item
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {linkTypeOptions.map(option => {
+                const isSelected = formData.linkType === option.value;
+                return (
+                  <TouchableOpacity
                     key={option.value}
-                    label={option.label}
-                    value={option.value}
-                  />
-                ))}
-              </Picker>
+                    onPress={() => setFormData(prev => ({ ...prev, linkType: option.value }))}
+                    style={{
+                      paddingHorizontal: 16,
+                      paddingVertical: 10,
+                      borderRadius: 12,
+                      borderWidth: 2,
+                      borderColor:      isSelected ? '#007bff' : '#e9ecef',
+                      backgroundColor:  isSelected ? '#e7f3ff' : '#f8f9fa',
+                    }}>
+                    <Text style={{
+                      fontSize: 14,
+                      fontWeight: isSelected ? '600' : '400',
+                      color: isSelected ? '#007bff' : '#6c757d',
+                    }}>
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
 
