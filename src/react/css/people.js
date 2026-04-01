@@ -267,6 +267,12 @@ const css = () => {
       textAlign: 'center',
       color: colors.textSecondary,
       fontSize: 12,
+      marginBottom: 6,
+    },
+    resolutionText: {
+      textAlign: 'center',
+      color: colors.textSecondary,
+      fontSize: 12,
       marginBottom: 20,
     },
     emptyText: {

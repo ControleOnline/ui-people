@@ -18,6 +18,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '@controleonline/../../src/styles/colors';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import { env as APP_ENV } from '@env';
+import { buildScreenMetrics } from '@controleonline/ui-common/src/react/utils/screenMetrics';
 
 const {version: appVersion} = require('../../../../../../package.json');
 
@@ -340,15 +341,18 @@ const Profile = ({ navigation }) => {
   const { styles } = css();
   const authStore = useStore('auth');
   const peopleStore = useStore('people');
+  const deviceConfigStore = useStore('device_config');
   const phonesStore = useStore('phones');
   const emailsStore = useStore('emails');
   const {showSuccess, showError} = useMessage() || {};
   const userGetters = authStore.getters;
   const peopleGetters = peopleStore.getters;
+  const deviceConfigGetters = deviceConfigStore.getters;
   const authActions = authStore.actions;
   const peopleActions = peopleStore.actions;
   const phonesActions = phonesStore.actions;
   const emailsActions = emailsStore.actions;
+  const { item: deviceConfig } = deviceConfigGetters;
   const { user: storeUser } = userGetters;
   const user = useMemo(() => {
     if (storeUser && Object.keys(storeUser).length > 0) {
@@ -362,6 +366,9 @@ const Profile = ({ navigation }) => {
       return null;
     }
   }, [storeUser]);
+  const currentResolution = useMemo(() => {
+    return deviceConfig?.configs?.actualSize || buildScreenMetrics().actualSize || '-';
+  }, [deviceConfig]);
   const {currentCompany} = peopleGetters;
   const [phones, setPhones] = useState([]);
   const [emails, setEmails] = useState([]);
@@ -1046,6 +1053,7 @@ const Profile = ({ navigation }) => {
           </TouchableOpacity>
 
           <Text style={styles.versionText}>{`${global.t?.t("people", "label", "version")} ${appVersion}`}</Text>
+          <Text style={styles.resolutionText}>{`Resolução: ${currentResolution}`}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
