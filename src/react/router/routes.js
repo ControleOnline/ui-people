@@ -9,7 +9,7 @@ const peopleRoutes = [
       headerShown: true,
       headerBackVisible: false,
       showBottomToolBar: true,
-      title: 'Perfil',
+      title: global.t?.t('people', 'title', 'profile'),
     },
     initialParams: {store: 'auth'},
   },

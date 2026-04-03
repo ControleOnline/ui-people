@@ -61,18 +61,18 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
 
   const isPessoaFisica = formData.peopleType === 'F';
   const isPessoaJuridica = formData.peopleType === 'J';
-  const nameLabel = isPessoaFisica ? 'Nome *' : 'Raz\u00E3o Social *';
+  const nameLabel = isPessoaFisica ? global.t?.t('people', 'label', 'nameRequired') : global.t?.t('people', 'label', 'companyNameRequired');
   const namePlaceholder = isPessoaFisica
-    ? 'Digite o nome'
-    : 'Digite a raz\u00E3o social';
-  const aliasLabel = isPessoaFisica ? 'Apelido *' : 'Nome Fantasia *';
+    ? global.t?.t('people', 'placeholder', 'enterName')
+    : global.t?.t('people', 'placeholder', 'enterCompanyName');
+  const aliasLabel = isPessoaFisica ? global.t?.t('people', 'label', 'aliasRequired') : global.t?.t('people', 'label', 'tradeNameRequired');
   const aliasPlaceholder = isPessoaFisica
-    ? 'Digite o apelido'
-    : 'Digite o nome fantasia';
+    ? global.t?.t('people', 'placeholder', 'enterAlias')
+    : global.t?.t('people', 'placeholder', 'enterTradeName');
   const dateLabel = isPessoaFisica
-    ? 'Data de Nascimento'
-    : 'Data de Funda\u00E7\u00E3o';
-  const modalTitle = isPessoaFisica ? 'Nova Pessoa' : 'Nova Empresa';
+    ? global.t?.t('people', 'label', 'birthDate')
+    : global.t?.t('people', 'label', 'foundationDate');
+  const modalTitle = isPessoaFisica ? global.t?.t('people', 'title', 'newPerson') : global.t?.t('people', 'title', 'newCompany');
 
   useEffect(() => {
     setLinkTypeOptions(
@@ -87,8 +87,8 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
     if (!formData.name.trim() || !formData.alias.trim()) {
       showError(
         isPessoaFisica
-          ? 'Nome e apelido s\u00E3o obrigat\u00F3rios'
-          : 'Raz\u00E3o social e nome fantasia s\u00E3o obrigat\u00F3rios',
+          ? global.t?.t('people', 'error', 'nameAliasRequired')
+          : global.t?.t('people', 'error', 'companyAliasRequired'),
       );
       return;
     }
@@ -109,7 +109,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
       if (formData.foundationDateInput) {
         const normalized = formatDateInput(formData.foundationDateInput);
         if (normalized.length !== 10) {
-          showError('Informe uma data valida no formato DD/MM/AAAA.');
+          showError(global.t?.t('people', 'error', 'invalidDateFormat'));
           setIsLoading(false);
           return;
         }
@@ -124,7 +124,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
           candidate.getDate() === day;
 
         if (!validDate) {
-          showError('Informe uma data valida no formato DD/MM/AAAA.');
+          showError(global.t?.t('people', 'error', 'invalidDateFormat'));
           setIsLoading(false);
           return;
         }
@@ -345,7 +345,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                 color: '#212529',
                 marginBottom: 8,
               }}>
-              Tipo de Pessoa
+              {global.t?.t('people', 'label', 'personType')}
             </Text>
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <TouchableOpacity
@@ -382,7 +382,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                       formData.peopleType === 'F' ? '#007bff' : '#6c757d',
                     fontWeight: formData.peopleType === 'F' ? '600' : '400',
                   }}>
-                  {'F\u00EDsica'}
+                  {global.t?.t('people', 'label', 'individual')}
                 </Text>
               </TouchableOpacity>
 
@@ -413,7 +413,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                       formData.peopleType === 'J' ? '#007bff' : '#6c757d',
                     fontWeight: formData.peopleType === 'J' ? '600' : '400',
                   }}>
-                  {'Jur\u00EDdica'}
+                  {global.t?.t('people', 'label', 'legalEntity')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -441,7 +441,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
               }}>
               <Icon name="calendar-today" size={20} color="#6c757d" />
               <TextInput
-                placeholder="DD/MM/AAAA"
+                placeholder={global.t?.t('people', 'placeholder', 'dateFormat')}
                 value={formData.foundationDateInput}
                 onChangeText={handleDateChange}
                 style={{

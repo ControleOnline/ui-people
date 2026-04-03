@@ -872,7 +872,7 @@ const Profile = ({ navigation }) => {
               };
               setItems(newItems);
             }}
-            placeholder={type === 'phone' ? 'Adicionar telefone' : 'Adicionar e-mail'}
+            placeholder={type === 'phone' ? global.t?.t("people", "placeholder", "addPhone") : global.t?.t("people", "placeholder", "addEmail")}
             placeholderTextColor={colors.textSecondary}
             keyboardType={type === 'phone' ? 'phone-pad' : 'email-address'}
             maxLength={type === 'phone' ? 15 : undefined}
@@ -889,7 +889,7 @@ const Profile = ({ navigation }) => {
         </View>
       ))}
       {items.length === 0 && (
-        <Text style={styles.emptyText}>Nenhum {type === 'phone' ? global.t?.t("people", "label", "phone") : global.t?.t("people", "label", "email")} cadastrado</Text>
+        <Text style={styles.emptyText}>{type === 'phone' ? global.t?.t("people", "message", "noPhoneRegistered") : global.t?.t("people", "message", "noEmailRegistered")}</Text>
       )}
     </View>
   );
@@ -926,7 +926,7 @@ const Profile = ({ navigation }) => {
       <SafeAreaView style={styles.Profile}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
-            {'N\u00E3o foi poss\u00EDvel carregar os dados do usu\u00E1rio'}
+            {global.t?.t("people", "error", "unableLoadUserData")}
           </Text>
         </View>
       </SafeAreaView>
@@ -961,7 +961,7 @@ const Profile = ({ navigation }) => {
                 style={styles.userNameInput}
                 value={profileName}
                 onChangeText={setProfileName}
-                placeholder="Nome do usuario"
+                placeholder={global.t?.t("people", "placeholder", "userName")}
                 placeholderTextColor={colors.textSecondary}
                 maxLength={80}
                 returnKeyType="next"
@@ -988,7 +988,7 @@ const Profile = ({ navigation }) => {
                 style={styles.userAliasInput}
                 value={profileAlias}
                 onChangeText={setProfileAlias}
-                placeholder="Apelido"
+                placeholder={global.t?.t("people", "placeholder", "alias")}
                 placeholderTextColor={colors.textSecondary}
                 maxLength={40}
                 returnKeyType="done"
@@ -1053,7 +1053,7 @@ const Profile = ({ navigation }) => {
           </TouchableOpacity>
 
           <Text style={styles.versionText}>{`${global.t?.t("people", "label", "version")} ${appVersion}`}</Text>
-          <Text style={styles.resolutionText}>{`Resolução: ${currentResolution}`}</Text>
+          <Text style={styles.resolutionText}>{`${global.t?.t("people", "label", "resolution")}: ${currentResolution}`}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
