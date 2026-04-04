@@ -1,5 +1,6 @@
 import { api } from "@controleonline/ui-common/src/api";
 import { APP_ENV } from "../../../../../../config/env";
+import { resolveAppDomain } from "@controleonline/ui-common/src/utils/appDomain";
 import * as customTypes from "./mutation_types";
 import * as types from "@controleonline/ui-default/src/store/default/mutation_types";
 
@@ -65,7 +66,8 @@ export const myCompanies = ({ commit, getters }, payload) => {
 export const defaultCompany = ({ commit }) => {
   commit(types.SET_ISLOADING, false);
 
-  const values = { "app-domain": APP_ENV.DOMAIN || location.host };
+  const appDomain = resolveAppDomain(APP_ENV.DOMAIN);
+  const values = appDomain ? { "app-domain": appDomain } : {};
 
   return api
     .fetch(`${RESOURCE_ENDPOINT}/company/default`, { params: values })
