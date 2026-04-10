@@ -961,7 +961,7 @@ const Profile = ({ navigation }) => {
                 style={styles.userNameInput}
                 value={profileName}
                 onChangeText={setProfileName}
-                placeholder={global.t?.t("people", "placeholder", "userName")}
+                placeholder={global.t?.t("people", "placeholder", "emailLogin")}
                 placeholderTextColor={colors.textSecondary}
                 maxLength={80}
                 returnKeyType="next"
@@ -1052,7 +1052,7 @@ const Profile = ({ navigation }) => {
             <Text style={styles.logoutButtonText}>{global.t?.t("people", "label", "logout")}</Text>
           </TouchableOpacity>
 
-          <Text style={styles.versionText}>{`${global.t?.t("people", "label", "version")} ${appVersion}`}</Text>
+          <Text style={styles.versionText}>{`${global.t?.t("people", "label", "version")}: ${appVersion}`}</Text>
           <Text style={styles.resolutionText}>{`${global.t?.t("people", "label", "resolution")}: ${currentResolution}`}</Text>
         </View>
       </ScrollView>
