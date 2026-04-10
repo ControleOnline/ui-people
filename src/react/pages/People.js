@@ -265,10 +265,9 @@ const People = ({ context = {} }) => {
         <View style={{ flex: 1 }}>
           <Text style={[styles.clientName, { lineHeight: 30 }]} numberOfLines={1}>
             {client.alias}
-            {client.peopleType === 'J' ? ' (PJ)' : ' (PF)'}
           </Text>
           <Text style={{ fontSize: 14, color: '#94A3B8', lineHeight: 18 }}>
-            {client.name}
+            {client.peopleType === 'J' ? ' (PJ)' : ' (PF)'} {client.name}
           </Text>
         </View>
       
