@@ -37,12 +37,17 @@
         :label="$tt(configs.store, 'tab', 'attendances')"
       />
       <q-tab
-        v-if="context == 'customers'"
+        v-if="isProviderContext"
+        :name="'products'"
+        :label="$tt(configs.store, 'tab', 'products') || 'Produtos'"
+      />
+      <q-tab
+        v-if="isCustomerContext"
         :name="'orders'"
         :label="$tt(configs.store, 'tab', 'salesOrders')"
       />
       <q-tab
-        v-if="context == 'providers'"
+        v-if="isProviderContext"
         :name="'orders'"
         :label="$tt(configs.store, 'tab', 'purchasingOrders')"
       />
@@ -182,18 +187,24 @@
         <div class="q-pt-lg">
           <q-card class="full-height q-mb-md q-pa-none">
             <Orders
-              v-if="context == 'customers'"
+              v-if="isCustomerContext"
               :loaded="loaded"
               context="sales"
               :peopleId="currentPerson.id"
             />
             <Orders
-              v-if="context == 'providers'"
+              v-if="isProviderContext"
               :loaded="loaded"
               context="purchasing"
               :peopleId="currentPerson.id"
             />
           </q-card>
+        </div>
+      </q-tab-panel>
+
+      <q-tab-panel v-if="isProviderContext" name="products">
+        <div class="q-pt-lg">
+          <ProductsList :relations="currentPerson.productPeople || []" />
         </div>
       </q-tab-panel>
 
@@ -224,6 +235,7 @@ import EmailsList from "../Emails/ListEmails.vue";
 import PhonesList from "../Phones/List.vue";
 import AddressList from "../Address/List.vue";
 import DocumentsList from "../Documents/List.vue";
+import ProductsList from "../Products/List.vue";
 import UsersList from "@controleonline/ui-users/src/vue/components/Users/List.vue";
 import CompaniesList from "../Companies/List.vue";
 import ContractsList from "../Contracts/List.vue";
@@ -244,6 +256,7 @@ export default {
     PhonesList,
     AddressList,
     DocumentsList,
+    ProductsList,
     UsersList,
     CompaniesList,
     ContractsList,
@@ -274,6 +287,12 @@ export default {
       companies: "people/companies",
       columns: "people/columns",
     }),
+    isCustomerContext() {
+      return ["customers", "franchisee"].includes(this.context);
+    },
+    isProviderContext() {
+      return ["provider", "providers"].includes(this.context);
+    },
     configs() {
       let config = getConfigs(this.context, this.myCompany);
       config.externalFilters = false;

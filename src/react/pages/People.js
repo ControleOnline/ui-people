@@ -240,7 +240,7 @@ const People = ({ context = {} }) => {
   }, [searchText]);
 
   const handleEdit = client => {
-    navigation.push('ClientDetails', { client });
+    navigation.push('ClientDetails', { client, context });
   };
 
   const openImport = () => {
