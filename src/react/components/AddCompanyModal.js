@@ -161,7 +161,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
       }
 
       if (onSuccess) {
-        onSuccess();
+        onSuccess(savedCompany);
       }
 
       handleClose();
