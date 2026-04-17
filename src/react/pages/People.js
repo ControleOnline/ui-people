@@ -1,147 +1,15 @@
 import React, { useCallback, useState, useEffect, useLayoutEffect } from 'react';
-import {
-  Text,
-  View,
-  TouchableOpacity,
-  FlatList,
-  TextInput,
-  StyleSheet,
-  Platform,
-  Modal,
-} from 'react-native';
+import { Text, View, TouchableOpacity, FlatList, TextInput, Platform, Modal } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useStore } from '@store';
 import { useMessage } from '@controleonline/ui-common/src/react/components/MessageService';
 import { colors } from '@controleonline/../../src/styles/colors';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import IconAdd from 'react-native-vector-icons/MaterialIcons';
-
 import AddCompanyModal from '@controleonline/ui-people/src/react/components/AddCompanyModal';
 import ImportsPage from '@controleonline/ui-common/src/react/pages/Imports';
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-
-  subHeader: {
-    paddingHorizontal: 16,
-    paddingTop: 9,
-    paddingBottom: 9,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-
-  searchRow: { flexDirection: 'row', alignItems: 'center' },
-
-  searchInputContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    height: 40,
-  },
-
-  searchInput: {
-    flex: 1,
-    height: '100%',
-    paddingHorizontal: 8,
-    color: colors.text,
-    fontSize: 14,
-    outlineStyle: 'none',
-    outlineWidth: 0,
-  },
-
-  clearSearchButton: { padding: 4 },
-
-  importButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 8,
-    backgroundColor: '#E8F5E9',
-  },
-
-  addButton: {
-    backgroundColor: colors.primary,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 8,
-  },
-
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#64748B',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-      },
-      android: { elevation: 4 },
-      web: { boxShadow: '0 8px 16px rgba(15, 23, 42, 0.1)' },
-    }),
-  },
-
-  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-
-  avatarText: { color: '#fff', fontSize: 20, fontWeight: '700' },
-
-  clientName: {
-    flex: 1,
-    fontWeight: '700',
-    fontSize: 16,
-    color: '#1E293B',
-    lineHeight: 24,
-  },
-
-  cardBody: { marginTop: 4 },
-
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-    backgroundColor: '#F8FAFC',
-    padding: 8,
-    borderRadius: 8,
-  },
-
-  infoText: {
-    fontSize: 14,
-    color: '#475569',
-    marginLeft: 8,
-    fontWeight: '500',
-    flex: 1,
-  },
-});
+import styles from './People.styles';
+import { inlineStyle_133_14, inlineStyle_137_16 } from './People.styles';
 
 const People = ({ context = {} }) => {
 
@@ -262,11 +130,11 @@ const People = ({ context = {} }) => {
           </Text>
         </View>
 
-        <View style={{ flex: 1 }}>
+        <View style={inlineStyle_133_14}>
           <Text style={[styles.clientName, { lineHeight: 30 }]} numberOfLines={1}>
             {client.alias}
           </Text>
-          <Text style={{ fontSize: 14, color: '#94A3B8', lineHeight: 18 }}>
+          <Text style={inlineStyle_137_16}>
             {client.peopleType === 'J' ? ' (PJ)' : ' (PF)'} {client.name}
           </Text>
         </View>

@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef, useMemo } from 'react';
+
 import {
   Text,
   View,
@@ -9,6 +10,7 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 import css from '@controleonline/ui-people/src/react/css/people';
 import { useStore } from '@store';
@@ -19,7 +21,7 @@ import { colors } from '@controleonline/../../src/styles/colors';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import { env as APP_ENV } from '@env';
 import { buildScreenMetrics } from '@controleonline/ui-common/src/react/utils/screenMetrics';
-
+import { inlineStyle_1025_20, inlineStyle_1042_16, inlineStyle_1051_63 } from './Profile.styles';
 const {version: appVersion} = require('../../../../../../package.json');
 
 const extractPhoneDigits = value =>
@@ -251,6 +253,7 @@ const getAvatarFromUser = user => {
 
 const validateEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 const normalizeEmailValue = value => String(value || '').trim().toLowerCase();
+
 const normalizeNameValue = value =>
   String(value || '')
     .replace(/\s+/g, ' ')
@@ -1022,7 +1025,7 @@ const Profile = ({ navigation }) => {
                     name="save"
                     size={18}
                     color={colors.white}
-                    style={{marginRight: 8}}
+                    style={inlineStyle_1025_20}
                   />
                   <Text style={styles.saveButtonText}>{global.t?.t("people", "label", "save")}</Text>
                 </>
@@ -1039,7 +1042,7 @@ const Profile = ({ navigation }) => {
                 name="add-circle"
                 size={20}
                 color={colors.white}
-                style={{marginRight: 8}}
+                style={inlineStyle_1042_16}
               />
               <Text style={styles.profileActionButtonText}>
                 {global.t?.t("configs", "label", "resync translations")}
@@ -1048,7 +1051,7 @@ const Profile = ({ navigation }) => {
           )}
 
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
-            <Icon name="logout" size={20} color={colors.error} style={{ marginRight: 8 }} />
+            <Icon name="logout" size={20} color={colors.error} style={inlineStyle_1051_63} />
             <Text style={styles.logoutButtonText}>{global.t?.t("people", "label", "logout")}</Text>
           </TouchableOpacity>
 

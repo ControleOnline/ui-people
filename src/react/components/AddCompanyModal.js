@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+
 import {
   View,
   Text,
@@ -8,10 +9,52 @@ import {
   Keyboard,
   Platform,
 } from 'react-native';
+
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AnimatedModal from '@controleonline/ui-crm/src/react/components/AnimatedModal';
 import { useMessage } from '@controleonline/ui-common/src/react/components/MessageService';
 import { useStore } from '@store';
+
+import {
+  inlineStyle_233_6,
+  inlineStyle_235_8,
+  inlineStyle_251_10,
+  inlineStyle_261_12,
+  inlineStyle_270_12,
+  inlineStyle_283_10,
+  inlineStyle_286_16,
+  inlineStyle_288_14,
+  inlineStyle_300_14,
+  inlineStyle_313_16,
+  inlineStyle_315_14,
+  inlineStyle_327_14,
+  inlineStyle_340_16,
+  inlineStyle_342_14,
+  inlineStyle_350_18,
+  inlineStyle_360_16,
+  inlineStyle_378_18,
+  inlineStyle_391_16,
+  inlineStyle_409_18,
+  inlineStyle_422_16,
+  inlineStyle_424_14,
+  inlineStyle_433_14,
+  inlineStyle_447_16,
+  inlineStyle_462_18,
+  inlineStyle_466_16,
+  inlineStyle_475_20,
+  inlineStyle_482_18,
+  inlineStyle_495_20,
+  inlineStyle_502_18,
+  inlineStyle_516_14,
+  inlineStyle_525_18,
+  inlineStyle_532_20,
+  inlineStyle_540_26,
+  inlineStyle_559_10,
+  inlineStyle_571_12,
+  inlineStyle_580_14,
+  inlineStyle_595_12,
+  inlineStyle_603_14,
+} from './AddCompanyModal.styles';
 
 const LINK_TYPE_OPTIONS = [
   { value: 'employee', translationKey: 'employee' },
@@ -19,7 +62,6 @@ const LINK_TYPE_OPTIONS = [
   { value: 'director', translationKey: 'director' },
   { value: 'manager', translationKey: 'manager' },
 ];
-
 
 const toBrDateString = date => {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
@@ -230,124 +272,60 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
     <AnimatedModal
       visible={visible}
       onRequestClose={handleClose}
-      style={{ justifyContent: 'flex-end' }}>
+      style={inlineStyle_233_6}>
       <View
-        style={{
-          backgroundColor: '#fff',
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-          maxHeight: '90%',
-          width: '100%',
-          shadowColor: '#000',
-          shadowOffset: {
-            width: 0,
-            height: -4,
-          },
-          shadowOpacity: 0.1,
-          shadowRadius: 12,
-          elevation: 10,
-        }}>
+        style={inlineStyle_235_8}>
         <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: 24,
-            paddingVertical: 20,
-            borderBottomWidth: 1,
-            borderBottomColor: '#F1F5F9',
-          }}>
+          style={inlineStyle_251_10}>
           <Text
-            style={{
-              fontSize: 20,
-              fontWeight: '700',
-              color: '#0F172A',
-            }}>
+            style={inlineStyle_261_12}>
             {modalTitle}
           </Text>
           <TouchableOpacity
             onPress={handleClose}
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 16,
-              backgroundColor: '#F1F5F9',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
+            style={inlineStyle_270_12}>
             <Icon name="close" size={20} color="#64748B" />
           </TouchableOpacity>
         </View>
 
         <ScrollView
-          style={{ padding: 20 }}
+          style={inlineStyle_283_10}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag">
-          <View style={{ marginBottom: 20 }}>
+          <View style={inlineStyle_286_16}>
             <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                color: '#212529',
-                marginBottom: 8,
-              }}>
+              style={inlineStyle_288_14}>
               {nameLabel}
             </Text>
             <TextInput
               value={formData.name}
               onChangeText={text => setFormData(prev => ({ ...prev, name: text }))}
               placeholder={namePlaceholder}
-              style={{
-                borderWidth: 1,
-                borderColor: '#e9ecef',
-                borderRadius: 12,
-                paddingHorizontal: 16,
-                paddingVertical: 12,
-                fontSize: 16,
-                backgroundColor: '#f8f9fa',
-              }}
+              style={inlineStyle_300_14}
               placeholderTextColor="#6c757d"
             />
           </View>
 
-          <View style={{ marginBottom: 20 }}>
+          <View style={inlineStyle_313_16}>
             <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                color: '#212529',
-                marginBottom: 8,
-              }}>
+              style={inlineStyle_315_14}>
               {aliasLabel}
             </Text>
             <TextInput
               value={formData.alias}
               onChangeText={text => setFormData(prev => ({ ...prev, alias: text }))}
               placeholder={aliasPlaceholder}
-              style={{
-                borderWidth: 1,
-                borderColor: '#e9ecef',
-                borderRadius: 12,
-                paddingHorizontal: 16,
-                paddingVertical: 12,
-                fontSize: 16,
-                backgroundColor: '#f8f9fa',
-              }}
+              style={inlineStyle_327_14}
               placeholderTextColor="#6c757d"
             />
           </View>
 
-          <View style={{ marginBottom: 20 }}>
+          <View style={inlineStyle_340_16}>
             <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                color: '#212529',
-                marginBottom: 8,
-              }}>
+              style={inlineStyle_342_14}>
               {global.t?.t('people', 'label', 'personType')}
             </Text>
-            <View style={{ flexDirection: 'row', gap: 12 }}>
+            <View style={inlineStyle_350_18}>
               <TouchableOpacity
                 onPress={() =>
                   setFormData(prev => ({
@@ -357,100 +335,55 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                     firstEmployeeAlias: '',
                   }))
                 }
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  padding: 12,
-                  borderRadius: 12,
-                  borderWidth: 2,
-                  borderColor:
-                    formData.peopleType === 'F' ? '#007bff' : '#e9ecef',
-                  backgroundColor:
-                    formData.peopleType === 'F' ? '#e7f3ff' : '#f8f9fa',
-                }}>
+                style={inlineStyle_360_16({
+                  formData: formData,
+                })}>
                 <Icon
                   name="person"
                   size={20}
                   color={formData.peopleType === 'F' ? '#007bff' : '#6c757d'}
                 />
                 <Text
-                  style={{
-                    marginLeft: 8,
-                    fontSize: 16,
-                    color:
-                      formData.peopleType === 'F' ? '#007bff' : '#6c757d',
-                    fontWeight: formData.peopleType === 'F' ? '600' : '400',
-                  }}>
+                  style={inlineStyle_378_18({
+                    formData: formData,
+                  })}>
                   {global.t?.t('people', 'label', 'individual')}
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={() => setFormData(prev => ({ ...prev, peopleType: 'J' }))}
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  padding: 12,
-                  borderRadius: 12,
-                  borderWidth: 2,
-                  borderColor:
-                    formData.peopleType === 'J' ? '#007bff' : '#e9ecef',
-                  backgroundColor:
-                    formData.peopleType === 'J' ? '#e7f3ff' : '#f8f9fa',
-                }}>
+                style={inlineStyle_391_16({
+                  formData: formData,
+                })}>
                 <Icon
                   name="business"
                   size={20}
                   color={formData.peopleType === 'J' ? '#007bff' : '#6c757d'}
                 />
                 <Text
-                  style={{
-                    marginLeft: 8,
-                    fontSize: 16,
-                    color:
-                      formData.peopleType === 'J' ? '#007bff' : '#6c757d',
-                    fontWeight: formData.peopleType === 'J' ? '600' : '400',
-                  }}>
+                  style={inlineStyle_409_18({
+                    formData: formData,
+                  })}>
                   {global.t?.t('people', 'label', 'legalEntity')}
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
 
-          <View style={{ marginBottom: 30 }}>
+          <View style={inlineStyle_422_16}>
             <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                color: '#212529',
-                marginBottom: 8,
-              }}>
+              style={inlineStyle_424_14}>
               {dateLabel}
             </Text>
             <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                borderWidth: 1,
-                borderColor: '#e9ecef',
-                borderRadius: 12,
-                paddingHorizontal: 16,
-                backgroundColor: '#f8f9fa',
-              }}>
+              style={inlineStyle_433_14}>
               <Icon name="calendar-today" size={20} color="#6c757d" />
               <TextInput
                 placeholder={global.t?.t('people', 'placeholder', 'dateFormat')}
                 value={formData.foundationDateInput}
                 onChangeText={handleDateChange}
-                style={{
-                  flex: 1,
-                  paddingVertical: 12,
-                  paddingHorizontal: 12,
-                  fontSize: 16,
-                  color: '#212529',
-                }}
+                style={inlineStyle_447_16}
                 placeholderTextColor="#6c757d"
                 keyboardType="numeric"
                 maxLength={10}
@@ -459,89 +392,56 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
           </View>
           
           {isPessoaJuridica && (
-            <View style={{ marginBottom: 20 }}>
+            <View style={inlineStyle_462_18}>
 
               
               <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: '600',
-                  color: '#212529',
-                  marginBottom: 8,
-                }}>
+                style={inlineStyle_466_16}>
                 {global.t?.t('people','title','contactLinked')}
               </Text>
 
-              <View style={{ marginBottom: 12 }}>
+              <View style={inlineStyle_475_20}>
                 <TextInput
                   value={formData.firstEmployeeName}
                   onChangeText={text =>
                     setFormData(prev => ({ ...prev, firstEmployeeName: text }))
                   }
                   placeholder={global.t?.t('people','placeholder','contactName')}
-                  style={{
-                    borderWidth: 1,
-                    borderColor: '#e9ecef',
-                    borderRadius: 12,
-                    paddingHorizontal: 16,
-                    paddingVertical: 12,
-                    fontSize: 16,
-                    backgroundColor: '#f8f9fa',
-                  }}
+                  style={inlineStyle_482_18}
                   placeholderTextColor="#6c757d"
                 />
               </View>
 
-              <View style={{ marginBottom: 12 }}>
+              <View style={inlineStyle_495_20}>
                 <TextInput
                   value={formData.firstEmployeeAlias}
                   onChangeText={text =>
                     setFormData(prev => ({ ...prev, firstEmployeeAlias: text }))
                   }
                   placeholder={global.t?.t('people','placeholder','contactAlias')}
-                  style={{
-                    borderWidth: 1,
-                    borderColor: '#e9ecef',
-                    borderRadius: 12,
-                    paddingHorizontal: 16,
-                    paddingVertical: 12,
-                    fontSize: 16,
-                    backgroundColor: '#f8f9fa',
-                  }}
+                  style={inlineStyle_502_18}
                   placeholderTextColor="#6c757d"
                 />
               </View>
 
 <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                color: '#212529',
-                marginBottom: 8,
-              }}>
+              style={inlineStyle_516_14}>
               {global.t?.t('people', 'label', 'contactRole')}
               </Text>
 
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            <View style={inlineStyle_525_18}>
               {linkTypeOptions.map(option => {
                 const isSelected = formData.linkType === option.value;
                 return (
                   <TouchableOpacity
                     key={option.value}
                     onPress={() => setFormData(prev => ({ ...prev, linkType: option.value }))}
-                    style={{
-                      paddingHorizontal: 16,
-                      paddingVertical: 10,
-                      borderRadius: 12,
-                      borderWidth: 2,
-                      borderColor:      isSelected ? '#007bff' : '#e9ecef',
-                      backgroundColor:  isSelected ? '#e7f3ff' : '#f8f9fa',
-                    }}>
-                    <Text style={{
-                      fontSize: 14,
-                      fontWeight: isSelected ? '600' : '400',
-                      color: isSelected ? '#007bff' : '#6c757d',
-                    }}>
+                    style={inlineStyle_532_20({
+                      isSelected: isSelected,
+                    })}>
+                    <Text style={inlineStyle_540_26({
+                      isSelected: isSelected,
+                    })}>
                       {option.label}
                     </Text>
                   </TouchableOpacity>
@@ -556,32 +456,15 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
         </ScrollView>
 
         <View
-          style={{
-            flexDirection: 'row',
-            padding: 20,
-            gap: 12,
-            borderTopWidth: 1,
-            borderTopColor: '#e9ecef',
-          }}>
+          style={inlineStyle_559_10}>
           <TouchableOpacity
             onPress={() => {
               Keyboard.dismiss();
               handleClose();
             }}
-            style={{
-              flex: 1,
-              paddingVertical: 14,
-              borderRadius: 12,
-              borderWidth: 1,
-              borderColor: '#6c757d',
-              alignItems: 'center',
-            }}>
+            style={inlineStyle_571_12}>
             <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                color: '#6c757d',
-              }}>
+              style={inlineStyle_580_14}>
               Cancelar
             </Text>
           </TouchableOpacity>
@@ -592,19 +475,11 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
               handleSave();
             }}
             disabled={isLoading}
-            style={{
-              flex: 1,
-              paddingVertical: 14,
-              borderRadius: 12,
-              backgroundColor: isLoading ? '#6c757d' : '#007bff',
-              alignItems: 'center',
-            }}>
+            style={inlineStyle_595_12({
+              isLoading: isLoading,
+            })}>
             <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                color: '#fff',
-              }}>
+              style={inlineStyle_603_14}>
               {isLoading ? 'Salvando...' : 'Salvar'}
             </Text>
           </TouchableOpacity>
