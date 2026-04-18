@@ -20,6 +20,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '@controleonline/../../src/styles/colors';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import { env as APP_ENV } from '@env';
+import { resolveFileImageUrl } from '@controleonline/ui-common/src/react/utils/fileUrl';
 import { buildScreenMetrics } from '@controleonline/ui-common/src/react/utils/screenMetrics';
 import { inlineStyle_1025_20, inlineStyle_1042_16, inlineStyle_1051_63 } from './Profile.styles';
 const {version: appVersion} = require('../../../../../../package.json');
@@ -103,7 +104,7 @@ const unwrapUploadFile = payload => {
 const getSessionData = () => {
   try {
     return JSON.parse(localStorage.getItem('session') || '{}');
-  } catch (error) {
+  } catch {
     return {};
   }
 };
@@ -243,12 +244,7 @@ const getAvatarFromUser = user => {
     return user.avatarUrl;
   }
 
-  if (user?.avatar?.url) {
-    const domain = user?.avatar?.domain || APP_ENV?.API_ENTRYPOINT || '';
-    return `${domain}${user.avatar.url}`;
-  }
-
-  return '';
+  return resolveFileImageUrl(user?.avatar);
 };
 
 const validateEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -365,7 +361,7 @@ const Profile = ({ navigation }) => {
     try {
       const sessionUser = JSON.parse(localStorage.getItem('session') || '{}');
       return sessionUser && Object.keys(sessionUser).length > 0 ? sessionUser : null;
-    } catch (error) {
+    } catch {
       return null;
     }
   }, [storeUser]);
@@ -420,7 +416,7 @@ const Profile = ({ navigation }) => {
 
           parsedPhones = normalizedRemotePhones;
           parsedEmails = normalizedRemoteEmails;
-        } catch (error) {
+        } catch {
           parsedPhones = fallbackPhones;
           parsedEmails = fallbackEmails;
         }
@@ -511,7 +507,9 @@ const Profile = ({ navigation }) => {
     const peopleIri = toPeopleIri(user);
     const peopleId = extractId(peopleIri);
     const companyId = extractId(currentCompany?.id || session?.mycompany || peopleId);
-    const host = APP_ENV?.DOMAIN || (typeof location !== 'undefined' ? location.host : '');
+    const host =
+      APP_ENV?.DOMAIN ||
+      (typeof globalThis !== 'undefined' ? globalThis?.location?.host || '' : '');
 
     const formData = new FormData();
     formData.append('file', file);
@@ -550,7 +548,7 @@ const Profile = ({ navigation }) => {
       throw new Error(global.t?.t("people", "error", "Upload completed, but file not returned."));
     }
 
-    return `${apiEntryPoint}/files/${fileId}/download?app-domain=${encodeURIComponent(host)}`;
+    return resolveFileImageUrl(uploadedFile || fileId, {appDomain: host});
   };
 
   const handleChangeAvatar = async () => {
