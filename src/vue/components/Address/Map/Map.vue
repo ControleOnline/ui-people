@@ -18,9 +18,7 @@ export default {
   },
   data() {
     return {
-      apiKey:
-        process.env.GMAPS_GOOGLE_CLIENT_ID ||
-        "AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8",
+      apiKey: "AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8",
     };
   },
   props: {
