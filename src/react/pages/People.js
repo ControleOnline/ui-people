@@ -51,7 +51,7 @@ const People = ({ context = {} }) => {
       };
 
       if (String(query ?? searchQuery).trim()) {
-        params.name = String(query ?? searchQuery).trim();
+        params.search = String(query ?? searchQuery).trim();
       }
 
       actions.getItems(params);
