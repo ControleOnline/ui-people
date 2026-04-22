@@ -29,7 +29,7 @@ const People = ({ context = {} }) => {
   const navigation = useNavigation();
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(25);
 
   const [searchText, setSearchText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
