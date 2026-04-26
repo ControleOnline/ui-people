@@ -263,18 +263,6 @@ const css = () => {
       fontWeight: '600',
       color: colors.error,
     },
-    versionText: {
-      textAlign: 'center',
-      color: colors.textSecondary,
-      fontSize: 12,
-      marginBottom: 6,
-    },
-    resolutionText: {
-      textAlign: 'center',
-      color: colors.textSecondary,
-      fontSize: 12,
-      marginBottom: 20,
-    },
     emptyText: {
       color: colors.textSecondary,
       fontStyle: 'italic',

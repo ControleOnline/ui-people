@@ -21,9 +21,7 @@ import { colors } from '@controleonline/../../src/styles/colors';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import { env as APP_ENV } from '@env';
 import { resolveFileImageUrl } from '@controleonline/ui-common/src/react/utils/fileUrl';
-import { buildScreenMetrics } from '@controleonline/ui-common/src/react/utils/screenMetrics';
 import { inlineStyle_1025_20, inlineStyle_1042_16, inlineStyle_1051_63 } from './Profile.styles';
-const {version: appVersion} = require('../../../../../../package.json');
 
 const extractPhoneDigits = value =>
   String(value || '')
@@ -365,9 +363,6 @@ const Profile = ({ navigation }) => {
       return null;
     }
   }, [storeUser]);
-  const currentResolution = useMemo(() => {
-    return deviceConfig?.configs?.actualSize || buildScreenMetrics().actualSize || '-';
-  }, [deviceConfig]);
   const {currentCompany} = peopleGetters;
   const [phones, setPhones] = useState([]);
   const [emails, setEmails] = useState([]);
@@ -1053,8 +1048,6 @@ const Profile = ({ navigation }) => {
             <Text style={styles.logoutButtonText}>{global.t?.t("people", "label", "logout")}</Text>
           </TouchableOpacity>
 
-          <Text style={styles.versionText}>{`${global.t?.t("people", "label", "version")}: ${appVersion}`}</Text>
-          <Text style={styles.resolutionText}>{`${global.t?.t("people", "label", "resolution")}: ${currentResolution}`}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
