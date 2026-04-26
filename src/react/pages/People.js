@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useLayoutEffect } from 'react';
+import React, { useCallback, useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Text, View, TouchableOpacity, FlatList, TextInput, Platform, Modal } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useStore } from '@store';
@@ -10,6 +10,12 @@ import AddCompanyModal from '@controleonline/ui-people/src/react/components/AddC
 import ImportsPage from '@controleonline/ui-common/src/react/pages/Imports';
 import styles from './People.styles';
 import { inlineStyle_133_14, inlineStyle_137_16 } from './People.styles';
+
+const extractItems = response => {
+  if (Array.isArray(response)) return response;
+  if (Array.isArray(response?.['hydra:member'])) return response['hydra:member'];
+  return [];
+};
 
 const People = ({ context = {} }) => {
 
@@ -23,7 +29,6 @@ const People = ({ context = {} }) => {
   const getters = peopleStore.getters;
   const actions = peopleStore.actions;
 
-  const { items: clients, isLoading } = getters;
   const { currentCompany } = getters;
 
   const navigation = useNavigation();
@@ -35,6 +40,7 @@ const People = ({ context = {} }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const [allClients, setAllClients] = useState([]);
+  const lastFetchKeyRef = useRef('');
 
   const [showAddCompanyModal, setShowAddCompanyModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -42,11 +48,12 @@ const People = ({ context = {} }) => {
   const fetchClients = useCallback((query, page) => {
 
     if (currentCompany && Object.keys(currentCompany).length > 0) {
+      const nextPage = page ?? currentPage;
 
       const params = {
         'link.company': '/people/' + currentCompany.id,
         'link.linkType': linkType,
-        page: page ?? currentPage,
+        page: nextPage,
         itemsPerPage,
       };
 
@@ -54,10 +61,33 @@ const People = ({ context = {} }) => {
         params.search = String(query ?? searchQuery).trim();
       }
 
-      actions.getItems(params);
+      const fetchKey = JSON.stringify({
+        company: currentCompany.id,
+        linkType,
+        page: nextPage,
+        query: String(query ?? searchQuery).trim(),
+      });
+      lastFetchKeyRef.current = fetchKey;
+
+      return actions.getItems(params).then(response => {
+        if (lastFetchKeyRef.current !== fetchKey) return;
+
+        const items = extractItems(response);
+        if (nextPage === 1) {
+          setAllClients(items);
+          return;
+        }
+
+        setAllClients(prev => {
+          const newIds = new Set(items.map(c => c.id));
+          const filteredPrev = prev.filter(p => !newIds.has(p.id));
+          return [...filteredPrev, ...items];
+        });
+      });
     }
 
-  }, [currentCompany, currentPage, itemsPerPage, searchQuery, linkType]);
+    return Promise.resolve();
+  }, [actions, currentCompany, currentPage, itemsPerPage, searchQuery, linkType]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -72,29 +102,9 @@ const People = ({ context = {} }) => {
   );
 
   useEffect(() => {
-
-    if (isLoading) return;
-
-    if (clients && Array.isArray(clients)) {
-
-      if (currentPage === 1) {
-        setAllClients(clients);
-      } else {
-
-        setAllClients(prev => {
-
-          const newIds = new Set(clients.map(c => c.id));
-          const filteredPrev = prev.filter(p => !newIds.has(p.id));
-
-          return [...filteredPrev, ...clients];
-
-        });
-
-      }
-
-    }
-
-  }, [clients, currentPage, isLoading]);
+    setAllClients([]);
+    setCurrentPage(1);
+  }, [currentCompany?.id, linkType]);
 
   useEffect(() => {
 
@@ -113,6 +123,17 @@ const People = ({ context = {} }) => {
 
   const openImport = () => {
     setShowImportModal(true);
+  };
+
+  const handleCreateSuccess = savedClient => {
+    setCurrentPage(1);
+    if (savedClient?.id) {
+      setAllClients(prev => [
+        savedClient,
+        ...prev.filter(item => String(item.id) !== String(savedClient.id)),
+      ]);
+    }
+    fetchClients(searchQuery, 1);
   };
 
   const renderClientCard = ({ item: client }) => (
@@ -229,10 +250,7 @@ const People = ({ context = {} }) => {
         visible={showAddCompanyModal}
         onClose={() => setShowAddCompanyModal(false)}
         context={context}
-        onSuccess={() => {
-          fetchClients(searchQuery, 1);
-          setCurrentPage(1);
-        }}
+        onSuccess={handleCreateSuccess}
       />
 
       <Modal
