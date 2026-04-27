@@ -232,7 +232,7 @@ const getPrimaryPhone = value => {
 };
 
 const getDisplayName = user =>
-  String(user?.realname || user?.name || user?.username || 'Usuario').trim();
+  String(user?.name || user?.realname || user?.username || 'Usuario').trim();
 
 const getDisplayAlias = user =>
   String(user?.alias || user?.nickname || '').trim();
