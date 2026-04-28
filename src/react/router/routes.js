@@ -7,7 +7,6 @@ const peopleRoutes = [
     component: Profile,
     options: {
       headerShown: true,
-      headerBackVisible: false,
       showBottomToolBar: true,
       title: global.t?.t('people', 'title', 'profile'),
     },
