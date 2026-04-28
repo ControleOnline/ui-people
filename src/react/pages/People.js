@@ -1,9 +1,7 @@
 import React, { useCallback, useState, useEffect, useLayoutEffect, useRef } from 'react';
-import { Text, View, TouchableOpacity, FlatList, TextInput, Platform, Modal } from 'react-native';
+import { Text, View, TouchableOpacity, FlatList, TextInput, Modal } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useStore } from '@store';
-import { useMessage } from '@controleonline/ui-common/src/react/components/MessageService';
-import { colors } from '@controleonline/../../src/styles/colors';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import IconAdd from 'react-native-vector-icons/MaterialIcons';
 import AddCompanyModal from '@controleonline/ui-people/src/react/components/AddCompanyModal';
@@ -22,8 +20,6 @@ const People = ({ context = {} }) => {
   const linkType = context.context;
   const title = context.title;
   const searchPlaceholder = context.searchPlaceholder;
-
-  const { showError } = useMessage();
 
   const peopleStore = useStore('people');
   const getters = peopleStore.getters;
@@ -118,7 +114,16 @@ const People = ({ context = {} }) => {
   }, [searchText]);
 
   const handleEdit = client => {
-    navigation.push('ClientDetails', { client, context });
+    const clientId = String(client?.id || client?.['@id'] || '').replace(/\D/g, '');
+    if (!clientId) {
+      return;
+    }
+
+    actions?.setItem?.(client);
+    navigation.push('ClientDetails', {
+      clientId,
+      contextKey: String(linkType || ''),
+    });
   };
 
   const openImport = () => {
