@@ -1,11 +1,24 @@
-import React, { useCallback, useState, useEffect, useLayoutEffect, useRef } from 'react';
+import React, {
+  useCallback,
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { Text, View, TouchableOpacity, FlatList, TextInput, Modal } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useStore } from '@store';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import IconAdd from 'react-native-vector-icons/MaterialIcons';
 import AddCompanyModal from '@controleonline/ui-people/src/react/components/AddCompanyModal';
+import CompactFilterSelector from '@controleonline/ui-common/src/react/components/filters/CompactFilterSelector';
 import ImportsPage from '@controleonline/ui-common/src/react/pages/Imports';
+import {
+  buildPeopleContextConfig,
+  normalizePeopleContextType,
+  resolvePeopleContextSearchPlaceholder,
+} from '@controleonline/ui-people/src/react/utils/peopleContext';
 import styles from './People.styles';
 import { inlineStyle_133_14, inlineStyle_137_16 } from './People.styles';
 
@@ -16,10 +29,8 @@ const extractItems = response => {
 };
 
 const People = ({ context = {} }) => {
-
-  const linkType = context.context;
+  const contextConfig = useMemo(() => buildPeopleContextConfig(context), [context]);
   const title = context.title;
-  const searchPlaceholder = context.searchPlaceholder;
 
   const peopleStore = useStore('people');
   const getters = peopleStore.getters;
@@ -34,6 +45,7 @@ const People = ({ context = {} }) => {
 
   const [searchText, setSearchText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedLinkType, setSelectedLinkType] = useState(contextConfig.defaultType);
 
   const [allClients, setAllClients] = useState([]);
   const lastFetchKeyRef = useRef('');
@@ -41,14 +53,45 @@ const People = ({ context = {} }) => {
   const [showAddCompanyModal, setShowAddCompanyModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
 
-  const fetchClients = useCallback((query, page) => {
+  useEffect(() => {
+    setSelectedLinkType(previousType =>
+      contextConfig.availableTypes.includes(previousType)
+        ? previousType
+        : contextConfig.defaultType,
+    );
+  }, [contextConfig.availableTypes, contextConfig.defaultType]);
+
+  const activeSearchPlaceholder = useMemo(
+    () => resolvePeopleContextSearchPlaceholder(selectedLinkType, context),
+    [context, selectedLinkType],
+  );
+  const activeTypeOption = useMemo(
+    () =>
+      contextConfig.options.find(option => option.key === selectedLinkType) ||
+      contextConfig.options[0] ||
+      null,
+    [contextConfig.options, selectedLinkType],
+  );
+  const runtimeContext = useMemo(
+    () => ({
+      ...context,
+      context: selectedLinkType,
+      contextOptions: contextConfig.availableTypes,
+      defaultContext: contextConfig.defaultType,
+      selectedContext: selectedLinkType,
+    }),
+    [context, contextConfig.availableTypes, contextConfig.defaultType, selectedLinkType],
+  );
+
+  const fetchClients = useCallback((query, page, requestedLinkType = selectedLinkType) => {
+    const normalizedLinkType = normalizePeopleContextType(requestedLinkType);
 
     if (currentCompany && Object.keys(currentCompany).length > 0) {
       const nextPage = page ?? currentPage;
 
       const params = {
         'link.company': '/people/' + currentCompany.id,
-        'link.linkType': linkType,
+        'link.linkType': normalizedLinkType,
         page: nextPage,
         itemsPerPage,
       };
@@ -59,7 +102,7 @@ const People = ({ context = {} }) => {
 
       const fetchKey = JSON.stringify({
         company: currentCompany.id,
-        linkType,
+        linkType: normalizedLinkType,
         page: nextPage,
         query: String(query ?? searchQuery).trim(),
       });
@@ -83,7 +126,14 @@ const People = ({ context = {} }) => {
     }
 
     return Promise.resolve();
-  }, [actions, currentCompany, currentPage, itemsPerPage, searchQuery, linkType]);
+  }, [
+    actions,
+    currentCompany,
+    currentPage,
+    itemsPerPage,
+    searchQuery,
+    selectedLinkType,
+  ]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -93,14 +143,14 @@ const People = ({ context = {} }) => {
 
   useFocusEffect(
     useCallback(() => {
-      fetchClients(searchQuery, currentPage);
-    }, [currentCompany?.id, currentPage, itemsPerPage, searchQuery, linkType]),
+      fetchClients(searchQuery, currentPage, selectedLinkType);
+    }, [currentCompany?.id, currentPage, fetchClients, searchQuery, selectedLinkType]),
   );
 
   useEffect(() => {
     setAllClients([]);
     setCurrentPage(1);
-  }, [currentCompany?.id, linkType]);
+  }, [currentCompany?.id, selectedLinkType]);
 
   useEffect(() => {
 
@@ -122,7 +172,7 @@ const People = ({ context = {} }) => {
     actions?.setItem?.(client);
     navigation.push('ClientDetails', {
       clientId,
-      contextKey: String(linkType || ''),
+      contextKey: String(selectedLinkType || ''),
     });
   };
 
@@ -130,15 +180,28 @@ const People = ({ context = {} }) => {
     setShowImportModal(true);
   };
 
-  const handleCreateSuccess = savedClient => {
+  const handleCreateSuccess = (savedClient, metadata = {}) => {
+    const registrationLinkType = normalizePeopleContextType(metadata?.registrationLinkType);
+    const nextLinkType =
+      registrationLinkType && contextConfig.availableTypes.includes(registrationLinkType)
+        ? registrationLinkType
+        : selectedLinkType;
+    const shouldSwitchType = nextLinkType && nextLinkType !== selectedLinkType;
+
     setCurrentPage(1);
-    if (savedClient?.id) {
+    if (!shouldSwitchType && savedClient?.id) {
       setAllClients(prev => [
         savedClient,
         ...prev.filter(item => String(item.id) !== String(savedClient.id)),
       ]);
     }
-    fetchClients(searchQuery, 1);
+
+    if (shouldSwitchType) {
+      setSelectedLinkType(nextLinkType);
+      setAllClients([]);
+    }
+
+    fetchClients(searchQuery, 1, nextLinkType);
   };
 
   const renderClientCard = ({ item: client }) => (
@@ -209,7 +272,7 @@ const People = ({ context = {} }) => {
 
             <TextInput
               style={styles.searchInput}
-              placeholder={searchPlaceholder}
+              placeholder={activeSearchPlaceholder}
               placeholderTextColor="#94A3B8"
               value={searchText}
               onChangeText={setSearchText}
@@ -242,6 +305,24 @@ const People = ({ context = {} }) => {
 
         </View>
 
+        {contextConfig.hasTypeFilter && activeTypeOption ? (
+          <View style={styles.filterRow}>
+            <CompactFilterSelector
+              dense
+              icon="filter"
+              label={activeTypeOption.label}
+              title={contextConfig.filterTitle}
+              active
+              options={contextConfig.options}
+              selectedKey={selectedLinkType}
+              onSelect={optionKey => {
+                setSelectedLinkType(optionKey);
+                return true;
+              }}
+            />
+          </View>
+        ) : null}
+
       </View>
 
       <FlatList
@@ -254,7 +335,7 @@ const People = ({ context = {} }) => {
       <AddCompanyModal
         visible={showAddCompanyModal}
         onClose={() => setShowAddCompanyModal(false)}
-        context={context}
+        context={runtimeContext}
         onSuccess={handleCreateSuccess}
       />
 
@@ -264,7 +345,7 @@ const People = ({ context = {} }) => {
         transparent={false}
       >
         <ImportsPage
-          context={context}
+          context={runtimeContext}
           onClose={() => setShowImportModal(false)}
         />
       </Modal>

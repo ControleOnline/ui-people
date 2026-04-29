@@ -7,13 +7,16 @@ import {
   TouchableOpacity,
   ScrollView,
   Keyboard,
-  Platform,
 } from 'react-native';
 
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AnimatedModal from '@controleonline/ui-crm/src/react/components/AnimatedModal';
 import { useMessage } from '@controleonline/ui-common/src/react/components/MessageService';
 import { useStore } from '@store';
+import {
+  buildPeopleContextConfig,
+  normalizePeopleContextType,
+} from '@controleonline/ui-people/src/react/utils/peopleContext';
 
 import {
   inlineStyle_233_6,
@@ -81,7 +84,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
   const { currentCompany } = getters;
 
   const { showError } = useMessage();
-  const defaultDate = new Date();
+  const contextConfig = buildPeopleContextConfig(context);
   const [linkTypeOptions, setLinkTypeOptions] = useState(
     LINK_TYPE_OPTIONS.map(option => ({
       value: option.value,
@@ -89,17 +92,33 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
     })),
   );
 
-  const [formData, setFormData] = useState({
-    name: '',
-    alias: '',
-    foundationDate: defaultDate,
-    foundationDateInput: toBrDateString(defaultDate),
-    peopleType: 'J',
-    linkType: 'employee',
-    firstEmployeeName: '',
-    firstEmployeeAlias: '',
-  });
+  const buildInitialFormData = registrationLinkType => {
+    const defaultDate = new Date();
+
+    return {
+      name: '',
+      alias: '',
+      foundationDate: defaultDate,
+      foundationDateInput: toBrDateString(defaultDate),
+      peopleType: 'J',
+      contactLinkType: 'employee',
+      registrationLinkType:
+        normalizePeopleContextType(registrationLinkType || contextConfig.defaultType) ||
+        normalizePeopleContextType(context?.context) ||
+        'employee',
+      firstEmployeeName: '',
+      firstEmployeeAlias: '',
+    };
+  };
+  const [formData, setFormData] = useState(() =>
+    buildInitialFormData(contextConfig.defaultType),
+  );
   const [isLoading, setIsLoading] = useState(false);
+  const registrationTypeOptions = contextConfig.options.map(option => ({
+    value: option.key,
+    label: option.label,
+  }));
+  const hasRegistrationTypeSelector = registrationTypeOptions.length > 1;
 
   const isPessoaFisica = formData.peopleType === 'F';
   const isPessoaJuridica = formData.peopleType === 'J';
@@ -124,6 +143,14 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
       })),
     );
   }, []);
+
+  useEffect(() => {
+    if (!visible) {
+      return;
+    }
+
+    setFormData(buildInitialFormData(contextConfig.defaultType));
+  }, [contextConfig.defaultType, visible]);
 
   const handleSave = async () => {
     if (!formData.name.trim() || !formData.alias.trim()) {
@@ -174,16 +201,18 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
         parsedFoundationDate = candidate;
       }
 
-      /* linkType para o backend: contexto externo (client/provider) usa o context,
-         demais casos (criação de funcionário) usam o cargo selecionado no form */
-      const linkType = context?.context || formData.linkType;
+      // O vinculo principal respeita o tipo selecionado no cadastro atual.
+      const registrationLinkType =
+        normalizePeopleContextType(formData.registrationLinkType) ||
+        normalizePeopleContextType(context?.context) ||
+        'employee';
 
       const companyData = {
         name: formData.name.trim(),
         alias: formData.alias.trim(),
         foundationDate: parsedFoundationDate.toISOString().split('T')[0],
         peopleType: formData.peopleType,
-        linkType,
+        linkType: registrationLinkType,
         'extra-data': {},
         company: currentCompany ? '/people/' + currentCompany.id : null,
       };
@@ -196,14 +225,14 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
           name:           String(formData.firstEmployeeName || '').trim(),
           alias:          String(formData.firstEmployeeAlias || '').trim(),
           peopleType:     'F',
-          linkType:       formData.linkType,
+          linkType:       formData.contactLinkType,
           company:        `/people/${savedCompany.id}`,
           'extra-data':   {},
         });
       }
 
       if (onSuccess) {
-        onSuccess(savedCompany);
+        onSuccess(savedCompany, { registrationLinkType });
       }
 
       handleClose();
@@ -215,17 +244,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
   };
 
   const handleClose = () => {
-    const resetDate = new Date();
-    setFormData({
-      name: '',
-      alias: '',
-      foundationDate: resetDate,
-      foundationDateInput: toBrDateString(resetDate),
-      peopleType: 'J',
-      linkType: 'employee',
-      firstEmployeeName: '',
-      firstEmployeeAlias: '',
-    });
+    setFormData(buildInitialFormData(contextConfig.defaultType));
     onClose();
   };
 
@@ -371,6 +390,39 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
             </View>
           </View>
 
+          {hasRegistrationTypeSelector && (
+            <View style={inlineStyle_462_18}>
+              <Text style={inlineStyle_466_16}>
+                {contextConfig.selectorLabel}
+              </Text>
+
+              <View style={inlineStyle_525_18}>
+                {registrationTypeOptions.map(option => {
+                  const isSelected = formData.registrationLinkType === option.value;
+                  return (
+                    <TouchableOpacity
+                      key={option.value}
+                      onPress={() =>
+                        setFormData(prev => ({
+                          ...prev,
+                          registrationLinkType: option.value,
+                        }))
+                      }
+                      style={inlineStyle_532_20({
+                        isSelected: isSelected,
+                      })}>
+                      <Text style={inlineStyle_540_26({
+                        isSelected: isSelected,
+                      })}>
+                        {option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+
           <View style={inlineStyle_422_16}>
             <Text
               style={inlineStyle_424_14}>
@@ -423,31 +475,32 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                   placeholderTextColor="#6c757d"
                 />
               </View>
-
-<Text
-              style={inlineStyle_516_14}>
-              {global.t?.t('people', 'label', 'contactRole')}
+              <Text
+                style={inlineStyle_516_14}>
+                {global.t?.t('people', 'label', 'contactRole')}
               </Text>
 
-            <View style={inlineStyle_525_18}>
-              {linkTypeOptions.map(option => {
-                const isSelected = formData.linkType === option.value;
-                return (
-                  <TouchableOpacity
-                    key={option.value}
-                    onPress={() => setFormData(prev => ({ ...prev, linkType: option.value }))}
-                    style={inlineStyle_532_20({
-                      isSelected: isSelected,
-                    })}>
-                    <Text style={inlineStyle_540_26({
-                      isSelected: isSelected,
-                    })}>
-                      {option.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+              <View style={inlineStyle_525_18}>
+                {linkTypeOptions.map(option => {
+                  const isSelected = formData.contactLinkType === option.value;
+                  return (
+                    <TouchableOpacity
+                      key={option.value}
+                      onPress={() =>
+                        setFormData(prev => ({ ...prev, contactLinkType: option.value }))
+                      }
+                      style={inlineStyle_532_20({
+                        isSelected: isSelected,
+                      })}>
+                      <Text style={inlineStyle_540_26({
+                        isSelected: isSelected,
+                      })}>
+                        {option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
 
 
             </View>

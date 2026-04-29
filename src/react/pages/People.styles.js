@@ -15,6 +15,10 @@ const styles = StyleSheet.create({
 
   searchRow: { flexDirection: 'row', alignItems: 'center' },
 
+  filterRow: {
+    marginTop: 10,
+  },
+
   searchInputContainer: {
     flex: 1,
     flexDirection: 'row',
@@ -136,4 +140,3 @@ export const inlineStyle_137_16 = {
   color: '#94A3B8',
   lineHeight: 18,
 };
-
