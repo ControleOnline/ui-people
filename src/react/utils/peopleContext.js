@@ -77,6 +77,22 @@ export const resolvePeopleContextSearchPlaceholder = (type, context = {}) => {
   );
 };
 
+export const resolvePeopleContextModalTitle = (type, context = {}) => {
+  const normalizedType = normalizePeopleContextType(type);
+  const customTitle =
+    context?.modalTitleByType?.[normalizedType] || context?.registrationTitles?.[normalizedType];
+
+  if (customTitle) {
+    return customTitle;
+  }
+
+  if (context?.modalTitle) {
+    return context.modalTitle;
+  }
+
+  return global.t?.t('people', 'title', 'newCompany');
+};
+
 export const buildPeopleContextConfig = (context = {}) => {
   const availableTypes = uniqueTypes(
     resolveContextSource(context)
@@ -114,6 +130,7 @@ export const buildPeopleContextConfig = (context = {}) => {
       context?.filterTitle ||
       context?.title ||
       resolvePeopleContextLabel(defaultType, context),
+    modalTitle: resolvePeopleContextModalTitle(defaultType, context),
     options: resolvedTypes.map(type => ({
       key: type,
       label: resolvePeopleContextLabel(type, context),

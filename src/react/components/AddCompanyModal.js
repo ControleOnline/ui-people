@@ -114,12 +114,6 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
     buildInitialFormData(contextConfig.defaultType),
   );
   const [isLoading, setIsLoading] = useState(false);
-  const registrationTypeOptions = contextConfig.options.map(option => ({
-    value: option.key,
-    label: option.label,
-  }));
-  const hasRegistrationTypeSelector = registrationTypeOptions.length > 1;
-
   const isPessoaFisica = formData.peopleType === 'F';
   const isPessoaJuridica = formData.peopleType === 'J';
   const nameLabel = isPessoaFisica ? global.t?.t('people', 'label', 'nameRequired') : global.t?.t('people', 'label', 'companyNameRequired');
@@ -133,7 +127,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
   const dateLabel = isPessoaFisica
     ? global.t?.t('people', 'label', 'birthDate')
     : global.t?.t('people', 'label', 'foundationDate');
-  const modalTitle = isPessoaFisica ? global.t?.t('people', 'title', 'newPerson') : global.t?.t('people', 'title', 'newCompany');
+  const modalTitle = contextConfig.modalTitle || global.t?.t('people', 'title', 'newCompany');
 
   useEffect(() => {
     setLinkTypeOptions(
@@ -389,39 +383,6 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
               </TouchableOpacity>
             </View>
           </View>
-
-          {hasRegistrationTypeSelector && (
-            <View style={inlineStyle_462_18}>
-              <Text style={inlineStyle_466_16}>
-                {contextConfig.selectorLabel}
-              </Text>
-
-              <View style={inlineStyle_525_18}>
-                {registrationTypeOptions.map(option => {
-                  const isSelected = formData.registrationLinkType === option.value;
-                  return (
-                    <TouchableOpacity
-                      key={option.value}
-                      onPress={() =>
-                        setFormData(prev => ({
-                          ...prev,
-                          registrationLinkType: option.value,
-                        }))
-                      }
-                      style={inlineStyle_532_20({
-                        isSelected: isSelected,
-                      })}>
-                      <Text style={inlineStyle_540_26({
-                        isSelected: isSelected,
-                      })}>
-                        {option.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-          )}
 
           <View style={inlineStyle_422_16}>
             <Text
