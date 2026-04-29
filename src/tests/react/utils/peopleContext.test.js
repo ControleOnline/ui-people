@@ -1,6 +1,7 @@
 const {
   buildPeopleContextConfig,
   resolvePeopleContextLabel,
+  resolvePeopleContextModalTitle,
   resolvePeopleContextSearchPlaceholder,
 } = require('@controleonline/ui-people/src/react/utils/peopleContext')
 
@@ -51,5 +52,27 @@ describe('peopleContext', () => {
     expect(resolvePeopleContextSearchPlaceholder('prospect')).toBe(
       'people.searchPlaceholder.searchProspect',
     )
+  })
+
+  it('prefers explicit modal titles for the current context type', () => {
+    expect(
+      resolvePeopleContextModalTitle('client', {
+        modalTitleByType: {
+          client: 'Cadastro de Cliente',
+          prospect: 'Cadastro de Prospect',
+        },
+      }),
+    ).toBe('Cadastro de Cliente')
+
+    expect(
+      buildPeopleContextConfig({
+        context: ['client', 'prospect'],
+        selectedContext: 'prospect',
+        modalTitleByType: {
+          client: 'Cadastro de Cliente',
+          prospect: 'Cadastro de Prospect',
+        },
+      }).modalTitle,
+    ).toBe('Cadastro de Prospect')
   })
 })
