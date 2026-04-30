@@ -98,7 +98,7 @@ export const setCurrentCompany = ({ commit, getters }, company = null) => {
     null;
 
   if (!selectedId && companies.length > 0) {
-    const firstEnabled = companies.find((item) => item?.enabled !== false);
+    const firstEnabled = companies.find((item) => item?.panel_enabled !== false);
     selectedId = firstEnabled?.id ?? companies[0]?.id ?? null;
   }
 
