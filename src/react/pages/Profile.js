@@ -21,6 +21,7 @@ import { colors } from '@controleonline/../../src/styles/colors';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import { env as APP_ENV } from '@env';
 import { resolveFileImageUrl } from '@controleonline/ui-common/src/react/utils/fileUrl';
+import { isManagerAppType } from '@controleonline/ui-common/src/react/utils/managerOrderNotifications';
 import { inlineStyle_1025_20, inlineStyle_1042_16, inlineStyle_1051_63 } from './Profile.styles';
 
 const extractPhoneDigits = value =>
@@ -450,6 +451,11 @@ const Profile = ({ navigation }) => {
   const canShowResyncTranslations = useMemo(() => {
     return String(APP_ENV?.APP_TYPE || '').toUpperCase() !== 'POS';
   }, []);
+
+  const canConfigureManagerNotifications = useMemo(
+    () => isManagerAppType(APP_ENV?.APP_TYPE),
+    [],
+  );
 
   const getAvatarUrl = () => {
     const persistedAvatar = avatarOverride || getAvatarFromUser(user);
@@ -1023,6 +1029,23 @@ const Profile = ({ navigation }) => {
                   <Text style={styles.saveButtonText}>{global.t?.t("people", "label", "save")}</Text>
                 </>
               )}
+            </TouchableOpacity>
+          )}
+
+          {canConfigureManagerNotifications && (
+            <TouchableOpacity
+              style={styles.profileActionButton}
+              onPress={() => navigation.navigate('ManagerOrderNotificationsPage')}
+              activeOpacity={0.85}>
+              <Icon
+                name="notifications-active"
+                size={20}
+                color={colors.white}
+                style={inlineStyle_1042_16}
+              />
+              <Text style={styles.profileActionButtonText}>
+                Configurar notificacoes de pedidos
+              </Text>
             </TouchableOpacity>
           )}
 
