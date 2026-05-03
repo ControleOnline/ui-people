@@ -18,7 +18,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import md5 from 'md5';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '@controleonline/../../src/styles/colors';
+import { api } from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
+import CompactFilterSelector from '@controleonline/ui-common/src/react/components/filters/CompactFilterSelector';
 import { env as APP_ENV } from '@env';
 import { resolveFileImageUrl } from '@controleonline/ui-common/src/react/utils/fileUrl';
 import { isManagerAppType } from '@controleonline/ui-common/src/react/utils/managerOrderNotifications';
@@ -259,6 +261,110 @@ const normalizeAliasValue = value =>
     .replace(/\s+/g, ' ')
     .trim();
 
+const toTimezoneItem = entry => {
+  if (!entry) {
+    return null;
+  }
+
+  const id = extractId(entry?.id || entry?.['@id']);
+  const name = String(entry?.name || '').trim();
+
+  if (!id || !name) {
+    return null;
+  }
+
+  return {
+    id,
+    name,
+  };
+};
+
+const resolveTimezoneId = value => {
+  if (!value) {
+    return '';
+  }
+
+  if (typeof value === 'object') {
+    const nestedTimezone = value?.timezone;
+
+    if (nestedTimezone && typeof nestedTimezone === 'object') {
+      const nestedId = extractId(nestedTimezone?.id || nestedTimezone?.['@id']);
+      if (nestedId) {
+        return nestedId;
+      }
+    }
+
+    return extractId(
+      value?.timezone_id ||
+      value?.timezoneId ||
+      value?.time_zone_id ||
+      (typeof nestedTimezone === 'string' || typeof nestedTimezone === 'number'
+        ? nestedTimezone
+        : ''),
+    );
+  }
+
+  return extractId(value);
+};
+
+const findCurrentUserRecord = (records, currentUser) => {
+  const normalizedRecords = Array.isArray(records) ? records : [];
+  const currentUsername = normalizeEmailValue(currentUser?.username);
+  const currentApiKey = String(
+    currentUser?.api_key || currentUser?.apiKey || '',
+  ).trim();
+
+  return (
+    normalizedRecords.find(record => {
+      const sameUsername =
+        currentUsername &&
+        normalizeEmailValue(record?.username) === currentUsername;
+      const sameApiKey =
+        currentApiKey &&
+        String(record?.apiKey || record?.api_key || '').trim() === currentApiKey;
+
+      return sameUsername || sameApiKey;
+    }) ||
+    normalizedRecords[0] ||
+    null
+  );
+};
+
+const extractCollectionItems = payload => {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (Array.isArray(payload?.member)) {
+    return payload.member;
+  }
+
+  if (Array.isArray(payload?.['hydra:member'])) {
+    return payload['hydra:member'];
+  }
+
+  return [];
+};
+
+const DEFAULT_TIMEZONE_OPTIONS = [
+  {id: '1', name: 'America/Noronha'},
+  {id: '2', name: 'America/Belem'},
+  {id: '3', name: 'America/Fortaleza'},
+  {id: '4', name: 'America/Recife'},
+  {id: '5', name: 'America/Araguaina'},
+  {id: '6', name: 'America/Maceio'},
+  {id: '7', name: 'America/Bahia'},
+  {id: '8', name: 'America/Sao_Paulo'},
+  {id: '9', name: 'America/Campo_Grande'},
+  {id: '10', name: 'America/Cuiaba'},
+  {id: '11', name: 'America/Santarem'},
+  {id: '12', name: 'America/Porto_Velho'},
+  {id: '13', name: 'America/Boa_Vista'},
+  {id: '14', name: 'America/Manaus'},
+  {id: '15', name: 'America/Eirunepe'},
+  {id: '16', name: 'America/Rio_Branco'},
+];
+
 const splitCombinedIdentity = (nameValue, aliasValue) => {
   const normalizedName = normalizeNameValue(nameValue);
   const normalizedAlias = normalizeAliasValue(aliasValue);
@@ -339,18 +445,17 @@ const Profile = ({ navigation }) => {
   const { styles } = css();
   const authStore = useStore('auth');
   const peopleStore = useStore('people');
-  const deviceConfigStore = useStore('device_config');
   const phonesStore = useStore('phones');
   const emailsStore = useStore('emails');
+  const usersStore = useStore('users');
   const {showSuccess, showError} = useMessage() || {};
   const userGetters = authStore.getters;
   const peopleGetters = peopleStore.getters;
-  const deviceConfigGetters = deviceConfigStore.getters;
   const authActions = authStore.actions;
   const peopleActions = peopleStore.actions;
   const phonesActions = phonesStore.actions;
   const emailsActions = emailsStore.actions;
-  const { item: deviceConfig } = deviceConfigGetters;
+  const usersActions = usersStore.actions;
   const { user: storeUser } = userGetters;
   const user = useMemo(() => {
     if (storeUser && Object.keys(storeUser).length > 0) {
@@ -367,6 +472,9 @@ const Profile = ({ navigation }) => {
   const {currentCompany} = peopleGetters;
   const [phones, setPhones] = useState([]);
   const [emails, setEmails] = useState([]);
+  const [timezones, setTimezones] = useState([]);
+  const [selectedTimezoneId, setSelectedTimezoneId] = useState('');
+  const [profileUserId, setProfileUserId] = useState('');
   const [profileName, setProfileName] = useState('');
   const [profileAlias, setProfileAlias] = useState('');
   const [isEditingName, setIsEditingName] = useState(false);
@@ -379,6 +487,7 @@ const Profile = ({ navigation }) => {
   const originalEmailIds = useRef([]);
   const originalPhonesSnapshot = useRef([]);
   const originalEmailsSnapshot = useRef([]);
+  const originalTimezoneSnapshot = useRef('');
   const originalNameSnapshot = useRef('');
   const originalAliasSnapshot = useRef('');
 
@@ -394,32 +503,59 @@ const Profile = ({ navigation }) => {
 
       let parsedPhones = fallbackPhones;
       let parsedEmails = fallbackEmails;
+      let parsedTimezones = [];
+      let parsedTimezoneId = resolveTimezoneId(user);
+      let parsedProfileUserId = '';
       const peopleIri = toPeopleIri(user);
 
-      if (peopleIri) {
-        try {
-          const [remotePhones, remoteEmails] = await Promise.all([
-            phonesActions.getItems({people: peopleIri}),
-            emailsActions.getItems({people: peopleIri}),
-          ]);
+      const [
+        remotePhones,
+        remoteEmails,
+        timezoneResponse,
+        remoteUsers,
+      ] = await Promise.all([
+        peopleIri
+          ? phonesActions.getItems({people: peopleIri}).catch(() => fallbackPhones)
+          : Promise.resolve(fallbackPhones),
+        peopleIri
+          ? emailsActions.getItems({people: peopleIri}).catch(() => fallbackEmails)
+          : Promise.resolve(fallbackEmails),
+        api.fetch('timezones', {params: {itemsPerPage: 200}}).catch(() => ({
+          member: [],
+        })),
+        peopleIri
+          ? usersActions
+              .getItems({people: peopleIri, itemsPerPage: 200})
+              .catch(() => [])
+          : Promise.resolve([]),
+      ]);
 
-          const normalizedRemotePhones = (Array.isArray(remotePhones) ? remotePhones : [])
-            .map(toPhoneItem)
-            .filter(item => item && item.value);
-          const normalizedRemoteEmails = (Array.isArray(remoteEmails) ? remoteEmails : [])
-            .map(toEmailItem)
-            .filter(item => item && item.value);
+      const normalizedRemotePhones = (Array.isArray(remotePhones) ? remotePhones : [])
+        .map(toPhoneItem)
+        .filter(item => item && item.value);
+      const normalizedRemoteEmails = (Array.isArray(remoteEmails) ? remoteEmails : [])
+        .map(toEmailItem)
+        .filter(item => item && item.value);
+      const matchedUserRecord = findCurrentUserRecord(remoteUsers, user);
 
-          parsedPhones = normalizedRemotePhones;
-          parsedEmails = normalizedRemoteEmails;
-        } catch {
-          parsedPhones = fallbackPhones;
-          parsedEmails = fallbackEmails;
-        }
-      }
+      parsedPhones =
+        normalizedRemotePhones.length > 0 ? normalizedRemotePhones : fallbackPhones;
+      parsedEmails =
+        normalizedRemoteEmails.length > 0 ? normalizedRemoteEmails : fallbackEmails;
+      parsedTimezones = extractCollectionItems(timezoneResponse)
+        .map(toTimezoneItem)
+        .filter(Boolean);
+      parsedTimezoneId =
+        resolveTimezoneId(matchedUserRecord) || resolveTimezoneId(user);
+      parsedProfileUserId = extractId(
+        matchedUserRecord?.id || matchedUserRecord?.['@id'],
+      );
 
       setPhones(parsedPhones);
       setEmails(parsedEmails);
+      setTimezones(parsedTimezones);
+      setSelectedTimezoneId(parsedTimezoneId);
+      setProfileUserId(parsedProfileUserId);
       setAvatarOverride(getAvatarFromUser(user));
       const loadedIdentity = splitCombinedIdentity(
         getDisplayName(user),
@@ -435,12 +571,13 @@ const Profile = ({ navigation }) => {
       originalEmailIds.current = parsedEmails.map(item => item.id).filter(Boolean);
       originalPhonesSnapshot.current = normalizePhonesForCompare(parsedPhones);
       originalEmailsSnapshot.current = normalizeEmailsForCompare(parsedEmails);
+      originalTimezoneSnapshot.current = parsedTimezoneId;
       originalNameSnapshot.current = loadedName;
       originalAliasSnapshot.current = loadedAlias;
     } finally {
       setIsFetchingProfile(false);
     }
-  }, [emailsActions, phonesActions, user]);
+  }, [emailsActions, phonesActions, user, usersActions]);
 
   useFocusEffect(
     useCallback(() => {
@@ -456,6 +593,39 @@ const Profile = ({ navigation }) => {
     () => isManagerAppType(APP_ENV?.APP_TYPE),
     [],
   );
+
+  const availableTimezones = useMemo(() => {
+    if (Array.isArray(timezones) && timezones.length > 0) {
+      return timezones;
+    }
+
+    return DEFAULT_TIMEZONE_OPTIONS;
+  }, [timezones]);
+
+  const timezoneOptions = useMemo(
+    () => [
+      {
+        key: '',
+        label: global.t?.t('invoice', 'label', 'select'),
+      },
+      ...availableTimezones.map(timezone => ({
+        key: timezone.id,
+        label: timezone.name,
+      })),
+    ],
+    [availableTimezones],
+  );
+
+  const selectedTimezoneLabel = useMemo(() => {
+    const matchedTimezone = availableTimezones.find(
+      timezone => timezone.id === selectedTimezoneId,
+    );
+
+    return (
+      matchedTimezone?.name ||
+      global.t?.t('people', 'label', 'select_timezone')
+    );
+  }, [availableTimezones, selectedTimezoneId]);
 
   const getAvatarUrl = () => {
     const persistedAvatar = avatarOverride || getAvatarFromUser(user);
@@ -732,19 +902,51 @@ const Profile = ({ navigation }) => {
     return persistedEmails;
   };
 
+  const saveUserTimezone = useCallback(
+    async (userId, nextTimezoneId) => {
+      const normalizedTimezoneId = extractId(nextTimezoneId);
+      const numericTimezoneId = normalizedTimezoneId
+        ? parseInt(normalizedTimezoneId, 10)
+        : null;
+      const payloadCandidates = [
+        {timezone_id: numericTimezoneId},
+        {timezoneId: numericTimezoneId},
+        {timezone: normalizedTimezoneId ? `/timezones/${normalizedTimezoneId}` : null},
+      ];
+
+      let lastError = null;
+
+      for (const payload of payloadCandidates) {
+        try {
+          return await usersActions.save({
+            id: userId,
+            ...payload,
+          });
+        } catch (error) {
+          lastError = error;
+        }
+      }
+
+      throw lastError;
+    },
+    [usersActions],
+  );
+
   const hasUnsavedChanges = useMemo(() => {
     const currentPhones = normalizePhonesForCompare(phones);
     const currentEmails = normalizeEmailsForCompare(emails);
+    const currentTimezoneId = extractId(selectedTimezoneId);
     const currentName = normalizeNameValue(profileName);
     const currentAlias = normalizeAliasValue(profileAlias);
 
     return (
       !isSameList(currentPhones, originalPhonesSnapshot.current) ||
       !isSameList(currentEmails, originalEmailsSnapshot.current) ||
+      currentTimezoneId !== originalTimezoneSnapshot.current ||
       currentName !== originalNameSnapshot.current ||
       currentAlias !== originalAliasSnapshot.current
     );
-  }, [phones, emails, profileName, profileAlias]);
+  }, [phones, emails, selectedTimezoneId, profileName, profileAlias]);
 
   const isEditingProfileIdentity = isEditingName || isEditingAlias;
 
@@ -783,11 +985,15 @@ const Profile = ({ navigation }) => {
         normalizeEmailsForCompare(emails),
         originalEmailsSnapshot.current,
       );
+      const timezoneChanged =
+        extractId(selectedTimezoneId) !== originalTimezoneSnapshot.current;
       const nameChanged = normalizedName !== originalNameSnapshot.current;
       const aliasChanged = normalizedAlias !== originalAliasSnapshot.current;
 
       let persistedPhones = phones;
       let persistedEmails = emails;
+      let persistedTimezoneId = extractId(selectedTimezoneId);
+      let resolvedProfileUserId = profileUserId;
 
       if (phonesChanged) {
         persistedPhones = await savePhones(peopleIri);
@@ -795,6 +1001,33 @@ const Profile = ({ navigation }) => {
 
       if (emailsChanged) {
         persistedEmails = await saveEmails(peopleIri);
+      }
+
+      if (timezoneChanged) {
+        if (!resolvedProfileUserId) {
+          const remoteUsers = await usersActions
+            .getItems({people: peopleIri, itemsPerPage: 200})
+            .catch(() => []);
+          const matchedUserRecord = findCurrentUserRecord(remoteUsers, user);
+          resolvedProfileUserId = extractId(
+            matchedUserRecord?.id || matchedUserRecord?.['@id'],
+          );
+        }
+
+        if (!resolvedProfileUserId) {
+          throw new Error(
+            global.t?.t('people', 'error', 'unable_identify_user_timezone'),
+          );
+        }
+
+        const savedUser = await saveUserTimezone(
+          resolvedProfileUserId,
+          persistedTimezoneId,
+        );
+
+        persistedTimezoneId =
+          resolveTimezoneId(savedUser) || persistedTimezoneId;
+        setProfileUserId(resolvedProfileUserId);
       }
 
       if (nameChanged || aliasChanged) {
@@ -813,6 +1046,7 @@ const Profile = ({ navigation }) => {
 
       setPhones(persistedPhones);
       setEmails(persistedEmails);
+      setSelectedTimezoneId(persistedTimezoneId);
       setProfileName(normalizedName);
       setProfileAlias(normalizedAlias);
       setIsEditingName(false);
@@ -821,6 +1055,7 @@ const Profile = ({ navigation }) => {
       originalEmailIds.current = persistedEmails.map(item => item.id).filter(Boolean);
       originalPhonesSnapshot.current = normalizePhonesForCompare(persistedPhones);
       originalEmailsSnapshot.current = normalizeEmailsForCompare(persistedEmails);
+      originalTimezoneSnapshot.current = persistedTimezoneId;
       originalNameSnapshot.current = normalizedName;
       originalAliasSnapshot.current = normalizedAlias;
 
@@ -832,6 +1067,8 @@ const Profile = ({ navigation }) => {
         nickname: normalizedAlias,
         phone: persistedPhones[0]?.value || getPrimaryPhone(user?.phone),
         email: persistedEmails[0]?.value || getPrimaryEmail(user?.email),
+        timezone_id: persistedTimezoneId || null,
+        timezoneId: persistedTimezoneId || null,
         avatarUrl: avatarOverride || user?.avatarUrl || '',
       });
 
@@ -842,6 +1079,35 @@ const Profile = ({ navigation }) => {
       setIsSaving(false);
     }
   };
+
+  const renderTimezoneSelector = () => (
+    <View style={styles.sectionContainer}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>
+          {global.t?.t('people', 'label', 'timezone')}
+        </Text>
+      </View>
+
+      <CompactFilterSelector
+        active={!!selectedTimezoneId}
+        icon="clock"
+        label={selectedTimezoneLabel}
+        labelCaption={global.t?.t('people', 'label', 'timezone')}
+        onSelect={optionKey => {
+          setSelectedTimezoneId(String(optionKey || '').trim());
+        }}
+        options={timezoneOptions}
+        selectedKey={selectedTimezoneId}
+        title={global.t?.t('people', 'title', 'select_timezone')}
+      />
+
+      {timezoneOptions.length <= 1 && (
+        <Text style={styles.emptyText}>
+          {global.t?.t('people', 'message', 'no_timezone_available')}
+        </Text>
+      )}
+    </View>
+  );
 
   const renderEditableList = (items, setItems, type) => (
     <View style={styles.sectionContainer}>
@@ -1007,6 +1273,7 @@ const Profile = ({ navigation }) => {
         </View>
 
         <View style={styles.contentContainer}>
+          {renderTimezoneSelector()}
           {renderEditableList(phones, setPhones, 'phone')}
           {renderEditableList(emails, setEmails, 'email')}
 
