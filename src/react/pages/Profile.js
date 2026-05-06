@@ -307,8 +307,28 @@ const resolveTimezoneId = value => {
   return extractId(value);
 };
 
+const resolveLoggedUserId = currentUser => {
+  const session = getSessionData();
+  const candidates = [
+    currentUser?.user_id,
+    currentUser?.userId,
+    session?.user_id,
+    session?.userId,
+  ];
+
+  for (const candidate of candidates) {
+    const userId = extractId(candidate);
+    if (userId) {
+      return userId;
+    }
+  }
+
+  return '';
+};
+
 const findCurrentUserRecord = (records, currentUser) => {
   const normalizedRecords = Array.isArray(records) ? records : [];
+  const currentUserId = resolveLoggedUserId(currentUser);
   const currentUsername = normalizeEmailValue(currentUser?.username);
   const currentApiKey = String(
     currentUser?.api_key || currentUser?.apiKey || '',
@@ -316,6 +336,9 @@ const findCurrentUserRecord = (records, currentUser) => {
 
   return (
     normalizedRecords.find(record => {
+      const sameUserId =
+        currentUserId &&
+        extractId(record?.id || record?.['@id']) === currentUserId;
       const sameUsername =
         currentUsername &&
         normalizeEmailValue(record?.username) === currentUsername;
@@ -323,11 +346,24 @@ const findCurrentUserRecord = (records, currentUser) => {
         currentApiKey &&
         String(record?.apiKey || record?.api_key || '').trim() === currentApiKey;
 
-      return sameUsername || sameApiKey;
+      return sameUserId || sameUsername || sameApiKey;
     }) ||
     normalizedRecords[0] ||
     null
   );
+};
+
+const fetchLoggedUserRecord = async loggedUserId => {
+  const normalizedUserId = extractId(loggedUserId);
+  if (!normalizedUserId) {
+    return null;
+  }
+
+  try {
+    return await api.fetch(`/users/${normalizedUserId}`);
+  } catch {
+    return null;
+  }
 };
 
 const extractCollectionItems = payload => {
@@ -474,7 +510,6 @@ const Profile = ({ navigation }) => {
   const [emails, setEmails] = useState([]);
   const [timezones, setTimezones] = useState([]);
   const [selectedTimezoneId, setSelectedTimezoneId] = useState('');
-  const [profileUserId, setProfileUserId] = useState('');
   const [profileName, setProfileName] = useState('');
   const [profileAlias, setProfileAlias] = useState('');
   const [isEditingName, setIsEditingName] = useState(false);
@@ -505,13 +540,14 @@ const Profile = ({ navigation }) => {
       let parsedEmails = fallbackEmails;
       let parsedTimezones = [];
       let parsedTimezoneId = resolveTimezoneId(user);
-      let parsedProfileUserId = '';
       const peopleIri = toPeopleIri(user);
+      const loggedUserId = resolveLoggedUserId(user);
 
       const [
         remotePhones,
         remoteEmails,
         timezoneResponse,
+        remoteCurrentUser,
         remoteUsers,
       ] = await Promise.all([
         peopleIri
@@ -523,6 +559,7 @@ const Profile = ({ navigation }) => {
         api.fetch('timezones', {params: {itemsPerPage: 200}}).catch(() => ({
           member: [],
         })),
+        fetchLoggedUserRecord(loggedUserId),
         peopleIri
           ? usersActions
               .getItems({people: peopleIri, itemsPerPage: 200})
@@ -536,7 +573,9 @@ const Profile = ({ navigation }) => {
       const normalizedRemoteEmails = (Array.isArray(remoteEmails) ? remoteEmails : [])
         .map(toEmailItem)
         .filter(item => item && item.value);
-      const matchedUserRecord = findCurrentUserRecord(remoteUsers, user);
+      // O perfil deve usar o timezone do usuario autenticado, mesmo quando a pessoa tiver mais de um login.
+      const matchedUserRecord =
+        remoteCurrentUser || findCurrentUserRecord(remoteUsers, user);
 
       parsedPhones =
         normalizedRemotePhones.length > 0 ? normalizedRemotePhones : fallbackPhones;
@@ -547,15 +586,11 @@ const Profile = ({ navigation }) => {
         .filter(Boolean);
       parsedTimezoneId =
         resolveTimezoneId(matchedUserRecord) || resolveTimezoneId(user);
-      parsedProfileUserId = extractId(
-        matchedUserRecord?.id || matchedUserRecord?.['@id'],
-      );
 
       setPhones(parsedPhones);
       setEmails(parsedEmails);
       setTimezones(parsedTimezones);
       setSelectedTimezoneId(parsedTimezoneId);
-      setProfileUserId(parsedProfileUserId);
       setAvatarOverride(getAvatarFromUser(user));
       const loadedIdentity = splitCombinedIdentity(
         getDisplayName(user),
@@ -903,31 +938,37 @@ const Profile = ({ navigation }) => {
   };
 
   const saveUserTimezone = useCallback(
-    async (userId, nextTimezoneId) => {
+    async nextTimezoneId => {
       const normalizedTimezoneId = extractId(nextTimezoneId);
-      const numericTimezoneId = normalizedTimezoneId
-        ? parseInt(normalizedTimezoneId, 10)
-        : null;
-      const payloadCandidates = [
-        {timezone_id: numericTimezoneId},
-        {timezoneId: numericTimezoneId},
-        {timezone: normalizedTimezoneId ? `/timezones/${normalizedTimezoneId}` : null},
-      ];
+      // Preferencias do timezone pertencem ao usuario autenticado e devem passar pelo endpoint dedicado.
+      return api.fetch('/users/preferences', {
+        method: 'PUT',
+        body: {
+          timezone: normalizedTimezoneId
+            ? `/timezones/${normalizedTimezoneId}`
+            : null,
+        },
+      });
+    },
+    [],
+  );
 
-      let lastError = null;
+  const refetchPersistedLoggedUser = useCallback(
+    async () => {
+      const loggedUserId = resolveLoggedUserId(user);
+      return fetchLoggedUserRecord(loggedUserId);
+    },
+    [user],
+  );
 
-      for (const payload of payloadCandidates) {
-        try {
-          return await usersActions.save({
-            id: userId,
-            ...payload,
-          });
-        } catch (error) {
-          lastError = error;
-        }
-      }
-
-      throw lastError;
+  const saveUserTimezoneLegacy = useCallback(
+    async nextTimezoneId => {
+      const normalizedTimezoneId = extractId(nextTimezoneId);
+      return usersActions.updateMyPreferences({
+        timezone: normalizedTimezoneId
+          ? `/timezones/${normalizedTimezoneId}`
+          : null,
+      });
     },
     [usersActions],
   );
@@ -993,7 +1034,7 @@ const Profile = ({ navigation }) => {
       let persistedPhones = phones;
       let persistedEmails = emails;
       let persistedTimezoneId = extractId(selectedTimezoneId);
-      let resolvedProfileUserId = profileUserId;
+      let persistedUserSession = null;
 
       if (phonesChanged) {
         persistedPhones = await savePhones(peopleIri);
@@ -1004,30 +1045,24 @@ const Profile = ({ navigation }) => {
       }
 
       if (timezoneChanged) {
-        if (!resolvedProfileUserId) {
-          const remoteUsers = await usersActions
-            .getItems({people: peopleIri, itemsPerPage: 200})
-            .catch(() => []);
-          const matchedUserRecord = findCurrentUserRecord(remoteUsers, user);
-          resolvedProfileUserId = extractId(
-            matchedUserRecord?.id || matchedUserRecord?.['@id'],
-          );
+        try {
+          persistedUserSession = await saveUserTimezone(persistedTimezoneId);
+        } catch (primaryTimezoneError) {
+          persistedUserSession = await saveUserTimezoneLegacy(persistedTimezoneId);
+          if (!persistedUserSession) {
+            throw primaryTimezoneError;
+          }
         }
 
-        if (!resolvedProfileUserId) {
-          throw new Error(
-            global.t?.t('people', 'error', 'unable_identify_user_timezone'),
-          );
-        }
-
-        const savedUser = await saveUserTimezone(
-          resolvedProfileUserId,
-          persistedTimezoneId,
-        );
-
+        const persistedLoggedUser = await refetchPersistedLoggedUser();
         persistedTimezoneId =
-          resolveTimezoneId(savedUser) || persistedTimezoneId;
-        setProfileUserId(resolvedProfileUserId);
+          resolveTimezoneId(persistedLoggedUser) ||
+          resolveTimezoneId(persistedUserSession) ||
+          persistedTimezoneId;
+        persistedUserSession = {
+          ...(persistedUserSession || {}),
+          ...(persistedLoggedUser || {}),
+        };
       }
 
       if (nameChanged || aliasChanged) {
@@ -1058,15 +1093,21 @@ const Profile = ({ navigation }) => {
       originalTimezoneSnapshot.current = persistedTimezoneId;
       originalNameSnapshot.current = normalizedName;
       originalAliasSnapshot.current = normalizedAlias;
+      const persistedTimezoneName =
+        persistedUserSession?.timezone ||
+        availableTimezones.find(timezone => timezone.id === persistedTimezoneId)?.name ||
+        null;
 
       authActions.logIn({
         ...user,
+        ...(persistedUserSession || {}),
         realname: normalizedName,
         name: normalizedName,
         alias: normalizedAlias,
         nickname: normalizedAlias,
         phone: persistedPhones[0]?.value || getPrimaryPhone(user?.phone),
         email: persistedEmails[0]?.value || getPrimaryEmail(user?.email),
+        timezone: persistedTimezoneName,
         timezone_id: persistedTimezoneId || null,
         timezoneId: persistedTimezoneId || null,
         avatarUrl: avatarOverride || user?.avatarUrl || '',
