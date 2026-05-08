@@ -12,7 +12,7 @@ import { useStore } from '@store';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import IconAdd from 'react-native-vector-icons/MaterialIcons';
 import AddCompanyModal from '@controleonline/ui-people/src/react/components/AddCompanyModal';
-import CompactFilterSelector from '@controleonline/ui-common/src/react/components/filters/CompactFilterSelector';
+import CompactFilterSelector from '@controleonline/ui-default/src/react/components/filters/CompactFilterSelector';
 import ImportsPage from '@controleonline/ui-common/src/react/pages/Imports';
 import {
   buildPeopleContextConfig,
