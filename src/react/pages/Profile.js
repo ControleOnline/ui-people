@@ -508,8 +508,6 @@ const Profile = ({ navigation }) => {
   const {currentCompany} = peopleGetters;
   const [phones, setPhones] = useState([]);
   const [emails, setEmails] = useState([]);
-  const [timezones, setTimezones] = useState([]);
-  const [selectedTimezoneId, setSelectedTimezoneId] = useState('');
   const [profileName, setProfileName] = useState('');
   const [profileAlias, setProfileAlias] = useState('');
   const [isEditingName, setIsEditingName] = useState(false);
@@ -525,6 +523,8 @@ const Profile = ({ navigation }) => {
   const originalTimezoneSnapshot = useRef('');
   const originalNameSnapshot = useRef('');
   const originalAliasSnapshot = useRef('');
+  const [timezones, setTimezones] = useState([]);
+  const [selectedTimezoneId, setSelectedTimezoneId] = useState('');
 
   const fetchUser = useCallback(async () => {
     setIsFetchingProfile(true);
@@ -620,15 +620,6 @@ const Profile = ({ navigation }) => {
     }, [fetchUser]),
   );
 
-  const canShowResyncTranslations = useMemo(() => {
-    return String(APP_ENV?.APP_TYPE || '').toUpperCase() !== 'POS';
-  }, []);
-
-  const canConfigureManagerNotifications = useMemo(
-    () => isManagerAppType(APP_ENV?.APP_TYPE),
-    [],
-  );
-
   const availableTimezones = useMemo(() => {
     if (Array.isArray(timezones) && timezones.length > 0) {
       return timezones;
@@ -661,6 +652,15 @@ const Profile = ({ navigation }) => {
       global.t?.t('people', 'label', 'select_timezone')
     );
   }, [availableTimezones, selectedTimezoneId]);
+
+  const canShowResyncTranslations = useMemo(() => {
+    return String(APP_ENV?.APP_TYPE || '').toUpperCase() !== 'POS';
+  }, []);
+
+  const canConfigureManagerNotifications = useMemo(
+    () => isManagerAppType(APP_ENV?.APP_TYPE),
+    [],
+  );
 
   const getAvatarUrl = () => {
     const persistedAvatar = avatarOverride || getAvatarFromUser(user);
