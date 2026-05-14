@@ -19,6 +19,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 
+  tableWrap: {
+    flex: 1,
+    minHeight: 0,
+  },
+
   searchInputContainer: {
     flex: 1,
     flexDirection: 'row',
