@@ -27,6 +27,10 @@ const PEOPLE_CONTEXT_META = {
     label: () => global.t?.t('people', 'label', 'manager'),
     searchPlaceholder: () => global.t?.t('people', 'label', 'manager'),
   },
+  courier: {
+    label: () => global.t?.t('people', 'label', 'courier'),
+    searchPlaceholder: () => global.t?.t('people', 'label', 'courier'),
+  },
 };
 
 export const normalizePeopleContextType = value =>

@@ -66,6 +66,11 @@ const LINK_TYPE_OPTIONS = [
   { value: 'manager', translationKey: 'manager' },
 ];
 
+const normalizePeopleType = value =>
+  String(value ?? '')
+    .trim()
+    .toUpperCase();
+
 const toBrDateString = date => {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
     return '';
@@ -100,7 +105,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
       alias: '',
       foundationDate: defaultDate,
       foundationDateInput: toBrDateString(defaultDate),
-      peopleType: 'J',
+      peopleType: normalizePeopleType(context?.defaultPeopleType) || 'J',
       contactLinkType: 'employee',
       registrationLinkType:
         normalizePeopleContextType(registrationLinkType || contextConfig.defaultType) ||

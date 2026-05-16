@@ -49,9 +49,21 @@ describe('peopleContext', () => {
   it('resolves labels and search placeholders for known types', () => {
     expect(resolvePeopleContextLabel('client')).toBe('people.title.clients')
     expect(resolvePeopleContextLabel('owner')).toBe('people.label.owner')
+    expect(resolvePeopleContextLabel('courier')).toBe('people.label.courier')
     expect(resolvePeopleContextSearchPlaceholder('prospect')).toBe(
       'people.searchPlaceholder.searchProspect',
     )
+  })
+
+  it('keeps courier as the active default context when requested directly', () => {
+    const config = buildPeopleContextConfig({
+      context: ['courier'],
+      defaultContext: 'courier',
+      selectedContext: 'courier',
+    })
+
+    expect(config.defaultType).toBe('courier')
+    expect(config.options).toEqual([{key: 'courier', label: 'people.label.courier'}])
   })
 
   it('prefers explicit modal titles for the current context type', () => {
