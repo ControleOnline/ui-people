@@ -1352,7 +1352,7 @@ const Profile = ({ navigation }) => {
                 style={inlineStyle_1042_16}
               />
               <Text style={styles.profileActionButtonText}>
-                Configurar notificacoes de pedidos
+                Configurar notificações de pedidos
               </Text>
             </TouchableOpacity>
           )}
