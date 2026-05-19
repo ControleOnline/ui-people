@@ -104,6 +104,8 @@ const People = ({ context = {} }) => {
       context: selectedLinkType,
       contextOptions: contextConfig.availableTypes,
       defaultContext: contextConfig.defaultType,
+      defaultPeopleType:
+        selectedLinkType === 'courier' ? 'F' : context.defaultPeopleType,
       selectedContext: selectedLinkType,
     }),
     [context, contextConfig.availableTypes, contextConfig.defaultType, selectedLinkType],

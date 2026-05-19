@@ -64,6 +64,7 @@ const LINK_TYPE_OPTIONS = [
   { value: 'owner', translationKey: 'owner' },
   { value: 'director', translationKey: 'director' },
   { value: 'manager', translationKey: 'manager' },
+  { value: 'courier', translationKey: 'courier' },
 ];
 
 const normalizePeopleType = value =>
