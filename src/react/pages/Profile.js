@@ -22,6 +22,10 @@ import { api } from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import CompactFilterSelector from '@controleonline/ui-default/src/react/components/filters/CompactFilterSelector';
 import { env as APP_ENV } from '@env';
+import {
+  formatDisplayUppercase,
+  uppercaseText,
+} from '@controleonline/ui-common/src/react/utils/entityDisplay';
 import { resolveFileImageUrl } from '@controleonline/ui-common/src/react/utils/fileUrl';
 import { isManagerAppType } from '@controleonline/ui-common/src/react/utils/managerOrderNotifications';
 import { inlineStyle_1025_20, inlineStyle_1042_16, inlineStyle_1051_63 } from './Profile.styles';
@@ -252,14 +256,18 @@ const validateEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 const normalizeEmailValue = value => String(value || '').trim().toLowerCase();
 
 const normalizeNameValue = value =>
-  String(value || '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  formatDisplayUppercase(
+    String(value || '')
+      .replace(/\s+/g, ' ')
+      .trim(),
+  );
 
 const normalizeAliasValue = value =>
-  String(value || '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  formatDisplayUppercase(
+    String(value || '')
+      .replace(/\s+/g, ' ')
+      .trim(),
+  );
 
 const toTimezoneItem = entry => {
   if (!entry) {
@@ -1269,7 +1277,7 @@ const Profile = ({ navigation }) => {
               <TextInput
                 style={styles.userNameInput}
                 value={profileName}
-                onChangeText={setProfileName}
+                onChangeText={text => setProfileName(uppercaseText(text))}
                 placeholder={global.t?.t("people", "placeholder", "emailLogin")}
                 placeholderTextColor={colors.textSecondary}
                 maxLength={80}
@@ -1296,7 +1304,7 @@ const Profile = ({ navigation }) => {
               <TextInput
                 style={styles.userAliasInput}
                 value={profileAlias}
-                onChangeText={setProfileAlias}
+                onChangeText={text => setProfileAlias(uppercaseText(text))}
                 placeholder={global.t?.t("people", "placeholder", "alias")}
                 placeholderTextColor={colors.textSecondary}
                 maxLength={40}
@@ -1304,7 +1312,7 @@ const Profile = ({ navigation }) => {
               />
             ) : (
               <Text style={styles.userAlias} numberOfLines={1} ellipsizeMode="tail">
-                {profileAlias || getDisplayAlias(user) || '-'}
+                {formatDisplayUppercase(profileAlias || getDisplayAlias(user)) || '-'}
               </Text>
             )}
           </View>

@@ -12,6 +12,10 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AnimatedModal from '@controleonline/ui-crm/src/react/components/AnimatedModal';
 import { useMessage } from '@controleonline/ui-common/src/react/components/MessageService';
+import {
+  formatDisplayUppercase,
+  uppercaseText,
+} from '@controleonline/ui-common/src/react/utils/entityDisplay';
 import { useStore } from '@store';
 import {
   buildPeopleContextConfig,
@@ -71,6 +75,7 @@ const normalizePeopleType = value =>
   String(value ?? '')
     .trim()
     .toUpperCase();
+const normalizeIdentityValue = value => formatDisplayUppercase(value);
 
 const toBrDateString = date => {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
@@ -208,8 +213,8 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
         'employee';
 
       const companyData = {
-        name: formData.name.trim(),
-        alias: formData.alias.trim(),
+        name: normalizeIdentityValue(formData.name),
+        alias: normalizeIdentityValue(formData.alias),
         foundationDate: parsedFoundationDate.toISOString().split('T')[0],
         peopleType: formData.peopleType,
         linkType: registrationLinkType,
@@ -222,8 +227,8 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
       /* cria o contato PF vinculado à empresa PJ recém criada */
       if (isPessoaJuridica && savedCompany?.id) {
         await actions.save({
-          name:           String(formData.firstEmployeeName || '').trim(),
-          alias:          String(formData.firstEmployeeAlias || '').trim(),
+          name:           normalizeIdentityValue(formData.firstEmployeeName),
+          alias:          normalizeIdentityValue(formData.firstEmployeeAlias),
           peopleType:     'F',
           linkType:       formData.contactLinkType,
           company:        `/people/${savedCompany.id}`,
@@ -318,7 +323,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
             </Text>
             <TextInput
               value={formData.name}
-              onChangeText={text => setFormData(prev => ({ ...prev, name: text }))}
+              onChangeText={text => setFormData(prev => ({ ...prev, name: uppercaseText(text) }))}
               placeholder={namePlaceholder}
               style={inlineStyle_300_14}
               placeholderTextColor="#6c757d"
@@ -332,7 +337,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
             </Text>
             <TextInput
               value={formData.alias}
-              onChangeText={text => setFormData(prev => ({ ...prev, alias: text }))}
+              onChangeText={text => setFormData(prev => ({ ...prev, alias: uppercaseText(text) }))}
               placeholder={aliasPlaceholder}
               style={inlineStyle_327_14}
               placeholderTextColor="#6c757d"
@@ -423,7 +428,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                 <TextInput
                   value={formData.firstEmployeeName}
                   onChangeText={text =>
-                    setFormData(prev => ({ ...prev, firstEmployeeName: text }))
+                    setFormData(prev => ({ ...prev, firstEmployeeName: uppercaseText(text) }))
                   }
                   placeholder={global.t?.t('people','placeholder','contactName')}
                   style={inlineStyle_482_18}
@@ -435,7 +440,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                 <TextInput
                   value={formData.firstEmployeeAlias}
                   onChangeText={text =>
-                    setFormData(prev => ({ ...prev, firstEmployeeAlias: text }))
+                    setFormData(prev => ({ ...prev, firstEmployeeAlias: uppercaseText(text) }))
                   }
                   placeholder={global.t?.t('people','placeholder','contactAlias')}
                   style={inlineStyle_502_18}

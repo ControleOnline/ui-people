@@ -8,6 +8,7 @@ import CompactFilterSelector from '@controleonline/ui-default/src/react/componen
 import DefaultTable from '@controleonline/ui-default/src/react/components/table/DefaultTable';
 import ImportsPage from '@controleonline/ui-common/src/react/pages/Imports';
 import { getDateRange } from '@controleonline/ui-common/src/react/utils/dateRangeFilter';
+import { formatDisplayUppercase } from '@controleonline/ui-common/src/react/utils/entityDisplay';
 import {
   buildPeopleContextConfig,
   normalizePeopleContextType,
@@ -342,10 +343,10 @@ const People = ({ context = {} }) => {
 
           <View style={inlineStyle_133_14}>
             <Text style={[styles.clientName, { lineHeight: 30 }]} numberOfLines={1}>
-              {client.alias}
+              {formatDisplayUppercase(client.alias)}
             </Text>
             <Text style={inlineStyle_137_16}>
-              {client.peopleType === 'J' ? ' (PJ)' : ' (PF)'} {client.name}
+              {client.peopleType === 'J' ? ' (PJ)' : ' (PF)'} {formatDisplayUppercase(client.name)}
             </Text>
           </View>
 
