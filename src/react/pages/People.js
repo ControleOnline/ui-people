@@ -1,3 +1,16 @@
+/*
+ * Contract imported from AGENTS.md
+ * ## Escopo
+ * - `ui-people` e o modulo React de pessoas e relacionamentos do app.
+ * - Esta tela centraliza busca, filtros e representacao de pessoas.
+ *
+ * ## Estado
+ * - Se existir `src/vue`, ela e apenas legado e nao deve receber este contrato.
+ *
+ * ## Limites
+ * - Nao espalhar a normalizacao de contexto por outros modulos.
+ * - Manter aqui a busca e a apresentacao principal de pessoas.
+ */
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Modal, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
