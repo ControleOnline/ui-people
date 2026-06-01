@@ -64,7 +64,7 @@ const resolveDateFilterParams = value => {
   };
 };
 
-const People = ({ context = {} }) => {
+const People = ({ context = {}, initialShowAddModal = false }) => {
   const contextConfig = useMemo(() => buildPeopleContextConfig(context), [context]);
   const title = context.title;
 
@@ -84,6 +84,7 @@ const People = ({ context = {} }) => {
   const [showImportModal, setShowImportModal] = useState(false);
 
   const lastFetchKeyRef = useRef('');
+  const hasAutoOpenedAddModalRef = useRef(false);
 
   const storeFilters = getters.filters || {};
   const storeFiltersKey = useMemo(
@@ -98,6 +99,15 @@ const People = ({ context = {} }) => {
         : contextConfig.defaultType,
     );
   }, [contextConfig.availableTypes, contextConfig.defaultType]);
+
+  useEffect(() => {
+    if (!initialShowAddModal || hasAutoOpenedAddModalRef.current) {
+      return;
+    }
+
+    hasAutoOpenedAddModalRef.current = true;
+    setShowAddCompanyModal(true);
+  }, [initialShowAddModal]);
 
   const activeSearchPlaceholder = useMemo(
     () => resolvePeopleContextSearchPlaceholder(selectedLinkType, context),

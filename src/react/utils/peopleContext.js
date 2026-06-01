@@ -11,6 +11,11 @@ const PEOPLE_CONTEXT_META = {
     label: () => global.t?.t('people', 'title', 'providers'),
     searchPlaceholder: () => global.t?.t('people', 'searchPlaceholder', 'searchProvider'),
   },
+  franchisee: {
+    label: () => global.t?.t('people', 'title', 'franchisees') || 'Franquias',
+    searchPlaceholder:
+      () => global.t?.t('people', 'searchPlaceholder', 'searchFranchise') || 'Buscar franquia',
+  },
   employee: {
     label: () => global.t?.t('people', 'label', 'employee'),
     searchPlaceholder: () => global.t?.t('people', 'label', 'employee'),
