@@ -485,6 +485,33 @@ const isSameList = (left, right) => {
   return true;
 };
 
+// Cache global simples para timezones (dados estáticos)
+let timezonesCache = null;
+let timezoneCachePromise = null;
+
+const fetchTimezonesCached = async () => {
+  if (timezonesCache) {
+    return timezonesCache;
+  }
+
+  if (timezoneCachePromise) {
+    return timezoneCachePromise;
+  }
+
+  timezoneCachePromise = api.fetch('timezones', {params: {itemsPerPage: 200}})
+    .then(response => {
+      timezonesCache = response;
+      timezoneCachePromise = null;
+      return response;
+    })
+    .catch(error => {
+      timezoneCachePromise = null;
+      throw error;
+    });
+
+  return timezoneCachePromise;
+};
+
 const Profile = ({ navigation }) => {
   const { styles } = css();
   const authStore = useStore('auth');
@@ -533,93 +560,114 @@ const Profile = ({ navigation }) => {
   const originalAliasSnapshot = useRef('');
   const [timezones, setTimezones] = useState([]);
   const [selectedTimezoneId, setSelectedTimezoneId] = useState('');
+  const fetchPromiseRef = useRef(null);
+  const hasInitiallyLoadedRef = useRef(false);
 
-  const fetchUser = useCallback(async () => {
-    setIsFetchingProfile(true);
-    try {
-      const fallbackPhones = (Array.isArray(user?.phone) ? user.phone : [user?.phone])
-        .map(toPhoneItem)
-        .filter(item => item && item.value);
-      const fallbackEmails = (Array.isArray(user?.email) ? user.email : [user?.email])
-        .map(toEmailItem)
-        .filter(item => item && item.value);
-
-      let parsedPhones = fallbackPhones;
-      let parsedEmails = fallbackEmails;
-      let parsedTimezones = [];
-      let parsedTimezoneId = resolveTimezoneId(user);
-      const peopleIri = toPeopleIri(user);
-      const loggedUserId = resolveLoggedUserId(user);
-
-      const [
-        remotePhones,
-        remoteEmails,
-        timezoneResponse,
-        remoteCurrentUser,
-        remoteUsers,
-      ] = await Promise.all([
-        peopleIri
-          ? phonesActions.getItems({people: peopleIri}).catch(() => fallbackPhones)
-          : Promise.resolve(fallbackPhones),
-        peopleIri
-          ? emailsActions.getItems({people: peopleIri}).catch(() => fallbackEmails)
-          : Promise.resolve(fallbackEmails),
-        api.fetch('timezones', {params: {itemsPerPage: 200}}).catch(() => ({
-          member: [],
-        })),
-        fetchLoggedUserRecord(loggedUserId),
-        peopleIri
-          ? usersActions
-              .getItems({people: peopleIri, itemsPerPage: 200})
-              .catch(() => [])
-          : Promise.resolve([]),
-      ]);
-
-      const normalizedRemotePhones = (Array.isArray(remotePhones) ? remotePhones : [])
-        .map(toPhoneItem)
-        .filter(item => item && item.value);
-      const normalizedRemoteEmails = (Array.isArray(remoteEmails) ? remoteEmails : [])
-        .map(toEmailItem)
-        .filter(item => item && item.value);
-      // O perfil deve usar o timezone do usuario autenticado, mesmo quando a pessoa tiver mais de um login.
-      const matchedUserRecord =
-        remoteCurrentUser || findCurrentUserRecord(remoteUsers, user);
-
-      parsedPhones =
-        normalizedRemotePhones.length > 0 ? normalizedRemotePhones : fallbackPhones;
-      parsedEmails =
-        normalizedRemoteEmails.length > 0 ? normalizedRemoteEmails : fallbackEmails;
-      parsedTimezones = extractCollectionItems(timezoneResponse)
-        .map(toTimezoneItem)
-        .filter(Boolean);
-      parsedTimezoneId =
-        resolveTimezoneId(matchedUserRecord) || resolveTimezoneId(user);
-
-      setPhones(parsedPhones);
-      setEmails(parsedEmails);
-      setTimezones(parsedTimezones);
-      setSelectedTimezoneId(parsedTimezoneId);
-      setAvatarOverride(getAvatarFromUser(user));
-      const loadedIdentity = splitCombinedIdentity(
-        getDisplayName(user),
-        getDisplayAlias(user),
-      );
-      const loadedName = loadedIdentity.name;
-      const loadedAlias = loadedIdentity.alias;
-      setProfileName(loadedName);
-      setProfileAlias(loadedAlias);
-      setIsEditingName(false);
-      setIsEditingAlias(false);
-      originalPhoneIds.current = parsedPhones.map(item => item.id).filter(Boolean);
-      originalEmailIds.current = parsedEmails.map(item => item.id).filter(Boolean);
-      originalPhonesSnapshot.current = normalizePhonesForCompare(parsedPhones);
-      originalEmailsSnapshot.current = normalizeEmailsForCompare(parsedEmails);
-      originalTimezoneSnapshot.current = parsedTimezoneId;
-      originalNameSnapshot.current = loadedName;
-      originalAliasSnapshot.current = loadedAlias;
-    } finally {
-      setIsFetchingProfile(false);
+  const fetchUser = useCallback(async (forceRefresh = false) => {
+    // Evita requisições duplicadas quando já há uma em andamento
+    if (fetchPromiseRef.current) {
+      return fetchPromiseRef.current;
     }
+
+    // Se já carregou inicialmente e não é refresh forçado, não recarrega
+    if (hasInitiallyLoadedRef.current && !forceRefresh) {
+      return;
+    }
+
+    setIsFetchingProfile(true);
+
+    const promise = (async () => {
+      try {
+        const fallbackPhones = (Array.isArray(user?.phone) ? user.phone : [user?.phone])
+          .map(toPhoneItem)
+          .filter(item => item && item.value);
+        const fallbackEmails = (Array.isArray(user?.email) ? user.email : [user?.email])
+          .map(toEmailItem)
+          .filter(item => item && item.value);
+
+        let parsedPhones = fallbackPhones;
+        let parsedEmails = fallbackEmails;
+        let parsedTimezones = [];
+        let parsedTimezoneId = resolveTimezoneId(user);
+        const peopleIri = toPeopleIri(user);
+        const loggedUserId = resolveLoggedUserId(user);
+
+        const [
+          remotePhones,
+          remoteEmails,
+          timezoneResponse,
+          remoteCurrentUser,
+          remoteUsers,
+        ] = await Promise.all([
+          peopleIri
+            ? phonesActions.getItems({people: peopleIri}).catch(() => fallbackPhones)
+            : Promise.resolve(fallbackPhones),
+          peopleIri
+            ? emailsActions.getItems({people: peopleIri}).catch(() => fallbackEmails)
+            : Promise.resolve(fallbackEmails),
+          fetchTimezonesCached().catch(() => ({
+            member: [],
+          })),
+          fetchLoggedUserRecord(loggedUserId),
+          peopleIri
+            ? usersActions
+                .getItems({people: peopleIri, itemsPerPage: 200})
+                .catch(() => [])
+            : Promise.resolve([]),
+        ]);
+
+        const normalizedRemotePhones = (Array.isArray(remotePhones) ? remotePhones : [])
+          .map(toPhoneItem)
+          .filter(item => item && item.value);
+        const normalizedRemoteEmails = (Array.isArray(remoteEmails) ? remoteEmails : [])
+          .map(toEmailItem)
+          .filter(item => item && item.value);
+        // O perfil deve usar o timezone do usuario autenticado, mesmo quando a pessoa tiver mais de um login.
+        const matchedUserRecord =
+          remoteCurrentUser || findCurrentUserRecord(remoteUsers, user);
+
+        parsedPhones =
+          normalizedRemotePhones.length > 0 ? normalizedRemotePhones : fallbackPhones;
+        parsedEmails =
+          normalizedRemoteEmails.length > 0 ? normalizedRemoteEmails : fallbackEmails;
+        parsedTimezones = extractCollectionItems(timezoneResponse)
+          .map(toTimezoneItem)
+          .filter(Boolean);
+        parsedTimezoneId =
+          resolveTimezoneId(matchedUserRecord) || resolveTimezoneId(user);
+
+        setPhones(parsedPhones);
+        setEmails(parsedEmails);
+        setTimezones(parsedTimezones);
+        setSelectedTimezoneId(parsedTimezoneId);
+        setAvatarOverride(getAvatarFromUser(user));
+        const loadedIdentity = splitCombinedIdentity(
+          getDisplayName(user),
+          getDisplayAlias(user),
+        );
+        const loadedName = loadedIdentity.name;
+        const loadedAlias = loadedIdentity.alias;
+        setProfileName(loadedName);
+        setProfileAlias(loadedAlias);
+        setIsEditingName(false);
+        setIsEditingAlias(false);
+        originalPhoneIds.current = parsedPhones.map(item => item.id).filter(Boolean);
+        originalEmailIds.current = parsedEmails.map(item => item.id).filter(Boolean);
+        originalPhonesSnapshot.current = normalizePhonesForCompare(parsedPhones);
+        originalEmailsSnapshot.current = normalizeEmailsForCompare(parsedEmails);
+        originalTimezoneSnapshot.current = parsedTimezoneId;
+        originalNameSnapshot.current = loadedName;
+        originalAliasSnapshot.current = loadedAlias;
+        
+        hasInitiallyLoadedRef.current = true;
+      } finally {
+        setIsFetchingProfile(false);
+        fetchPromiseRef.current = null;
+      }
+    })();
+
+    fetchPromiseRef.current = promise;
+    return promise;
   }, [emailsActions, phonesActions, user, usersActions]);
 
   useFocusEffect(
