@@ -5,7 +5,6 @@
  * - Esta tela centraliza busca, filtros e representacao de pessoas.
  *
  * ## Estado
- * - Se existir `src/vue`, ela e apenas legado e nao deve receber este contrato.
  *
  * ## Limites
  * - Nao espalhar a normalizacao de contexto por outros modulos.
