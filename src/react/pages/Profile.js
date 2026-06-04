@@ -28,6 +28,7 @@ import {
 } from '@controleonline/ui-common/src/react/utils/entityDisplay';
 import { resolveFileImageUrl } from '@controleonline/ui-common/src/react/utils/fileUrl';
 import { isManagerAppType } from '@controleonline/ui-common/src/react/utils/managerOrderNotifications';
+import { resolveLoggedUserId } from '@controleonline/ui-people/src/react/utils/profileSession';
 import { inlineStyle_1025_20, inlineStyle_1042_16, inlineStyle_1051_63 } from './Profile.styles';
 
 const extractPhoneDigits = value =>
@@ -315,19 +316,26 @@ const resolveTimezoneId = value => {
   return extractId(value);
 };
 
-const resolveLoggedUserId = currentUser => {
-  const session = getSessionData();
-  const candidates = [
-    currentUser?.user_id,
-    currentUser?.userId,
-    session?.user_id,
-    session?.userId,
-  ];
+const resolveTimezoneName = value => {
+  if (!value) {
+    return '';
+  }
 
-  for (const candidate of candidates) {
-    const userId = extractId(candidate);
-    if (userId) {
-      return userId;
+  if (typeof value === 'string') {
+    return value.includes('/timezones/') ? '' : value.trim();
+  }
+
+  if (typeof value === 'object') {
+    if (typeof value?.name === 'string') {
+      return value.name.trim();
+    }
+
+    if (typeof value?.timezone === 'string') {
+      return value.timezone.trim();
+    }
+
+    if (value?.timezone && typeof value.timezone === 'object') {
+      return resolveTimezoneName(value.timezone);
     }
   }
 
@@ -996,17 +1004,16 @@ const Profile = ({ navigation }) => {
   const saveUserTimezone = useCallback(
     async nextTimezoneId => {
       const normalizedTimezoneId = extractId(nextTimezoneId);
-      // Preferencias do timezone pertencem ao usuario autenticado e devem passar pelo endpoint dedicado.
-      return api.fetch('/users/preferences', {
-        method: 'PUT',
-        body: {
-          timezone: normalizedTimezoneId
-            ? `/timezones/${normalizedTimezoneId}`
-            : null,
-        },
+      const loggedUserId = resolveLoggedUserId(user);
+
+      return usersActions.updateMyPreferences({
+        id: loggedUserId || undefined,
+        timezone: normalizedTimezoneId
+          ? `/timezones/${normalizedTimezoneId}`
+          : null,
       });
     },
-    [],
+    [user, usersActions],
   );
 
   const refetchPersistedLoggedUser = useCallback(
@@ -1015,18 +1022,6 @@ const Profile = ({ navigation }) => {
       return fetchLoggedUserRecord(loggedUserId);
     },
     [user],
-  );
-
-  const saveUserTimezoneLegacy = useCallback(
-    async nextTimezoneId => {
-      const normalizedTimezoneId = extractId(nextTimezoneId);
-      return usersActions.updateMyPreferences({
-        timezone: normalizedTimezoneId
-          ? `/timezones/${normalizedTimezoneId}`
-          : null,
-      });
-    },
-    [usersActions],
   );
 
   const hasUnsavedChanges = useMemo(() => {
@@ -1103,22 +1098,19 @@ const Profile = ({ navigation }) => {
       if (timezoneChanged) {
         try {
           persistedUserSession = await saveUserTimezone(persistedTimezoneId);
-        } catch (primaryTimezoneError) {
-          persistedUserSession = await saveUserTimezoneLegacy(persistedTimezoneId);
-          if (!persistedUserSession) {
-            throw primaryTimezoneError;
-          }
-        }
 
-        const persistedLoggedUser = await refetchPersistedLoggedUser();
-        persistedTimezoneId =
-          resolveTimezoneId(persistedLoggedUser) ||
-          resolveTimezoneId(persistedUserSession) ||
-          persistedTimezoneId;
-        persistedUserSession = {
-          ...(persistedUserSession || {}),
-          ...(persistedLoggedUser || {}),
-        };
+          const persistedLoggedUser = await refetchPersistedLoggedUser();
+          persistedTimezoneId =
+            resolveTimezoneId(persistedLoggedUser) ||
+            resolveTimezoneId(persistedUserSession) ||
+            persistedTimezoneId;
+          persistedUserSession = {
+            ...(persistedUserSession || {}),
+            ...(persistedLoggedUser || {}),
+          };
+        } catch (timezoneError) {
+          persistedUserSession = null;
+        }
       }
 
       if (nameChanged || aliasChanged) {
@@ -1150,7 +1142,8 @@ const Profile = ({ navigation }) => {
       originalNameSnapshot.current = normalizedName;
       originalAliasSnapshot.current = normalizedAlias;
       const persistedTimezoneName =
-        persistedUserSession?.timezone ||
+        resolveTimezoneName(persistedUserSession?.timezone) ||
+        resolveTimezoneName(persistedUserSession) ||
         availableTimezones.find(timezone => timezone.id === persistedTimezoneId)?.name ||
         null;
 
