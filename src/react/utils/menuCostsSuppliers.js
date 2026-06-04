@@ -491,3 +491,60 @@ export const buildImportedSuppliersFromPeople = (peopleRecords = []) => {
 
   return suppliers;
 };
+
+const normalizeSearch = value =>
+  String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/gi, ' ')
+    .trim()
+    .toLowerCase();
+
+export const filterSuppliers = (suppliers, query) => {
+  const normalizedQuery = normalizeSearch(query);
+  if (!normalizedQuery) return suppliers;
+
+  return safeArray(suppliers).filter(supplier => {
+    const fields = [
+      supplier.name,
+      supplier.legalName,
+      supplier.cnpj,
+      supplier.code,
+      supplier.description,
+      supplier.category,
+      supplier.address,
+      supplier.city,
+      supplier.state,
+      supplier.notes,
+      supplier.evidenceSource,
+      supplier.evidenceType,
+      supplier.sourceSummary,
+      ...safeArray(supplier.sourceNames),
+      ...safeArray(supplier.paymentMethods),
+      ...safeArray(supplier.products).flatMap(product => [
+        product?.productName,
+        product?.label,
+        product?.productSku,
+        product?.meta,
+      ]),
+      ...safeArray(supplier.movements).flatMap(product => [
+        product?.productName,
+        product?.label,
+        product?.productSku,
+        product?.meta,
+      ]),
+      ...safeArray(supplier.contacts).flatMap(contact => [
+        contact?.name,
+        contact?.phone,
+        contact?.email,
+      ]),
+    ];
+
+    return fields.some(field => normalizeSearch(field).includes(normalizedQuery));
+  });
+};
+
+export const getSupplierSelection = (suppliers, selectedId) =>
+  safeArray(suppliers).find(item => String(item.id) === String(selectedId)) ||
+  safeArray(suppliers)[0] ||
+  null;
