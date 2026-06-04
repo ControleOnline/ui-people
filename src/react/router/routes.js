@@ -8,7 +8,7 @@ const peopleRoutes = [
     options: {
       headerShown: true,
       showBottomToolBar: true,
-      title: global.t?.t('people', 'title', 'profile'),
+      title: () => global.t?.t('people', 'title', 'profile'),
     },
     initialParams: {store: 'auth'},
   },

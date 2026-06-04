@@ -706,7 +706,7 @@ const Profile = ({ navigation }) => {
     [availableTimezones],
   );
 
-  const selectedTimezoneLabel = useMemo(() => {
+  const selectedTimezoneLabel = (() => {
     const matchedTimezone = availableTimezones.find(
       timezone => timezone.id === selectedTimezoneId,
     );
@@ -715,7 +715,7 @@ const Profile = ({ navigation }) => {
       matchedTimezone?.name ||
       global.t?.t('people', 'label', 'select_timezone')
     );
-  }, [availableTimezones, selectedTimezoneId]);
+  })();
 
   const canShowResyncTranslations = useMemo(() => {
     return String(APP_ENV?.APP_TYPE || '').toUpperCase() !== 'POS';
