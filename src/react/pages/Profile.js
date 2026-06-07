@@ -434,7 +434,7 @@ const isSameList = (left, right) => {
   return true;
 };
 
-// Cache global simples para timezones (dados estáticos)
+// Cache global simples para timezones carregados do backend
 let timezonesCache = null;
 let timezoneCachePromise = null;
 
