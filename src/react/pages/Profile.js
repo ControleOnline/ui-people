@@ -342,46 +342,6 @@ const resolveTimezoneName = value => {
   return '';
 };
 
-const findCurrentUserRecord = (records, currentUser) => {
-  const normalizedRecords = Array.isArray(records) ? records : [];
-  const currentUserId = resolveLoggedUserId(currentUser);
-  const currentUsername = normalizeEmailValue(currentUser?.username);
-  const currentApiKey = String(
-    currentUser?.api_key || currentUser?.apiKey || '',
-  ).trim();
-
-  return (
-    normalizedRecords.find(record => {
-      const sameUserId =
-        currentUserId &&
-        extractId(record?.id || record?.['@id']) === currentUserId;
-      const sameUsername =
-        currentUsername &&
-        normalizeEmailValue(record?.username) === currentUsername;
-      const sameApiKey =
-        currentApiKey &&
-        String(record?.apiKey || record?.api_key || '').trim() === currentApiKey;
-
-      return sameUserId || sameUsername || sameApiKey;
-    }) ||
-    normalizedRecords[0] ||
-    null
-  );
-};
-
-const fetchLoggedUserRecord = async loggedUserId => {
-  const normalizedUserId = extractId(loggedUserId);
-  if (!normalizedUserId) {
-    return null;
-  }
-
-  try {
-    return await api.fetch(`/users/${normalizedUserId}`);
-  } catch {
-    return null;
-  }
-};
-
 const extractCollectionItems = payload => {
   if (Array.isArray(payload)) {
     return payload;
@@ -397,25 +357,6 @@ const extractCollectionItems = payload => {
 
   return [];
 };
-
-const DEFAULT_TIMEZONE_OPTIONS = [
-  {id: '1', name: 'America/Noronha'},
-  {id: '2', name: 'America/Belem'},
-  {id: '3', name: 'America/Fortaleza'},
-  {id: '4', name: 'America/Recife'},
-  {id: '5', name: 'America/Araguaina'},
-  {id: '6', name: 'America/Maceio'},
-  {id: '7', name: 'America/Bahia'},
-  {id: '8', name: 'America/Sao_Paulo'},
-  {id: '9', name: 'America/Campo_Grande'},
-  {id: '10', name: 'America/Cuiaba'},
-  {id: '11', name: 'America/Santarem'},
-  {id: '12', name: 'America/Porto_Velho'},
-  {id: '13', name: 'America/Boa_Vista'},
-  {id: '14', name: 'America/Manaus'},
-  {id: '15', name: 'America/Eirunepe'},
-  {id: '16', name: 'America/Rio_Branco'},
-];
 
 const splitCombinedIdentity = (nameValue, aliasValue) => {
   const normalizedName = normalizeNameValue(nameValue);
@@ -596,17 +537,11 @@ const Profile = ({ navigation }) => {
         let parsedPhones = fallbackPhones;
         let parsedEmails = fallbackEmails;
         let parsedTimezones = [];
+        // A sessão autenticada já carrega o timezone do login atual.
         let parsedTimezoneId = resolveTimezoneId(user);
         const peopleIri = toPeopleIri(user);
-        const loggedUserId = resolveLoggedUserId(user);
 
-        const [
-          remotePhones,
-          remoteEmails,
-          timezoneResponse,
-          remoteCurrentUser,
-          remoteUsers,
-        ] = await Promise.all([
+        const [remotePhones, remoteEmails, timezoneResponse] = await Promise.all([
           peopleIri
             ? phonesActions.getItems({people: peopleIri}).catch(() => fallbackPhones)
             : Promise.resolve(fallbackPhones),
@@ -616,12 +551,6 @@ const Profile = ({ navigation }) => {
           fetchTimezonesCached().catch(() => ({
             member: [],
           })),
-          fetchLoggedUserRecord(loggedUserId),
-          peopleIri
-            ? usersActions
-                .getItems({people: peopleIri, itemsPerPage: 200})
-                .catch(() => [])
-            : Promise.resolve([]),
         ]);
 
         const normalizedRemotePhones = (Array.isArray(remotePhones) ? remotePhones : [])
@@ -630,10 +559,6 @@ const Profile = ({ navigation }) => {
         const normalizedRemoteEmails = (Array.isArray(remoteEmails) ? remoteEmails : [])
           .map(toEmailItem)
           .filter(item => item && item.value);
-        // O perfil deve usar o timezone do usuario autenticado, mesmo quando a pessoa tiver mais de um login.
-        const matchedUserRecord =
-          remoteCurrentUser || findCurrentUserRecord(remoteUsers, user);
-
         parsedPhones =
           normalizedRemotePhones.length > 0 ? normalizedRemotePhones : fallbackPhones;
         parsedEmails =
@@ -641,8 +566,6 @@ const Profile = ({ navigation }) => {
         parsedTimezones = extractCollectionItems(timezoneResponse)
           .map(toTimezoneItem)
           .filter(Boolean);
-        parsedTimezoneId =
-          resolveTimezoneId(matchedUserRecord) || resolveTimezoneId(user);
 
         setPhones(parsedPhones);
         setEmails(parsedEmails);
@@ -676,7 +599,7 @@ const Profile = ({ navigation }) => {
 
     fetchPromiseRef.current = promise;
     return promise;
-  }, [emailsActions, phonesActions, user, usersActions]);
+  }, [emailsActions, phonesActions, user]);
 
   useFocusEffect(
     useCallback(() => {
@@ -685,11 +608,7 @@ const Profile = ({ navigation }) => {
   );
 
   const availableTimezones = useMemo(() => {
-    if (Array.isArray(timezones) && timezones.length > 0) {
-      return timezones;
-    }
-
-    return DEFAULT_TIMEZONE_OPTIONS;
+    return Array.isArray(timezones) ? timezones : [];
   }, [timezones]);
 
   const timezoneOptions = useMemo(
@@ -1016,14 +935,6 @@ const Profile = ({ navigation }) => {
     [user, usersActions],
   );
 
-  const refetchPersistedLoggedUser = useCallback(
-    async () => {
-      const loggedUserId = resolveLoggedUserId(user);
-      return fetchLoggedUserRecord(loggedUserId);
-    },
-    [user],
-  );
-
   const hasUnsavedChanges = useMemo(() => {
     const currentPhones = normalizePhonesForCompare(phones);
     const currentEmails = normalizeEmailsForCompare(emails);
@@ -1098,16 +1009,9 @@ const Profile = ({ navigation }) => {
       if (timezoneChanged) {
         try {
           persistedUserSession = await saveUserTimezone(persistedTimezoneId);
-
-          const persistedLoggedUser = await refetchPersistedLoggedUser();
           persistedTimezoneId =
-            resolveTimezoneId(persistedLoggedUser) ||
             resolveTimezoneId(persistedUserSession) ||
             persistedTimezoneId;
-          persistedUserSession = {
-            ...(persistedUserSession || {}),
-            ...(persistedLoggedUser || {}),
-          };
         } catch (timezoneError) {
           persistedUserSession = null;
         }
