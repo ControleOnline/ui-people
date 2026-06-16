@@ -8,15 +8,19 @@ import {
   ScrollView,
   Keyboard,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AnimatedModal from '@controleonline/ui-crm/src/react/components/AnimatedModal';
+import { api } from '@controleonline/ui-common/src/api';
 import { useMessage } from '@controleonline/ui-common/src/react/components/MessageService';
 import {
   formatDisplayUppercase,
   uppercaseText,
 } from '@controleonline/ui-common/src/react/utils/entityDisplay';
+import { resolveAppDomain } from '@controleonline/ui-common/src/utils/appDomain';
 import { useStore } from '@store';
+import { APP_ENV } from '../../../../../../config/env';
 import {
   buildPeopleContextConfig,
   normalizePeopleContextType,
@@ -71,11 +75,32 @@ const LINK_TYPE_OPTIONS = [
   { value: 'courier', translationKey: 'courier' },
 ];
 
+const OWNER_LINK_TYPE = 'owner';
+const FRANCHISE_LINK_TYPE = 'franchisee';
+const IS_LAVEGO = String(resolveAppDomain(APP_ENV?.DOMAIN) || '')
+  .trim()
+  .toLowerCase()
+  .includes('lave-go.com');
+
 const normalizePeopleType = value =>
   String(value ?? '')
     .trim()
     .toUpperCase();
 const normalizeIdentityValue = value => formatDisplayUppercase(value);
+const extractId = value => String(value || '').replace(/\D/g, '');
+const toPeopleIri = value => {
+  const directIri = String(value?.['@id'] || '').trim();
+  if (directIri.startsWith('/people/')) {
+    return directIri;
+  }
+
+  const id = extractId(value?.id || value);
+  return id ? `/people/${id}` : '';
+};
+const extractCustomResponseData = payload =>
+  Array.isArray(payload?.response?.data) ? payload.response.data : [];
+const buildExistingOwnerLabel = owner =>
+  formatDisplayUppercase(owner?.name || owner?.alias || `#${extractId(owner?.id || owner?.['@id'])}`);
 
 const toBrDateString = date => {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
@@ -92,6 +117,8 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
   const peopleStore = useStore('people');
   const getters  = peopleStore.getters;
   const actions  = peopleStore.actions;
+  const peopleLinkStore = useStore('people_link');
+  const peopleLinkActions = peopleLinkStore?.actions || {};
   const { currentCompany } = getters;
 
   const { showError } = useMessage();
@@ -102,9 +129,21 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
       label: '',
     })),
   );
+  const [existingOwnerOptions, setExistingOwnerOptions] = useState([]);
+  const [isLoadingExistingOwners, setIsLoadingExistingOwners] = useState(false);
+  const isLavegoFranchiseRegistration =
+    IS_LAVEGO &&
+    normalizePeopleContextType(contextConfig.defaultType || context?.context) ===
+      FRANCHISE_LINK_TYPE;
 
   const buildInitialFormData = registrationLinkType => {
     const defaultDate = new Date();
+    const normalizedRegistrationLinkType =
+      normalizePeopleContextType(registrationLinkType || contextConfig.defaultType) ||
+      normalizePeopleContextType(context?.context) ||
+      'employee';
+    const shouldRequireManualRole =
+      IS_LAVEGO && normalizedRegistrationLinkType === FRANCHISE_LINK_TYPE;
 
     return {
       name: '',
@@ -112,13 +151,11 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
       foundationDate: defaultDate,
       foundationDateInput: toBrDateString(defaultDate),
       peopleType: normalizePeopleType(context?.defaultPeopleType) || 'J',
-      contactLinkType: 'employee',
-      registrationLinkType:
-        normalizePeopleContextType(registrationLinkType || contextConfig.defaultType) ||
-        normalizePeopleContextType(context?.context) ||
-        'employee',
+      contactLinkType: shouldRequireManualRole ? '' : 'employee',
+      registrationLinkType: normalizedRegistrationLinkType,
       firstEmployeeName: '',
       firstEmployeeAlias: '',
+      selectedExistingOwnerIri: '',
     };
   };
   const [formData, setFormData] = useState(() =>
@@ -127,6 +164,9 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
   const isPessoaFisica = formData.peopleType === 'F';
   const isPessoaJuridica = formData.peopleType === 'J';
+  const hasSelectedExistingOwner = String(formData.selectedExistingOwnerIri || '').startsWith('/people/');
+  const shouldDisableManualContactFields =
+    isPessoaJuridica && isLavegoFranchiseRegistration && hasSelectedExistingOwner;
   const nameLabel = isPessoaFisica ? global.t?.t('people', 'label', 'nameRequired') : global.t?.t('people', 'label', 'companyNameRequired');
   const namePlaceholder = isPessoaFisica
     ? global.t?.t('people', 'placeholder', 'enterName')
@@ -157,6 +197,56 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
     setFormData(buildInitialFormData(contextConfig.defaultType));
   }, [contextConfig.defaultType, visible]);
 
+  useEffect(() => {
+    if (!visible || !isLavegoFranchiseRegistration || !currentCompany?.id) {
+      setExistingOwnerOptions([]);
+      setIsLoadingExistingOwners(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadExistingOwners = async () => {
+      setIsLoadingExistingOwners(true);
+
+      try {
+        const response = await api.fetch('/people/franchise-owner-candidates', {
+          params: {
+            companyId: currentCompany.id,
+          },
+        });
+
+        const ownerOptions = extractCustomResponseData(response).map(owner => ({
+          value: toPeopleIri(owner),
+          label: buildExistingOwnerLabel(owner),
+        }));
+
+        if (!cancelled) {
+          setExistingOwnerOptions(
+            ownerOptions
+              .filter(option => option.value)
+              .sort((left, right) => left.label.localeCompare(right.label)),
+          );
+        }
+      } catch {
+        if (!cancelled) {
+          setExistingOwnerOptions([]);
+        }
+        showError('Nao foi possivel carregar os proprietarios existentes.');
+      } finally {
+        if (!cancelled) {
+          setIsLoadingExistingOwners(false);
+        }
+      }
+    };
+
+    loadExistingOwners();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [visible, isLavegoFranchiseRegistration, currentCompany?.id]);
+
   const handleSave = async () => {
     if (!formData.name.trim() || !formData.alias.trim()) {
       showError(
@@ -168,12 +258,19 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
     }
 
     if (isPessoaJuridica) {
-      if (
-        !String(formData.firstEmployeeName || '').trim() ||
-        !String(formData.firstEmployeeAlias || '').trim()
-      ) {
-        showError(global.t?.t('people', 'error', 'firstEmployeeRequired'));
-        return;
+      if (!hasSelectedExistingOwner) {
+        if (
+          !String(formData.firstEmployeeName || '').trim() ||
+          !String(formData.firstEmployeeAlias || '').trim()
+        ) {
+          showError(global.t?.t('people', 'error', 'firstEmployeeRequired'));
+          return;
+        }
+
+        if (isLavegoFranchiseRegistration && !String(formData.contactLinkType || '').trim()) {
+          showError('Selecione o cargo do contato.');
+          return;
+        }
       }
     }
 
@@ -226,14 +323,22 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
 
       /* cria o contato PF vinculado à empresa PJ recém criada */
       if (isPessoaJuridica && savedCompany?.id) {
-        await actions.save({
-          name:           normalizeIdentityValue(formData.firstEmployeeName),
-          alias:          normalizeIdentityValue(formData.firstEmployeeAlias),
-          peopleType:     'F',
-          linkType:       formData.contactLinkType,
-          company:        `/people/${savedCompany.id}`,
-          'extra-data':   {},
-        });
+        if (hasSelectedExistingOwner) {
+          await peopleLinkActions.save({
+            company: `/people/${savedCompany.id}`,
+            people: formData.selectedExistingOwnerIri,
+            linkType: OWNER_LINK_TYPE,
+          });
+        } else {
+          await actions.save({
+            name:           normalizeIdentityValue(formData.firstEmployeeName),
+            alias:          normalizeIdentityValue(formData.firstEmployeeAlias),
+            peopleType:     'F',
+            linkType:       formData.contactLinkType,
+            company:        `/people/${savedCompany.id}`,
+            'extra-data':   {},
+          });
+        }
       }
 
       if (onSuccess) {
@@ -419,22 +524,124 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
             <View style={inlineStyle_462_18}>
 
               
-              <Text
-                style={inlineStyle_466_16}>
-                {global.t?.t('people','title','contactLinked')}
-              </Text>
+              {isLavegoFranchiseRegistration ? (
+                <>
+                  <View style={{
+                    flexDirection: 'row',
+                    gap: 12,
+                    alignItems: 'flex-end',
+                  }}>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={inlineStyle_466_16}>
+                        {global.t?.t('people','title','contactLinked')}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={inlineStyle_466_16}>
+                        Proprietario existente
+                      </Text>
+                    </View>
+                  </View>
 
-              <View style={inlineStyle_475_20}>
-                <TextInput
-                  value={formData.firstEmployeeName}
-                  onChangeText={text =>
-                    setFormData(prev => ({ ...prev, firstEmployeeName: uppercaseText(text) }))
-                  }
-                  placeholder={global.t?.t('people','placeholder','contactName')}
-                  style={inlineStyle_482_18}
-                  placeholderTextColor="#6c757d"
-                />
-              </View>
+                  <View style={{
+                    flexDirection: 'row',
+                    gap: 12,
+                  }}>
+                    <View style={{
+                      flex: 1,
+                    }}>
+                      <View style={inlineStyle_475_20}>
+                        <TextInput
+                          value={formData.firstEmployeeName}
+                          onChangeText={text =>
+                            setFormData(prev => ({ ...prev, firstEmployeeName: uppercaseText(text) }))
+                          }
+                          placeholder={global.t?.t('people','placeholder','contactName')}
+                          style={[
+                            inlineStyle_482_18,
+                            shouldDisableManualContactFields
+                              ? { backgroundColor: '#E2E8F0', color: '#64748B' }
+                              : null,
+                          ]}
+                          placeholderTextColor="#6c757d"
+                          editable={!shouldDisableManualContactFields}
+                        />
+                      </View>
+                    </View>
+
+                    <View style={{
+                      flex: 1,
+                    }}>
+                      <View style={inlineStyle_475_20}>
+                        <View style={{
+                          borderWidth: 1,
+                          borderColor: '#CBD5E1',
+                          borderRadius: 10,
+                          backgroundColor: '#FFFFFF',
+                          minHeight: 52,
+                          justifyContent: 'center',
+                        }}>
+                          <Picker
+                            selectedValue={formData.selectedExistingOwnerIri}
+                            enabled={!isLoadingExistingOwners}
+                            onValueChange={value =>
+                              setFormData(prev => ({
+                                ...prev,
+                                selectedExistingOwnerIri: value,
+                                contactLinkType: value ? OWNER_LINK_TYPE : '',
+                              }))
+                            }>
+                            <Picker.Item
+                              label={
+                                isLoadingExistingOwners
+                                  ? 'Carregando proprietarios...'
+                                  : existingOwnerOptions.length > 0
+                                    ? 'Selecionar proprietario existente'
+                                    : 'Nenhum proprietario encontrado'
+                              }
+                              value=""
+                            />
+                            {existingOwnerOptions.map(option => (
+                              <Picker.Item
+                                key={option.value}
+                                label={option.label}
+                                value={option.value}
+                              />
+                            ))}
+                          </Picker>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <Text
+                    style={inlineStyle_466_16}>
+                    {global.t?.t('people','title','contactLinked')}
+                  </Text>
+
+                  <View style={inlineStyle_475_20}>
+                    <TextInput
+                      value={formData.firstEmployeeName}
+                      onChangeText={text =>
+                        setFormData(prev => ({ ...prev, firstEmployeeName: uppercaseText(text) }))
+                      }
+                      placeholder={global.t?.t('people','placeholder','contactName')}
+                      style={[
+                        inlineStyle_482_18,
+                        shouldDisableManualContactFields
+                          ? { backgroundColor: '#E2E8F0', color: '#64748B' }
+                          : null,
+                      ]}
+                      placeholderTextColor="#6c757d"
+                      editable={!shouldDisableManualContactFields}
+                    />
+                  </View>
+                </>
+              )}
 
               <View style={inlineStyle_495_20}>
                 <TextInput
@@ -443,36 +650,59 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                     setFormData(prev => ({ ...prev, firstEmployeeAlias: uppercaseText(text) }))
                   }
                   placeholder={global.t?.t('people','placeholder','contactAlias')}
-                  style={inlineStyle_502_18}
+                  style={[
+                    inlineStyle_502_18,
+                    shouldDisableManualContactFields
+                      ? { backgroundColor: '#E2E8F0', color: '#64748B' }
+                      : null,
+                  ]}
                   placeholderTextColor="#6c757d"
+                  editable={!shouldDisableManualContactFields}
                 />
               </View>
+
               <Text
                 style={inlineStyle_516_14}>
                 {global.t?.t('people', 'label', 'contactRole')}
               </Text>
 
-              <View style={inlineStyle_525_18}>
-                {linkTypeOptions.map(option => {
-                  const isSelected = formData.contactLinkType === option.value;
-                  return (
-                    <TouchableOpacity
-                      key={option.value}
-                      onPress={() =>
-                        setFormData(prev => ({ ...prev, contactLinkType: option.value }))
-                      }
-                      style={inlineStyle_532_20({
-                        isSelected: isSelected,
-                      })}>
-                      <Text style={inlineStyle_540_26({
-                        isSelected: isSelected,
-                      })}>
-                        {option.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+              {shouldDisableManualContactFields ? (
+                <View style={inlineStyle_525_18}>
+                  <TouchableOpacity
+                    activeOpacity={1}
+                    style={inlineStyle_532_20({
+                      isSelected: true,
+                    })}>
+                    <Text style={inlineStyle_540_26({
+                      isSelected: true,
+                    })}>
+                      {linkTypeOptions.find(option => option.value === OWNER_LINK_TYPE)?.label || 'Proprietario'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={inlineStyle_525_18}>
+                  {linkTypeOptions.map(option => {
+                    const isSelected = formData.contactLinkType === option.value;
+                    return (
+                      <TouchableOpacity
+                        key={option.value}
+                        onPress={() =>
+                          setFormData(prev => ({ ...prev, contactLinkType: option.value }))
+                        }
+                        style={inlineStyle_532_20({
+                          isSelected: isSelected,
+                        })}>
+                        <Text style={inlineStyle_540_26({
+                          isSelected: isSelected,
+                        })}>
+                          {option.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
 
 
             </View>
