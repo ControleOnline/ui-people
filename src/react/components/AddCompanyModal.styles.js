@@ -227,11 +227,44 @@ export const inlineStyle_502_18 = {
   backgroundColor: '#f8f9fa',
 };
 
+export const inlineStyle_disabledContactInput = {
+  backgroundColor: '#E2E8F0',
+  color: '#64748B',
+};
+
 export const inlineStyle_516_14 = {
   fontSize: 16,
   fontWeight: '600',
   color: '#212529',
   marginBottom: 8,
+};
+
+export const inlineStyle_ownerHeaderRow = {
+  flexDirection: 'row',
+  gap: 12,
+  alignItems: 'flex-end',
+};
+
+export const inlineStyle_ownerHeaderColumn = {
+  flex: 1,
+};
+
+export const inlineStyle_ownerFieldsRow = {
+  flexDirection: 'row',
+  gap: 12,
+};
+
+export const inlineStyle_ownerFieldColumn = {
+  flex: 1,
+};
+
+export const inlineStyle_ownerPickerWrap = {
+  borderWidth: 1,
+  borderColor: '#CBD5E1',
+  borderRadius: 10,
+  backgroundColor: '#FFFFFF',
+  minHeight: 52,
+  justifyContent: 'center',
 };
 
 export const inlineStyle_525_18 = {

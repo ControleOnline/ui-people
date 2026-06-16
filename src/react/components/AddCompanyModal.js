@@ -12,15 +12,12 @@ import { Picker } from '@react-native-picker/picker';
 
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AnimatedModal from '@controleonline/ui-crm/src/react/components/AnimatedModal';
-import { api } from '@controleonline/ui-common/src/api';
 import { useMessage } from '@controleonline/ui-common/src/react/components/MessageService';
 import {
   formatDisplayUppercase,
   uppercaseText,
 } from '@controleonline/ui-common/src/react/utils/entityDisplay';
-import { resolveAppDomain } from '@controleonline/ui-common/src/utils/appDomain';
 import { useStore } from '@store';
-import { APP_ENV } from '../../../../../../config/env';
 import {
   buildPeopleContextConfig,
   normalizePeopleContextType,
@@ -56,7 +53,13 @@ import {
   inlineStyle_482_18,
   inlineStyle_495_20,
   inlineStyle_502_18,
+  inlineStyle_disabledContactInput,
   inlineStyle_516_14,
+  inlineStyle_ownerHeaderRow,
+  inlineStyle_ownerHeaderColumn,
+  inlineStyle_ownerFieldsRow,
+  inlineStyle_ownerFieldColumn,
+  inlineStyle_ownerPickerWrap,
   inlineStyle_525_18,
   inlineStyle_532_20,
   inlineStyle_540_26,
@@ -77,10 +80,6 @@ const LINK_TYPE_OPTIONS = [
 
 const OWNER_LINK_TYPE = 'owner';
 const FRANCHISE_LINK_TYPE = 'franchisee';
-const IS_LAVEGO = String(resolveAppDomain(APP_ENV?.DOMAIN) || '')
-  .trim()
-  .toLowerCase()
-  .includes('lave-go.com');
 
 const normalizePeopleType = value =>
   String(value ?? '')
@@ -97,8 +96,6 @@ const toPeopleIri = value => {
   const id = extractId(value?.id || value);
   return id ? `/people/${id}` : '';
 };
-const extractCustomResponseData = payload =>
-  Array.isArray(payload?.response?.data) ? payload.response.data : [];
 const buildExistingOwnerLabel = owner =>
   formatDisplayUppercase(owner?.name || owner?.alias || `#${extractId(owner?.id || owner?.['@id'])}`);
 
@@ -131,8 +128,8 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
   );
   const [existingOwnerOptions, setExistingOwnerOptions] = useState([]);
   const [isLoadingExistingOwners, setIsLoadingExistingOwners] = useState(false);
-  const isLavegoFranchiseRegistration =
-    IS_LAVEGO &&
+  const canSelectExistingOwner =
+    Boolean(contextConfig.enableExistingOwnerSelection) &&
     normalizePeopleContextType(contextConfig.defaultType || context?.context) ===
       FRANCHISE_LINK_TYPE;
 
@@ -143,7 +140,8 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
       normalizePeopleContextType(context?.context) ||
       'employee';
     const shouldRequireManualRole =
-      IS_LAVEGO && normalizedRegistrationLinkType === FRANCHISE_LINK_TYPE;
+      Boolean(contextConfig.enableExistingOwnerSelection) &&
+      normalizedRegistrationLinkType === FRANCHISE_LINK_TYPE;
 
     return {
       name: '',
@@ -166,7 +164,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
   const isPessoaJuridica = formData.peopleType === 'J';
   const hasSelectedExistingOwner = String(formData.selectedExistingOwnerIri || '').startsWith('/people/');
   const shouldDisableManualContactFields =
-    isPessoaJuridica && isLavegoFranchiseRegistration && hasSelectedExistingOwner;
+    isPessoaJuridica && canSelectExistingOwner && hasSelectedExistingOwner;
   const nameLabel = isPessoaFisica ? global.t?.t('people', 'label', 'nameRequired') : global.t?.t('people', 'label', 'companyNameRequired');
   const namePlaceholder = isPessoaFisica
     ? global.t?.t('people', 'placeholder', 'enterName')
@@ -198,7 +196,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
   }, [contextConfig.defaultType, visible]);
 
   useEffect(() => {
-    if (!visible || !isLavegoFranchiseRegistration || !currentCompany?.id) {
+    if (!visible || !canSelectExistingOwner || !currentCompany?.id) {
       setExistingOwnerOptions([]);
       setIsLoadingExistingOwners(false);
       return;
@@ -210,13 +208,11 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
       setIsLoadingExistingOwners(true);
 
       try {
-        const response = await api.fetch('/people/franchise-owner-candidates', {
-          params: {
-            companyId: currentCompany.id,
-          },
+        const response = await actions.franchiseOwnerCandidates({
+          companyId: currentCompany.id,
         });
 
-        const ownerOptions = extractCustomResponseData(response).map(owner => ({
+        const ownerOptions = response.map(owner => ({
           value: toPeopleIri(owner),
           label: buildExistingOwnerLabel(owner),
         }));
@@ -232,7 +228,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
         if (!cancelled) {
           setExistingOwnerOptions([]);
         }
-        showError('Nao foi possivel carregar os proprietarios existentes.');
+        showError(global.t?.t('people', 'error', 'franchiseOwnerCandidatesLoadFailed'));
       } finally {
         if (!cancelled) {
           setIsLoadingExistingOwners(false);
@@ -245,7 +241,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
     return () => {
       cancelled = true;
     };
-  }, [visible, isLavegoFranchiseRegistration, currentCompany?.id]);
+  }, [visible, canSelectExistingOwner, currentCompany?.id]);
 
   const handleSave = async () => {
     if (!formData.name.trim() || !formData.alias.trim()) {
@@ -267,8 +263,8 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
           return;
         }
 
-        if (isLavegoFranchiseRegistration && !String(formData.contactLinkType || '').trim()) {
-          showError('Selecione o cargo do contato.');
+        if (canSelectExistingOwner && !String(formData.contactLinkType || '').trim()) {
+          showError(global.t?.t('people', 'error', 'selectContactRole'));
           return;
         }
       }
@@ -347,7 +343,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
 
       handleClose();
     } catch (error) {
-      showError(error?.message || 'Erro ao criar empresa');
+      showError(error?.message || global.t?.t('people', 'error', 'createCompanyFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -524,34 +520,25 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
             <View style={inlineStyle_462_18}>
 
               
-              {isLavegoFranchiseRegistration ? (
+              {canSelectExistingOwner ? (
                 <>
-                  <View style={{
-                    flexDirection: 'row',
-                    gap: 12,
-                    alignItems: 'flex-end',
-                  }}>
-                    <View style={{ flex: 1 }}>
+                  <View style={inlineStyle_ownerHeaderRow}>
+                    <View style={inlineStyle_ownerHeaderColumn}>
                       <Text
                         style={inlineStyle_466_16}>
                         {global.t?.t('people','title','contactLinked')}
                       </Text>
                     </View>
-                    <View style={{ flex: 1 }}>
+                    <View style={inlineStyle_ownerHeaderColumn}>
                       <Text
                         style={inlineStyle_466_16}>
-                        Proprietario existente
+                        {global.t?.t('people', 'label', 'existingOwner')}
                       </Text>
                     </View>
                   </View>
 
-                  <View style={{
-                    flexDirection: 'row',
-                    gap: 12,
-                  }}>
-                    <View style={{
-                      flex: 1,
-                    }}>
+                  <View style={inlineStyle_ownerFieldsRow}>
+                    <View style={inlineStyle_ownerFieldColumn}>
                       <View style={inlineStyle_475_20}>
                         <TextInput
                           value={formData.firstEmployeeName}
@@ -561,9 +548,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                           placeholder={global.t?.t('people','placeholder','contactName')}
                           style={[
                             inlineStyle_482_18,
-                            shouldDisableManualContactFields
-                              ? { backgroundColor: '#E2E8F0', color: '#64748B' }
-                              : null,
+                            shouldDisableManualContactFields ? inlineStyle_disabledContactInput : null,
                           ]}
                           placeholderTextColor="#6c757d"
                           editable={!shouldDisableManualContactFields}
@@ -571,18 +556,9 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                       </View>
                     </View>
 
-                    <View style={{
-                      flex: 1,
-                    }}>
+                    <View style={inlineStyle_ownerFieldColumn}>
                       <View style={inlineStyle_475_20}>
-                        <View style={{
-                          borderWidth: 1,
-                          borderColor: '#CBD5E1',
-                          borderRadius: 10,
-                          backgroundColor: '#FFFFFF',
-                          minHeight: 52,
-                          justifyContent: 'center',
-                        }}>
+                        <View style={inlineStyle_ownerPickerWrap}>
                           <Picker
                             selectedValue={formData.selectedExistingOwnerIri}
                             enabled={!isLoadingExistingOwners}
@@ -596,10 +572,10 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                             <Picker.Item
                               label={
                                 isLoadingExistingOwners
-                                  ? 'Carregando proprietarios...'
+                                  ? global.t?.t('people', 'label', 'loadingOwners')
                                   : existingOwnerOptions.length > 0
-                                    ? 'Selecionar proprietario existente'
-                                    : 'Nenhum proprietario encontrado'
+                                    ? global.t?.t('people', 'label', 'selectExistingOwner')
+                                    : global.t?.t('people', 'label', 'noOwnerFound')
                               }
                               value=""
                             />
@@ -633,7 +609,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                       style={[
                         inlineStyle_482_18,
                         shouldDisableManualContactFields
-                          ? { backgroundColor: '#E2E8F0', color: '#64748B' }
+                          ? inlineStyle_disabledContactInput
                           : null,
                       ]}
                       placeholderTextColor="#6c757d"
@@ -653,7 +629,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                   style={[
                     inlineStyle_502_18,
                     shouldDisableManualContactFields
-                      ? { backgroundColor: '#E2E8F0', color: '#64748B' }
+                      ? inlineStyle_disabledContactInput
                       : null,
                   ]}
                   placeholderTextColor="#6c757d"
@@ -676,7 +652,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                     <Text style={inlineStyle_540_26({
                       isSelected: true,
                     })}>
-                      {linkTypeOptions.find(option => option.value === OWNER_LINK_TYPE)?.label || 'Proprietario'}
+                      {linkTypeOptions.find(option => option.value === OWNER_LINK_TYPE)?.label}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -703,8 +679,6 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                   })}
                 </View>
               )}
-
-
             </View>
           )}
 
@@ -720,7 +694,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
             style={inlineStyle_571_12}>
             <Text
               style={inlineStyle_580_14}>
-              Cancelar
+              {global.t?.t('people', 'button', 'cancel')}
             </Text>
           </TouchableOpacity>
 
@@ -735,7 +709,9 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
             })}>
             <Text
               style={inlineStyle_603_14}>
-              {isLoading ? 'Salvando...' : 'Salvar'}
+              {isLoading
+                ? global.t?.t('people', 'button', 'saving')
+                : global.t?.t('people', 'button', 'save')}
             </Text>
           </TouchableOpacity>
         </View>

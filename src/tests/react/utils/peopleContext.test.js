@@ -25,11 +25,13 @@ describe('peopleContext', () => {
       context: 'prospect',
       contextOptions: ['client', 'prospect'],
       defaultContext: 'client',
+      enableExistingOwnerSelection: true,
       selectedContext: 'prospect',
     })
 
     expect(config.availableTypes).toEqual(['client', 'prospect'])
     expect(config.defaultType).toBe('prospect')
+    expect(config.enableExistingOwnerSelection).toBe(true)
     expect(config.hasTypeFilter).toBe(true)
   })
 

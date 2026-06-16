@@ -140,6 +140,7 @@ export const buildPeopleContextConfig = (context = {}) => {
       context?.title ||
       resolvePeopleContextLabel(defaultType, context),
     modalTitle: resolvePeopleContextModalTitle(defaultType, context),
+    enableExistingOwnerSelection: Boolean(context?.enableExistingOwnerSelection),
     options: resolvedTypes.map(type => ({
       key: type,
       label: resolvePeopleContextLabel(type, context),

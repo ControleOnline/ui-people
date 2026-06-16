@@ -1,5 +1,5 @@
 import { api } from "@controleonline/ui-common/src/api";
-import { APP_ENV } from "../../../../../../config/env";
+import { env as APP_ENV } from "@env";
 import { resolveAppDomain } from "@controleonline/ui-common/src/utils/appDomain";
 import * as customTypes from "./mutation_types";
 import * as types from "@controleonline/ui-default/src/store/default/mutation_types";
@@ -44,7 +44,7 @@ export const company = ({ commit }, values) => {
     });
 };
 
-export const myCompanies = ({ commit, getters }, payload) => {
+export const myCompanies = ({ commit, getters }, _payload) => {
   commit(types.SET_ISLOADING, false);
   let url = `${RESOURCE_ENDPOINT}/companies/my`;
   return api
@@ -83,6 +83,27 @@ export const defaultCompany = ({ commit }) => {
     })
     .finally(() => {
       commit(types.SET_ISLOADING, false);
+    });
+};
+
+export const franchiseOwnerCandidates = ({ commit }, values = {}) => {
+  commit(types.SET_ERROR, "");
+  commit(types.SET_ISLOADING);
+
+  return api
+    .fetch(`${RESOURCE_ENDPOINT}/franchise-owner-candidates`, {
+      params: {
+        companyId: values.companyId,
+      },
+    })
+    .then((data) => {
+      commit(types.SET_ISLOADING, false);
+      return normalizeCollection(unwrapResponseData(data));
+    })
+    .catch((e) => {
+      commit(types.SET_ISLOADING, false);
+      commit(types.SET_ERROR, e.message);
+      throw e;
     });
 };
 
@@ -149,7 +170,7 @@ export const setCurrentCompany = ({ commit, getters }, company = null) => {
   localStorage.setItem("session", JSON.stringify(session));
 };
 
-export const getPeople = ({ commit }, id) => {
+export const getPeople = (_context, id) => {
   return api
     .fetch(`${RESOURCE_ENDPOINT}/${id}`)
 

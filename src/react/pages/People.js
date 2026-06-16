@@ -129,6 +129,8 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
       defaultContext: contextConfig.defaultType,
       defaultPeopleType:
         selectedLinkType === 'courier' ? 'F' : context.defaultPeopleType,
+      enableExistingOwnerSelection:
+        context.enableExistingOwnerSelection ?? selectedLinkType === 'franchisee',
       selectedContext: selectedLinkType,
     }),
     [context, contextConfig.availableTypes, contextConfig.defaultType, selectedLinkType],
