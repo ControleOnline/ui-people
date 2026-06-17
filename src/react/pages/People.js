@@ -75,7 +75,6 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
   const navigation = useNavigation();
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(25);
   const [selectedLinkType, setSelectedLinkType] = useState(contextConfig.defaultType);
   const [allClients, setAllClients] = useState([]);
   const [sortState, setSortState] = useState(null);
@@ -202,7 +201,6 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
       const params = {
         'link.company': `/people/${currentCompany.id}`,
         'link.linkType': normalizedLinkType,
-        itemsPerPage,
         page: nextPage,
       };
 
@@ -257,7 +255,7 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
         return items;
       });
     },
-    [actions, currentCompany?.id, itemsPerPage, selectedLinkType, sortState, storeFilters],
+    [actions, currentCompany?.id, selectedLinkType, sortState, storeFilters],
   );
 
   useLayoutEffect(() => {

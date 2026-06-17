@@ -447,7 +447,7 @@ const fetchTimezonesCached = async () => {
     return timezoneCachePromise;
   }
 
-  timezoneCachePromise = api.fetch('timezones', {params: {itemsPerPage: 200}})
+  timezoneCachePromise = api.fetch('timezones', {params: {}})
     .then(response => {
       timezonesCache = response;
       timezoneCachePromise = null;
@@ -1339,3 +1339,4 @@ const Profile = ({ navigation }) => {
 };
 
 export default Profile;
+// TODO(store-first): quando este arquivo for mexido, mover a leitura para stores, remover api.fetch e evitar repassar dados em objetos quando o store ja resolver isso.
