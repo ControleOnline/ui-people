@@ -19,7 +19,6 @@ import AddCompanyModal from '@controleonline/ui-people/src/react/components/AddC
 import CompactFilterSelector from '@controleonline/ui-default/src/react/components/filters/CompactFilterSelector';
 import DefaultTable from '@controleonline/ui-default/src/react/components/table/DefaultTable';
 import ImportsPage from '@controleonline/ui-common/src/react/pages/Imports';
-import { getDateRange } from '@controleonline/ui-common/src/react/utils/dateRangeFilter';
 import { formatDisplayUppercase } from '@controleonline/ui-common/src/react/utils/entityDisplay';
 import {
   buildPeopleContextConfig,
@@ -29,40 +28,6 @@ import {
 import styles from './People.styles';
 import { inlineStyle_133_14, inlineStyle_137_16 } from './People.styles';
 
-const extractItems = response => {
-  if (Array.isArray(response)) return response;
-  if (Array.isArray(response?.['hydra:member'])) return response['hydra:member'];
-  return [];
-};
-
-const normalizeText = value => String(value || '').trim();
-
-const normalizeFilterValue = value => {
-  if (value && typeof value === 'object') {
-    return normalizeFilterValue(value.value ?? value.id ?? value['@id'] ?? '');
-  }
-
-  return normalizeText(value);
-};
-
-const resolveDateFilterParams = value => {
-  if (!value || typeof value !== 'object') {
-    return {};
-  }
-
-  const shortcut = value.shortcut || value.value || 'all';
-  const customRange = value.customRange || { from: '', to: '' };
-  const dateRange = getDateRange(shortcut, customRange, {
-    relativeMode: 'rolling',
-    useCurrentMoment: true,
-  });
-
-  return {
-    after: dateRange?.after || '',
-    before: dateRange?.before || '',
-  };
-};
-
 const People = ({ context = {}, initialShowAddModal = false }) => {
   const contextConfig = useMemo(() => buildPeopleContextConfig(context), [context]);
   const title = context.title;
@@ -70,25 +35,14 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
   const peopleStore = useStore('people');
   const { getters, actions } = peopleStore;
   const { currentCompany } = getters;
-  const totalItems = Number(getters.totalItems || 0);
 
   const navigation = useNavigation();
 
-  const [currentPage, setCurrentPage] = useState(1);
   const [selectedLinkType, setSelectedLinkType] = useState(contextConfig.defaultType);
-  const [allClients, setAllClients] = useState([]);
-  const [sortState, setSortState] = useState(null);
   const [showAddCompanyModal, setShowAddCompanyModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
 
-  const lastFetchKeyRef = useRef('');
   const hasAutoOpenedAddModalRef = useRef(false);
-
-  const storeFilters = getters.filters || {};
-  const storeFiltersKey = useMemo(
-    () => JSON.stringify(storeFilters || {}),
-    [storeFilters],
-  );
 
   useEffect(() => {
     setSelectedLinkType(previousType =>
@@ -135,20 +89,6 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
     [context, contextConfig.availableTypes, contextConfig.defaultType, selectedLinkType],
   );
 
-  const peopleColumns = useMemo(() => {
-    const columns = Array.isArray(getters.columns) ? getters.columns : [];
-
-    return columns.map(column =>
-      column?.name === 'image'
-        ? {
-            ...column,
-            table: false,
-            visible: false,
-          }
-        : column,
-    );
-  }, [getters.columns]);
-
   const toolbarActions = useMemo(
     () => [
       {
@@ -169,93 +109,14 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
     [],
   );
 
-  const commitFilters = useCallback(
-    nextFilters => {
-      const resolvedFilters = nextFilters || {};
-      actions.setFilters(resolvedFilters);
-      setCurrentPage(1);
-      setAllClients([]);
-    },
-    [actions],
-  );
-
-  const fetchClients = useCallback(
-    (page, requestedLinkType = selectedLinkType, requestedSort = sortState, requestedFilters = storeFilters) => {
-      if (!currentCompany?.id) return Promise.resolve();
-
-      const normalizedLinkType = normalizePeopleContextType(requestedLinkType);
-      const nextPage = page ?? 1;
-      const filters = requestedFilters || {};
-      const searchValue = normalizeText(filters.search);
-      const fetchKey = JSON.stringify({
-        company: currentCompany.id,
-        linkType: normalizedLinkType,
-        page: nextPage,
-        search: searchValue,
-        sort: requestedSort || null,
-        filters,
-      });
-
-      lastFetchKeyRef.current = fetchKey;
-
-      const params = {
-        'link.company': `/people/${currentCompany.id}`,
-        'link.linkType': normalizedLinkType,
-        page: nextPage,
-      };
-
-      if (searchValue) {
-        params.search = searchValue;
-      }
-
-      if (requestedSort?.field && requestedSort?.direction) {
-        params[`order[${requestedSort.field}]`] = requestedSort.direction;
-      }
-
-      Object.entries(filters).forEach(([key, value]) => {
-        if (!key || key === 'search') {
-          return;
-        }
-
-        if (key === 'foundationDate') {
-          const dateParams = resolveDateFilterParams(value);
-          if (dateParams.after) params['foundationDate[after]'] = dateParams.after;
-          if (dateParams.before) params['foundationDate[before]'] = dateParams.before;
-          return;
-        }
-
-        if (Array.isArray(value)) {
-          params[key] = value.map(normalizeFilterValue).filter(Boolean);
-          return;
-        }
-
-        const normalizedValue = normalizeFilterValue(value);
-        if (normalizedValue) {
-          params[key] = normalizedValue;
-        }
-      });
-
-      return actions.getItems(params).then(response => {
-        if (lastFetchKeyRef.current !== fetchKey) {
-          return null;
-        }
-
-        const items = extractItems(response);
-        if (nextPage === 1) {
-          setAllClients(items);
-          return items;
-        }
-
-        setAllClients(prev => {
-          const newIds = new Set(items.map(item => item.id));
-          const filteredPrev = prev.filter(item => !newIds.has(item.id));
-          return [...filteredPrev, ...items];
-        });
-
-        return items;
-      });
-    },
-    [actions, currentCompany?.id, selectedLinkType, sortState, storeFilters],
+  const requestParams = useMemo(
+    () => ({
+      ...(currentCompany?.id
+        ? { 'link.company': `/people/${currentCompany.id}` }
+        : {}),
+      'link.linkType': normalizePeopleContextType(selectedLinkType),
+    }),
+    [currentCompany?.id, selectedLinkType],
   );
 
   useLayoutEffect(() => {
@@ -264,49 +125,12 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
     });
   }, [navigation, title]);
 
-  useEffect(() => {
-    if (!currentCompany?.id) {
-      return;
-    }
-
-    setCurrentPage(1);
-    setAllClients([]);
-    fetchClients(1, selectedLinkType, sortState, storeFilters);
-  }, [
-    currentCompany?.id,
-    fetchClients,
-    selectedLinkType,
-    sortState?.direction,
-    sortState?.field,
-    storeFiltersKey,
-  ]);
-
-  const handleSortChange = useCallback(
-    nextSort => {
-      setSortState(nextSort);
-      setCurrentPage(1);
-      setAllClients([]);
-    },
-    [],
-  );
-
   const handleLinkTypeChange = useCallback(
     nextLinkType => {
       setSelectedLinkType(nextLinkType);
-      setCurrentPage(1);
-      setAllClients([]);
     },
     [],
   );
-
-  const loadMore = useCallback(() => {
-    if (!currentCompany?.id) return;
-    if (!Array.isArray(allClients) || allClients.length === 0) return;
-
-    const nextPage = currentPage + 1;
-    setCurrentPage(nextPage);
-    fetchClients(nextPage, selectedLinkType, sortState, storeFilters);
-  }, [allClients, currentCompany?.id, currentPage, fetchClients, selectedLinkType, sortState, storeFilters]);
 
   const handleEdit = useCallback(
     client => {
@@ -331,22 +155,14 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
         registrationLinkType && contextConfig.availableTypes.includes(registrationLinkType)
           ? registrationLinkType
           : selectedLinkType;
-      const shouldSwitchType = nextLinkType && nextLinkType !== selectedLinkType;
-
-      setCurrentPage(1);
-      if (!shouldSwitchType && savedClient?.id) {
-        setAllClients(prev => [
-          savedClient,
-          ...prev.filter(item => String(item.id) !== String(savedClient.id)),
-        ]);
+      if (savedClient?.id) {
+        actions?.setItem?.(savedClient);
       }
-
-      if (shouldSwitchType) {
+      if (nextLinkType && nextLinkType !== selectedLinkType) {
         setSelectedLinkType(nextLinkType);
-        setAllClients([]);
       }
     },
-    [contextConfig.availableTypes, selectedLinkType],
+    [actions, contextConfig.availableTypes, selectedLinkType],
   );
 
   const renderClientCard = useCallback(
@@ -379,11 +195,6 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
     [handleEdit],
   );
 
-  const hasMore = useMemo(
-    () => allClients.length < totalItems,
-    [allClients.length, totalItems],
-  );
-
   return (
     <View style={styles.container}>
       {contextConfig.hasTypeFilter && activeTypeOption ? (
@@ -407,24 +218,15 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
       <View style={styles.tableWrap}>
         <DefaultTable
           actions={actions}
-          columns={peopleColumns}
-          data={allClients}
-          filters={storeFilters}
-          hasMore={hasMore}
-          isLoading={Boolean(getters.isLoading)}
-          onEndReached={loadMore}
-          onFilterChange={commitFilters}
+          add={false}
+          requestParams={requestParams}
           onRowPress={handleEdit}
-          onSortChange={handleSortChange}
           renderCard={renderClientCard}
           searchProps={{
-            filters: storeFilters,
-            onChangeFilters: commitFilters,
             placeholder: activeSearchPlaceholder,
             searchKey: 'search',
           }}
           showRowActions={false}
-          sort={sortState}
           storeName="people"
           toolbarActions={toolbarActions}
         />

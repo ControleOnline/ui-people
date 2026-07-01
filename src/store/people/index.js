@@ -41,6 +41,7 @@ export default {
         name: 'image',
         align: 'left',
         label: 'image',
+        table: false,
         inputType: 'file',
         fileType: ['image'],
         externalFilter: false,
