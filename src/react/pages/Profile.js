@@ -17,7 +17,7 @@ import { useStore } from '@store';
 import { useFocusEffect } from '@react-navigation/native';
 import md5 from 'md5';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { colors } from '@controleonline/../../src/styles/colors';
+import { colors as baseColors } from '@controleonline/../../src/styles/colors';
 import { api } from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import CompactFilterSelector from '@controleonline/ui-default/src/react/components/filters/CompactFilterSelector';
@@ -462,7 +462,71 @@ const fetchTimezonesCached = async () => {
 };
 
 const Profile = ({ navigation }) => {
-  const { styles } = css();
+  const themeStore = useStore('theme');
+  const themeColors = themeStore?.getters?.colors || {};
+  const palette = useMemo(
+    () => ({
+      background: themeColors.background || baseColors.background,
+      surface:
+        themeColors.surface ||
+        themeColors.buttonBackgroundSecondary ||
+        themeColors['bg-light'] ||
+        baseColors.white,
+      text: themeColors.textPrimary || baseColors.text,
+      textSecondary:
+        themeColors.textSecondary ||
+        themeColors['text-secondary'] ||
+        baseColors.textSecondary,
+      buttonBackground:
+        themeColors.buttonBackground ||
+        themeColors.primary ||
+        themeColors['btn-primary'] ||
+        baseColors.primary,
+      buttonText:
+        themeColors.buttonText ||
+        themeColors['text-primary'] ||
+        baseColors.white,
+      iconColor:
+        themeColors.iconColor ||
+        themeColors.buttonBackground ||
+        '#FACC15',
+      iconText:
+        themeColors.iconText ||
+        themeColors.buttonBackground ||
+        '#FACC15',
+      cardIcon:
+        themeColors.cardIcon ||
+        themeColors.iconColor ||
+        themeColors.buttonBackground ||
+        '#FACC15',
+      buttonIcon:
+        themeColors.buttonIcon ||
+        themeColors.buttonBackground ||
+        themeColors.primary ||
+        themeColors['btn-primary'] ||
+        baseColors.primary,
+      selectBackground:
+        themeColors.selectBackground ||
+        themeColors.surface ||
+        themeColors.buttonBackgroundSecondary ||
+        baseColors.white,
+      selectBorder:
+        themeColors.selectBorder ||
+        themeColors.inputBorder ||
+        '#E2E8F0',
+      selectIcon:
+        themeColors.selectIcon ||
+        themeColors.buttonBackground ||
+        '#FACC15',
+      selectText:
+        themeColors.selectText ||
+        themeColors.inputText ||
+        '#000000',
+      error: themeColors.error || themeColors.negative || baseColors.error,
+    }),
+    [themeColors],
+  );
+  const { styles } = css(palette);
   const authStore = useStore('auth');
   const peopleStore = useStore('people');
   const phonesStore = useStore('phones');
@@ -1084,6 +1148,7 @@ const Profile = ({ navigation }) => {
 
       <CompactFilterSelector
         active={!!selectedTimezoneId}
+        accentColor={palette.selectIcon}
         icon="clock"
         label={selectedTimezoneLabel}
         labelCaption={global.t?.t('people', 'label', 'timezone')}
@@ -1092,6 +1157,24 @@ const Profile = ({ navigation }) => {
         }}
         options={timezoneOptions}
         selectedKey={selectedTimezoneId}
+        themeColors={{
+          activeChevronColor: palette.selectIcon,
+          activeIconColor: palette.selectIcon,
+          activeTextColor: palette.selectText,
+          backgroundColor: palette.selectBackground,
+          borderColor: palette.selectBorder,
+          captionColor: palette.selectText,
+          chevronColor: palette.selectIcon,
+          closeIconColor: palette.selectIcon,
+          iconBackgroundColor: palette.selectBackground,
+          iconColor: palette.selectIcon,
+          modalBackgroundColor: palette.selectBackground,
+          modalTitleColor: palette.selectText,
+          optionBackgroundColor: palette.selectBackground,
+          optionBorderColor: palette.selectBorder,
+          optionSelectedTextColor: palette.selectText,
+          textColor: palette.selectText,
+        }}
         title={global.t?.t('people', 'title', 'select_timezone')}
       />
 
@@ -1112,7 +1195,7 @@ const Profile = ({ navigation }) => {
         <TouchableOpacity
           onPress={() => setItems([...items, {id: '', value: ''}])}
           style={styles.addButton}>
-          <Icon name="add" size={20} color={colors.white} />
+          <Icon name="add" size={20} color={palette.buttonText} />
         </TouchableOpacity>
       </View>
       {items.map((item, index) => (
@@ -1120,7 +1203,7 @@ const Profile = ({ navigation }) => {
           <Icon
             name={type === 'phone' ? 'phone' : 'email'}
             size={20}
-            color={colors.primary}
+            color={palette.cardIcon}
             style={styles.cardIcon}
           />
           <TextInput
@@ -1135,7 +1218,7 @@ const Profile = ({ navigation }) => {
               setItems(newItems);
             }}
             placeholder={type === 'phone' ? global.t?.t("people", "placeholder", "addPhone") : global.t?.t("people", "placeholder", "addEmail")}
-            placeholderTextColor={colors.textSecondary}
+            placeholderTextColor={palette.textSecondary}
             keyboardType={type === 'phone' ? 'phone-pad' : 'email-address'}
             maxLength={type === 'phone' ? 15 : undefined}
             autoCapitalize="none"
@@ -1146,7 +1229,7 @@ const Profile = ({ navigation }) => {
               setItems(newItems);
             }}
             style={styles.deleteAction}>
-            <Icon name="close" size={18} color={colors.error} />
+            <Icon name="close" size={16} color={palette.iconText} />
           </TouchableOpacity>
         </View>
       ))}
@@ -1211,9 +1294,9 @@ const Profile = ({ navigation }) => {
               activeOpacity={0.85}
               disabled={isSavingAvatar}>
               {isSavingAvatar ? (
-                <ActivityIndicator size="small" color={colors.white} />
+                <ActivityIndicator size="small" color={palette.buttonText} />
               ) : (
-                <Icon name="camera-alt" size={20} color={colors.white} />
+                <Icon name="camera-alt" size={20} color={palette.buttonText} />
               )}
             </TouchableOpacity>
           </View>
@@ -1224,7 +1307,7 @@ const Profile = ({ navigation }) => {
                 value={profileName}
                 onChangeText={text => setProfileName(uppercaseText(text))}
                 placeholder={global.t?.t("people", "placeholder", "emailLogin")}
-                placeholderTextColor={colors.textSecondary}
+                placeholderTextColor={palette.textSecondary}
                 maxLength={80}
                 returnKeyType="next"
               />
@@ -1240,7 +1323,7 @@ const Profile = ({ navigation }) => {
               <Icon
                 name={isEditingProfileIdentity ? 'check' : 'edit'}
                 size={18}
-                color={colors.primary}
+                color={palette.cardIcon}
               />
             </TouchableOpacity>
           </View>
@@ -1251,7 +1334,7 @@ const Profile = ({ navigation }) => {
                 value={profileAlias}
                 onChangeText={text => setProfileAlias(uppercaseText(text))}
                 placeholder={global.t?.t("people", "placeholder", "alias")}
-                placeholderTextColor={colors.textSecondary}
+                placeholderTextColor={palette.textSecondary}
                 maxLength={40}
                 returnKeyType="done"
               />
@@ -1278,13 +1361,13 @@ const Profile = ({ navigation }) => {
               activeOpacity={0.85}
               disabled={isSaving}>
               {isSaving ? (
-                <ActivityIndicator size="small" color={colors.white} />
+                <ActivityIndicator size="small" color={palette.buttonText} />
               ) : (
                 <>
                   <Icon
                     name="save"
                     size={18}
-                    color={colors.white}
+                    color={palette.buttonText}
                     style={inlineStyle_1025_20}
                   />
                   <Text style={styles.saveButtonText}>{global.t?.t("people", "label", "save")}</Text>
@@ -1301,7 +1384,7 @@ const Profile = ({ navigation }) => {
               <Icon
                 name="notifications-active"
                 size={20}
-                color={colors.white}
+                color={palette.buttonText}
                 style={inlineStyle_1042_16}
               />
               <Text style={styles.profileActionButtonText}>
@@ -1318,7 +1401,7 @@ const Profile = ({ navigation }) => {
               <Icon
                 name="add-circle"
                 size={20}
-                color={colors.white}
+                color={palette.buttonText}
                 style={inlineStyle_1042_16}
               />
               <Text style={styles.profileActionButtonText}>
@@ -1327,9 +1410,19 @@ const Profile = ({ navigation }) => {
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
-            <Icon name="logout" size={20} color={colors.error} style={inlineStyle_1051_63} />
-            <Text style={styles.logoutButtonText}>{global.t?.t("people", "label", "logout")}</Text>
+          <TouchableOpacity
+            style={styles.profileActionButton}
+            onPress={handleLogout}
+            activeOpacity={0.85}>
+            <Icon
+              name="logout"
+              size={20}
+              color={palette.buttonText}
+              style={inlineStyle_1051_63}
+            />
+            <Text style={styles.profileActionButtonText}>
+              {global.t?.t("people", "label", "logout")}
+            </Text>
           </TouchableOpacity>
 
         </View>

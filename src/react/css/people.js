@@ -1,12 +1,12 @@
 import { StyleSheet } from 'react-native';
-import { colors } from '@controleonline/../../src/styles/colors';
+import { colors as baseColors } from '@controleonline/../../src/styles/colors';
 import globalStyles from '@controleonline/ui-layout/src/react/styles/global';
 
-const css = () => {
+const css = (palette = baseColors) => {
   const styles = StyleSheet.create({
     Profile: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: palette.background,
     },
     scrollContent: {
       paddingBottom: 40,
@@ -15,7 +15,7 @@ const css = () => {
       alignItems: 'center',
       paddingTop: 32,
       paddingBottom: 24,
-      backgroundColor: colors.background,
+      backgroundColor: palette.background,
     },
     avatarContainer: {
       position: 'relative',
@@ -25,11 +25,11 @@ const css = () => {
       width: 120,
       height: 120,
       borderRadius: 60,
-      backgroundColor: colors.white,
+      backgroundColor: palette.surface,
       borderWidth: 4,
-      borderColor: colors.white,
+      borderColor: palette.surface,
       shadowColor: '#64748B',
-      shadowOffset: { width: 0, height: 8 },
+      shadowOffset: {width: 0, height: 8},
       shadowOpacity: 0.1,
       shadowRadius: 16,
       elevation: 4,
@@ -38,19 +38,19 @@ const css = () => {
       position: 'absolute',
       bottom: 0,
       right: 0,
-      backgroundColor: colors.primary,
+      backgroundColor: palette.buttonBackground,
       width: 36,
       height: 36,
       borderRadius: 18,
       alignItems: 'center',
       justifyContent: 'center',
       borderWidth: 3,
-      borderColor: colors.white,
+      borderColor: palette.surface,
     },
     userName: {
       fontSize: 24,
       fontWeight: 'bold',
-      color: colors.text,
+      color: palette.text,
       marginBottom: 0,
       textAlign: 'center',
       flex: 1,
@@ -68,7 +68,7 @@ const css = () => {
       flex: 1,
       fontSize: 24,
       fontWeight: 'bold',
-      color: colors.text,
+      color: palette.text,
       textAlign: 'center',
       paddingVertical: 0,
       outlineStyle: 'none',
@@ -80,7 +80,7 @@ const css = () => {
       borderRadius: 14,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: '#E2E8F0',
+      backgroundColor: 'transparent',
     },
     userAliasRow: {
       width: '100%',
@@ -95,7 +95,7 @@ const css = () => {
       flex: 1,
       fontSize: 12,
       fontWeight: '600',
-      color: colors.textSecondary,
+      color: palette.textSecondary,
       textAlign: 'center',
       textTransform: 'uppercase',
       letterSpacing: 0.4,
@@ -104,7 +104,7 @@ const css = () => {
       flex: 1,
       fontSize: 12,
       fontWeight: '600',
-      color: colors.textSecondary,
+      color: palette.textSecondary,
       textAlign: 'center',
       paddingVertical: 0,
       outlineStyle: 'none',
@@ -118,11 +118,11 @@ const css = () => {
       borderRadius: 11,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: '#E2E8F0',
+      backgroundColor: 'transparent',
     },
     userEmail: {
       fontSize: 14,
-      color: colors.textSecondary,
+      color: palette.textSecondary,
       textAlign: 'center',
       maxWidth: 320,
       paddingHorizontal: 12,
@@ -143,10 +143,10 @@ const css = () => {
     sectionTitle: {
       fontSize: 18,
       fontWeight: '700',
-      color: colors.text,
+      color: palette.text,
     },
     addButton: {
-      backgroundColor: colors.primary,
+      backgroundColor: palette.buttonBackground,
       width: 28,
       height: 28,
       borderRadius: 14,
@@ -156,12 +156,12 @@ const css = () => {
     cardItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.white,
+      backgroundColor: palette.surface,
       borderRadius: 12,
       padding: 12,
       marginBottom: 8,
       shadowColor: '#64748B',
-      shadowOffset: { width: 0, height: 2 },
+      shadowOffset: {width: 0, height: 2},
       shadowOpacity: 0.05,
       shadowRadius: 4,
       elevation: 1,
@@ -172,21 +172,26 @@ const css = () => {
     input: {
       flex: 1,
       fontSize: 15,
-      color: colors.text,
+      color: palette.text,
       padding: 0,
       outlineStyle: 'none',
     },
     deleteAction: {
-      padding: 4,
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: palette.iconColor,
     },
     menuItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.white,
+      backgroundColor: palette.surface,
       borderRadius: 16,
       padding: 16,
       shadowColor: '#64748B',
-      shadowOffset: { width: 0, height: 2 },
+      shadowOffset: {width: 0, height: 2},
       shadowOpacity: 0.05,
       shadowRadius: 8,
       elevation: 2,
@@ -203,25 +208,13 @@ const css = () => {
       flex: 1,
       fontSize: 16,
       fontWeight: '600',
-      color: colors.text,
-    },
-    logoutButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#FEF2F2',
-      borderRadius: 12,
-      paddingVertical: 16,
-      marginTop: 8,
-      marginBottom: 24,
-      borderWidth: 1,
-      borderColor: '#FEE2E2',
+      color: palette.text,
     },
     saveButton: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.primary,
+      backgroundColor: palette.buttonBackground,
       borderRadius: 12,
       paddingVertical: 14,
       marginBottom: 12,
@@ -237,13 +230,13 @@ const css = () => {
     saveButtonText: {
       fontSize: 16,
       fontWeight: '700',
-      color: colors.white,
+      color: palette.buttonText,
     },
     profileActionButton: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.primary,
+      backgroundColor: palette.buttonBackground,
       borderRadius: 12,
       paddingVertical: 14,
       marginBottom: 12,
@@ -256,15 +249,10 @@ const css = () => {
     profileActionButtonText: {
       fontSize: 16,
       fontWeight: '700',
-      color: colors.white,
-    },
-    logoutButtonText: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: colors.error,
+      color: palette.buttonText,
     },
     emptyText: {
-      color: colors.textSecondary,
+      color: palette.textSecondary,
       fontStyle: 'italic',
       fontSize: 14,
       marginLeft: 4,
@@ -276,13 +264,13 @@ const css = () => {
     },
     errorText: {
       fontSize: 16,
-      color: colors.text,
+      color: palette.text,
     },
     loadingSkeletonContainer: {
       alignItems: 'center',
       paddingTop: 32,
       paddingBottom: 24,
-      backgroundColor: colors.background,
+      backgroundColor: palette.background,
     },
     skeletonAvatar: {
       width: 120,
@@ -306,7 +294,7 @@ const css = () => {
     },
     skeletonSection: {
       marginBottom: 20,
-      backgroundColor: colors.white,
+      backgroundColor: palette.surface,
       borderRadius: 12,
       padding: 14,
       shadowColor: '#64748B',
@@ -330,7 +318,7 @@ const css = () => {
     },
   });
 
-  return { styles, globalStyles: globalStyles() };
+  return {styles, globalStyles: globalStyles()};
 };
 
 export default css;
