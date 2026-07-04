@@ -1,12 +1,11 @@
 import { StyleSheet } from 'react-native';
-import { colors as baseColors } from '@controleonline/../../src/styles/colors';
 import globalStyles from '@controleonline/ui-layout/src/react/styles/global';
 
-const css = (palette = baseColors) => {
+const css = (palette = {}) => {
   const styles = StyleSheet.create({
     Profile: {
       flex: 1,
-      backgroundColor: palette.background,
+      backgroundColor: palette.pageBackground,
     },
     scrollContent: {
       paddingBottom: 40,
@@ -15,7 +14,7 @@ const css = (palette = baseColors) => {
       alignItems: 'center',
       paddingTop: 32,
       paddingBottom: 24,
-      backgroundColor: palette.background,
+      backgroundColor: palette.pageBackground,
     },
     avatarContainer: {
       position: 'relative',
@@ -25,9 +24,9 @@ const css = (palette = baseColors) => {
       width: 120,
       height: 120,
       borderRadius: 60,
-      backgroundColor: palette.surface,
+      backgroundColor: palette.cardBackground,
       borderWidth: 4,
-      borderColor: palette.surface,
+      borderColor: palette.cardBackground,
       shadowColor: '#64748B',
       shadowOffset: {width: 0, height: 8},
       shadowOpacity: 0.1,
@@ -45,12 +44,12 @@ const css = (palette = baseColors) => {
       alignItems: 'center',
       justifyContent: 'center',
       borderWidth: 3,
-      borderColor: palette.surface,
+      borderColor: palette.buttonBorder,
     },
     userName: {
       fontSize: 24,
       fontWeight: 'bold',
-      color: palette.text,
+      color: palette.textPrimary,
       marginBottom: 0,
       textAlign: 'center',
       flex: 1,
@@ -68,7 +67,7 @@ const css = (palette = baseColors) => {
       flex: 1,
       fontSize: 24,
       fontWeight: 'bold',
-      color: palette.text,
+      color: palette.textPrimary,
       textAlign: 'center',
       paddingVertical: 0,
       outlineStyle: 'none',
@@ -143,7 +142,7 @@ const css = (palette = baseColors) => {
     sectionTitle: {
       fontSize: 18,
       fontWeight: '700',
-      color: palette.text,
+      color: palette.textPrimary,
     },
     addButton: {
       backgroundColor: palette.buttonBackground,
@@ -156,7 +155,7 @@ const css = (palette = baseColors) => {
     cardItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: palette.surface,
+      backgroundColor: palette.cardBackground,
       borderRadius: 12,
       padding: 12,
       marginBottom: 8,
@@ -172,7 +171,7 @@ const css = (palette = baseColors) => {
     input: {
       flex: 1,
       fontSize: 15,
-      color: palette.text,
+      color: palette.textPrimary,
       padding: 0,
       outlineStyle: 'none',
     },
@@ -182,12 +181,12 @@ const css = (palette = baseColors) => {
       borderRadius: 12,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: palette.iconColor,
+      backgroundColor: palette.buttonBackgroundSecondary,
     },
     menuItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: palette.surface,
+      backgroundColor: palette.cardBackground,
       borderRadius: 16,
       padding: 16,
       shadowColor: '#64748B',
@@ -208,7 +207,7 @@ const css = (palette = baseColors) => {
       flex: 1,
       fontSize: 16,
       fontWeight: '600',
-      color: palette.text,
+      color: palette.textPrimary,
     },
     saveButton: {
       flexDirection: 'row',
@@ -264,13 +263,13 @@ const css = (palette = baseColors) => {
     },
     errorText: {
       fontSize: 16,
-      color: palette.text,
+      color: palette.textDanger,
     },
     loadingSkeletonContainer: {
       alignItems: 'center',
       paddingTop: 32,
       paddingBottom: 24,
-      backgroundColor: palette.background,
+      backgroundColor: palette.pageBackground,
     },
     skeletonAvatar: {
       width: 120,
@@ -294,7 +293,7 @@ const css = (palette = baseColors) => {
     },
     skeletonSection: {
       marginBottom: 20,
-      backgroundColor: palette.surface,
+      backgroundColor: palette.cardBackground,
       borderRadius: 12,
       padding: 14,
       shadowColor: '#64748B',

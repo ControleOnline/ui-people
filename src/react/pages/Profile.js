@@ -17,7 +17,6 @@ import { useStore } from '@store';
 import { useFocusEffect } from '@react-navigation/native';
 import md5 from 'md5';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { colors as baseColors } from '@controleonline/../../src/styles/colors';
 import { api } from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import CompactFilterSelector from '@controleonline/ui-default/src/react/components/filters/CompactFilterSelector';
@@ -466,63 +465,21 @@ const Profile = ({ navigation }) => {
   const themeColors = themeStore?.getters?.colors || {};
   const palette = useMemo(
     () => ({
-      background: themeColors.background || baseColors.background,
-      surface:
-        themeColors.surface ||
-        themeColors.buttonBackgroundSecondary ||
-        themeColors['bg-light'] ||
-        baseColors.white,
-      text: themeColors.textPrimary || baseColors.text,
-      textSecondary:
-        themeColors.textSecondary ||
-        themeColors['text-secondary'] ||
-        baseColors.textSecondary,
-      buttonBackground:
-        themeColors.buttonBackground ||
-        themeColors.primary ||
-        themeColors['btn-primary'] ||
-        baseColors.primary,
-      buttonText:
-        themeColors.buttonText ||
-        themeColors['text-primary'] ||
-        baseColors.white,
-      iconColor:
-        themeColors.iconColor ||
-        themeColors.buttonBackground ||
-        '#FACC15',
-      iconText:
-        themeColors.iconText ||
-        themeColors.buttonBackground ||
-        '#FACC15',
-      cardIcon:
-        themeColors.cardIcon ||
-        themeColors.iconColor ||
-        themeColors.buttonBackground ||
-        '#FACC15',
-      buttonIcon:
-        themeColors.buttonIcon ||
-        themeColors.buttonBackground ||
-        themeColors.primary ||
-        themeColors['btn-primary'] ||
-        baseColors.primary,
-      selectBackground:
-        themeColors.selectBackground ||
-        themeColors.surface ||
-        themeColors.buttonBackgroundSecondary ||
-        baseColors.white,
-      selectBorder:
-        themeColors.selectBorder ||
-        themeColors.inputBorder ||
-        '#E2E8F0',
-      selectIcon:
-        themeColors.selectIcon ||
-        themeColors.buttonBackground ||
-        '#FACC15',
-      selectText:
-        themeColors.selectText ||
-        themeColors.inputText ||
-        '#000000',
-      error: themeColors.error || themeColors.negative || baseColors.error,
+      pageBackground: themeColors.pageBackground,
+      cardBackground: themeColors.cardBackground,
+      textPrimary: themeColors.textPrimary,
+      textSecondary: themeColors.textSecondary,
+      buttonBackground: themeColors.buttonBackground,
+      buttonBorder: themeColors.buttonBorder,
+      buttonBackgroundSecondary: themeColors.buttonBackgroundSecondary,
+      buttonText: themeColors.buttonText,
+      buttonIconSecondary: themeColors.buttonIconSecondary,
+      cardIcon: themeColors.cardIcon,
+      selectBackground: themeColors.selectBackground,
+      selectBorder: themeColors.selectBorder,
+      selectIcon: themeColors.selectIcon,
+      selectText: themeColors.selectText,
+      textDanger: themeColors.textDanger,
     }),
     [themeColors],
   );
@@ -1229,7 +1186,7 @@ const Profile = ({ navigation }) => {
               setItems(newItems);
             }}
             style={styles.deleteAction}>
-            <Icon name="close" size={16} color={palette.iconText} />
+            <Icon name="close" size={16} color={palette.buttonIconSecondary} />
           </TouchableOpacity>
         </View>
       ))}
