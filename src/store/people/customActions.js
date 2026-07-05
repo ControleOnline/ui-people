@@ -63,6 +63,22 @@ export const myCompanies = ({ commit, getters }, _payload) => {
     });
 };
 
+export const myCompaniesByLinkType = (_context, payload = {}) => {
+  const normalizedPayload = payload && typeof payload === 'object' ? payload : {};
+  const params =
+    normalizedPayload.params && typeof normalizedPayload.params === 'object'
+      ? normalizedPayload.params
+      : normalizedPayload;
+  const requestOptions = Object.keys(params || {}).length > 0 ? { params } : {};
+
+  return api
+    .fetch(`${RESOURCE_ENDPOINT}/companies/my`, requestOptions)
+    .then((data) => normalizeCollection(unwrapResponseData(data)))
+    .catch((e) => {
+      throw e;
+    });
+};
+
 export const defaultCompany = ({ commit }) => {
   commit(types.SET_ISLOADING, false);
 
