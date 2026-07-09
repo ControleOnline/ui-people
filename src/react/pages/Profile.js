@@ -21,6 +21,7 @@ import { api } from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import CompactFilterSelector from '@controleonline/ui-default/src/react/components/filters/CompactFilterSelector';
 import { env as APP_ENV } from '@env';
+import {app_type} from '@appType';
 import {
   formatDisplayUppercase,
   uppercaseText,
@@ -658,11 +659,11 @@ const Profile = ({ navigation }) => {
   })();
 
   const canShowResyncTranslations = useMemo(() => {
-    return String(APP_ENV?.APP_TYPE || '').toUpperCase() !== 'POS';
+    return String(app_type || '').toUpperCase() !== 'POS';
   }, []);
 
   const canConfigureManagerNotifications = useMemo(
-    () => isManagerAppType(APP_ENV?.APP_TYPE),
+    () => isManagerAppType(app_type),
     [],
   );
 
