@@ -20,8 +20,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { api } from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import CompactFilterSelector from '@controleonline/ui-default/src/react/components/filters/CompactFilterSelector';
-import { env as APP_ENV } from '@env';
 import {app_type} from '@appType';
+import { env as APP_ENV } from '@env';
 import {
   formatDisplayUppercase,
   uppercaseText,
