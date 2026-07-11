@@ -1,18 +1,16 @@
 import { api } from "@controleonline/ui-common/src/api";
 import { env as APP_ENV } from "@env";
 import { resolveAppDomain } from "@controleonline/ui-common/src/utils/appDomain";
+import {
+  persistCurrentCompanyInSession,
+  resolveCurrentCompanySelection,
+} from '@controleonline/ui-people/src/react/utils/currentCompanySelection'
 import * as customTypes from "./mutation_types";
 import * as types from "@controleonline/ui-default/src/store/default/mutation_types";
 
 const RESOURCE_ENDPOINT = "/people";
 
 const unwrapResponseData = (data) => data?.response?.data ?? data?.data ?? data;
-
-const normalizeId = (value) => {
-  if (value == null) return null;
-  const match = String(value).match(/\d+/);
-  return match?.[0] || null;
-};
 
 const normalizeCollection = (payload) => {
   if (Array.isArray(payload)) return payload;
@@ -128,62 +126,26 @@ export const setCurrentCompany = ({ commit, getters }, company = null) => {
   const companies = Array.isArray(getters.companies) ? getters.companies : [];
   const defaultCompany = getters.defaultCompany || {};
 
-  let selectedId =
-    normalizeId(company?.id) ||
-    normalizeId(session.mycompany) ||
-    normalizeId(session.people) ||
-    null;
-
-  if (!selectedId && companies.length > 0) {
-    const firstEnabled = companies.find((item) => item?.panel_enabled !== false);
-    selectedId = firstEnabled?.id ?? companies[0]?.id ?? null;
-  }
-
-  let currentCompany =
-    companies.find((item) => String(item?.id) === String(selectedId)) || null;
-
-  if (!currentCompany && company && typeof company === "object") {
-    currentCompany = company;
-  }
-
-  if (!currentCompany && selectedId) {
-    currentCompany = { id: Number(selectedId) };
-  }
-
-  if (
-    !currentCompany &&
-    defaultCompany?.id &&
-    String(defaultCompany.id) === String(selectedId)
-  ) {
-    currentCompany = defaultCompany;
-  }
-
-  if (
-    currentCompany &&
-    (!currentCompany?.theme || !currentCompany?.theme?.colors) &&
-    defaultCompany?.id &&
-    String(defaultCompany.id) === String(currentCompany.id) &&
-    defaultCompany?.theme
-  ) {
-    currentCompany = {
-      ...currentCompany,
-      theme: defaultCompany.theme,
-      logo: currentCompany.logo || defaultCompany.logo,
-      alias: currentCompany.alias || defaultCompany.alias,
-      name: currentCompany.name || defaultCompany.name,
-      configs: currentCompany.configs || defaultCompany.configs,
-    };
-  }
+  const currentCompany = resolveCurrentCompanySelection({
+    companies,
+    company,
+    defaultCompany,
+    session,
+  });
 
   if (currentCompany?.id) {
     commit(customTypes.SET_CURRENT_COMPANY, currentCompany);
-    session.mycompany = currentCompany.id;
+    localStorage.setItem(
+      "session",
+      JSON.stringify(persistCurrentCompanyInSession(session, currentCompany)),
+    );
   } else {
     commit(customTypes.SET_CURRENT_COMPANY, {});
-    session.mycompany = selectedId || null;
+    localStorage.setItem(
+      "session",
+      JSON.stringify(persistCurrentCompanyInSession(session, null)),
+    );
   }
-
-  localStorage.setItem("session", JSON.stringify(session));
 };
 
 export const getPeople = (_context, id) => {
