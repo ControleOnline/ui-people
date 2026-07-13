@@ -11,7 +11,7 @@
  * - Manter aqui a busca e a apresentacao principal de pessoas.
  */
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Modal, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useStore } from '@store';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -33,8 +33,10 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
   const title = context.title;
 
   const peopleStore = useStore('people');
+  const themeStore = useStore('theme');
   const { getters, actions } = peopleStore;
   const { currentCompany } = getters;
+  const { colors: themeColors } = themeStore.getters;
 
   const navigation = useNavigation();
 
@@ -89,24 +91,92 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
     [context, contextConfig.availableTypes, contextConfig.defaultType, selectedLinkType],
   );
 
+  const palette = useMemo(
+    () => ({
+      buttonBackground: themeColors.buttonBackground,
+      buttonBorder: themeColors.buttonBorder,
+      buttonText: themeColors.buttonText,
+      cardBackground: themeColors.cardBackground,
+      cardBorder: themeColors.cardBorder,
+      cardIcon: themeColors.cardIcon,
+      cardShadow: themeColors.cardShadow,
+      iconInverse: themeColors.iconInverse,
+      listItemIcon: themeColors.listItemIcon,
+      listItemSubtitleText: themeColors.listItemSubtitleText,
+      listItemText: themeColors.listItemText,
+      tableActionBackground: themeColors.tableActionBackground,
+      tableActionBorder: themeColors.tableActionBorder,
+      tableActionIcon: themeColors.tableActionIcon,
+    }),
+    [themeColors],
+  );
+
+  const cardStyle = useMemo(
+    () => ({
+      backgroundColor: palette.cardBackground,
+      borderWidth: palette.cardBorder ? 1 : 0,
+      borderColor: palette.cardBorder,
+      shadowColor: palette.cardShadow,
+      ...(Platform.OS === 'web' && palette.cardShadow
+        ? { boxShadow: `0 8px 16px ${palette.cardShadow}` }
+        : {}),
+    }),
+    [palette],
+  );
+
+  const avatarStyle = useMemo(
+    () => ({
+      backgroundColor: palette.cardIcon,
+    }),
+    [palette.cardIcon],
+  );
+
+  const avatarTextStyle = useMemo(
+    () => ({
+      color: palette.iconInverse,
+    }),
+    [palette.iconInverse],
+  );
+
+  const clientNameStyle = useMemo(
+    () => ({
+      color: palette.listItemText,
+      lineHeight: 30,
+    }),
+    [palette.listItemText],
+  );
+
+  const clientSubtitleStyle = useMemo(
+    () => ({
+      color: palette.listItemSubtitleText,
+    }),
+    [palette.listItemSubtitleText],
+  );
+
   const toolbarActions = useMemo(
     () => [
       {
         key: 'import',
         icon: 'upload',
-        style: { backgroundColor: '#E8F5E9', borderColor: '#C8E6C9' },
-        color: '#2E7D32',
+        style: {
+          backgroundColor: palette.buttonBackground,
+          borderColor: palette.buttonBorder,
+        },
+        color: palette.buttonText,
         onPress: () => setShowImportModal(true),
       },
       {
         key: 'add',
         icon: 'plus',
-        style: { backgroundColor: '#2563EB', borderColor: '#2563EB' },
-        color: '#FFFFFF',
+        style: {
+          backgroundColor: palette.buttonBackground,
+          borderColor: palette.buttonBorder,
+        },
+        color: palette.buttonText,
         onPress: () => setShowAddCompanyModal(true),
       },
     ],
-    [],
+    [palette],
   );
 
   const requestParams = useMemo(
@@ -168,31 +238,39 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
   const renderClientCard = useCallback(
     ({ item: client, openRow }) => (
       <TouchableOpacity
-        style={styles.card}
+        style={[styles.card, cardStyle]}
         onPress={openRow || (() => handleEdit(client))}
         activeOpacity={0.8}
       >
         <View style={styles.cardHeader}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
+          <View style={[styles.avatar, avatarStyle]}>
+            <Text style={[styles.avatarText, avatarTextStyle]}>
               {client?.name?.charAt(0)?.toUpperCase() || 'C'}
             </Text>
           </View>
 
           <View style={inlineStyle_133_14}>
-            <Text style={[styles.clientName, { lineHeight: 30 }]} numberOfLines={1}>
+            <Text style={[styles.clientName, clientNameStyle]} numberOfLines={1}>
               {formatDisplayUppercase(client.alias)}
             </Text>
-            <Text style={inlineStyle_137_16}>
+            <Text style={[styles.clientSubtitle, inlineStyle_137_16, clientSubtitleStyle]}>
               {client.peopleType === 'J' ? ' (PJ)' : ' (PF)'} {formatDisplayUppercase(client.name)}
             </Text>
           </View>
 
-          <Icon name="chevron-right" size={14} color="#CBD5E1" />
+          <Icon name="chevron-right" size={14} color={palette.listItemIcon} />
         </View>
       </TouchableOpacity>
     ),
-    [handleEdit],
+    [
+      avatarStyle,
+      avatarTextStyle,
+      cardStyle,
+      clientNameStyle,
+      clientSubtitleStyle,
+      handleEdit,
+      palette.listItemIcon,
+    ],
   );
 
   return (

@@ -74,21 +74,17 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
     ...Platform.select({
       ios: {
-        shadowColor: '#64748B',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
         shadowRadius: 12,
       },
       android: { elevation: 4 },
-      web: { boxShadow: '0 8px 16px rgba(15, 23, 42, 0.1)' },
+      web: {},
     }),
   },
 
@@ -98,20 +94,23 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 16,
-    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
 
-  avatarText: { color: '#fff', fontSize: 20, fontWeight: '700' },
+  avatarText: { fontSize: 20, fontWeight: '700' },
 
   clientName: {
     flex: 1,
     fontWeight: '700',
     fontSize: 16,
-    color: '#1E293B',
     lineHeight: 24,
+  },
+
+  clientSubtitle: {
+    fontSize: 14,
+    lineHeight: 18,
   },
 
   cardBody: { marginTop: 4 },
@@ -142,6 +141,4 @@ export const inlineStyle_133_14 = {
 
 export const inlineStyle_137_16 = {
   fontSize: 14,
-  color: '#94A3B8',
-  lineHeight: 18,
 };
