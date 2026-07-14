@@ -82,11 +82,11 @@ export default {
         sortable: true,
         list: [
           {
-            label: 'Fí­sica',
+            label: 'Física',
             value: 'F',
           },
           {
-            label: 'Jurí­dica',
+            label: 'Jurídica',
             value: 'J',
           },
         ],
