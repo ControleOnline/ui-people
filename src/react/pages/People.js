@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /*
  * Contract imported from AGENTS.md
  * ## Escopo
@@ -210,12 +211,18 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
       }
 
       actions?.setItem?.(client);
-      navigation.push('ClientDetails', {
-        clientId,
-        contextKey: String(selectedLinkType || ''),
-      });
+      const detailsRouteName = context?.detailsRouteName || 'ClientDetails';
+      const detailsRouteParams =
+        typeof context?.detailsRouteParams === 'function'
+          ? context.detailsRouteParams(client, selectedLinkType)
+          : (context?.detailsRouteParams || {
+              clientId,
+              contextKey: String(selectedLinkType || ''),
+            });
+
+      navigation.push(detailsRouteName, detailsRouteParams);
     },
-    [actions, navigation, selectedLinkType],
+    [actions, context?.detailsRouteName, context?.detailsRouteParams, navigation, selectedLinkType],
   );
 
   const handleCreateSuccess = useCallback(
