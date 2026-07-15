@@ -11,7 +11,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import AnimatedModal from '@controleonline/ui-crm/src/react/components/AnimatedModal';
+import AnimatedModal from '@controleonline/ui-common/src/react/components/AnimatedModal';
 import { useMessage } from '@controleonline/ui-common/src/react/components/MessageService';
 import {
   formatDisplayUppercase,
