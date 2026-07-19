@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Image,
   ActivityIndicator,
   Platform,
 } from 'react-native';
@@ -15,18 +14,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import css from '@controleonline/ui-people/src/react/css/people';
 import { useStore } from '@store';
 import { useFocusEffect } from '@react-navigation/native';
-import md5 from 'md5';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { api } from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import CompactFilterSelector from '@controleonline/ui-default/src/react/components/filters/CompactFilterSelector';
 import {app_type} from '@appType';
-import { env as APP_ENV } from '@env';
 import {
   formatDisplayUppercase,
   uppercaseText,
 } from '@controleonline/ui-common/src/react/utils/entityDisplay';
 import { resolveFileImageUrl } from '@controleonline/ui-common/src/react/utils/fileUrl';
+import UserAvatar from '@controleonline/ui-common/src/react/components/UserAvatar';
+import {
+  getAvatarDisplayName,
+  resolveUserAvatarUrl,
+  resolveUserPeopleIri,
+} from '@controleonline/ui-common/src/react/utils/userAvatar';
+import {resolveThemePalette} from '@controleonline/../../src/styles/branding';
+import {colors} from '@controleonline/../../src/styles/colors';
 import { isManagerAppType } from '@controleonline/ui-common/src/react/utils/managerOrderNotifications';
 import { resolveLoggedUserId } from '@controleonline/ui-people/src/react/utils/profileSession';
 import { inlineStyle_1025_20, inlineStyle_1042_16, inlineStyle_1051_63 } from './Profile.styles';
@@ -117,45 +122,7 @@ const getSessionData = () => {
 
 const toPeopleIri = user => {
   const session = getSessionData();
-  const candidates = [
-    session?.people,
-    session?.person,
-    session?.peopleId,
-    session?.people_id,
-    user?.people?.['@id'],
-    user?.people?.id,
-    user?.people,
-    user?.person?.['@id'],
-    user?.person?.id,
-    user?.person,
-    user?.peopleId,
-    user?.people_id,
-    user?.person_id,
-    user?.['@id'],
-    user?.id,
-  ];
-
-  for (const candidate of candidates) {
-    if (!candidate) {
-      continue;
-    }
-
-    const normalized = String(candidate).trim();
-    if (!normalized) {
-      continue;
-    }
-
-    if (normalized.includes('/people/')) {
-      return normalized;
-    }
-
-    const id = extractId(normalized);
-    if (id) {
-      return `/people/${id}`;
-    }
-  }
-
-  return '';
+  return resolveUserPeopleIri(user, session);
 };
 
 const toPhoneItem = entry => {
@@ -246,11 +213,7 @@ const getDisplayAlias = user =>
   String(user?.alias || user?.nickname || '').trim();
 
 const getAvatarFromUser = user => {
-  if (typeof user?.avatarUrl === 'string' && user.avatarUrl) {
-    return user.avatarUrl;
-  }
-
-  return resolveFileImageUrl(user?.avatar);
+  return resolveUserAvatarUrl(user, resolveFileImageUrl);
 };
 
 const validateEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -512,6 +475,14 @@ const Profile = ({ navigation }) => {
     }
   }, [storeUser]);
   const {currentCompany} = peopleGetters;
+  const avatarBrandColors = useMemo(
+    () =>
+      resolveThemePalette(
+        {...themeColors, ...(currentCompany?.theme?.colors || {})},
+        colors,
+      ),
+    [currentCompany?.id, currentCompany?.theme?.colors, themeColors],
+  );
   const [phones, setPhones] = useState([]);
   const [emails, setEmails] = useState([]);
   const [profileName, setProfileName] = useState('');
@@ -667,20 +638,8 @@ const Profile = ({ navigation }) => {
     [],
   );
 
-  const getAvatarUrl = () => {
-    const persistedAvatar = avatarOverride || getAvatarFromUser(user);
-    if (persistedAvatar) {
-      return persistedAvatar;
-    }
-
-    const firstEmail = emails[0]?.value || getPrimaryEmail(user?.email);
-    if (!firstEmail) {
-      return 'https://www.gravatar.com/avatar/?d=identicon';
-    }
-
-    const emailHash = md5(firstEmail.trim().toLowerCase());
-    return `https://www.gravatar.com/avatar/${emailHash}?s=200&d=identicon`;
-  };
+  const avatarImageUrl = avatarOverride || getAvatarFromUser(user);
+  const avatarEmail = emails[0]?.value || getPrimaryEmail(user?.email);
 
   const handleLogout = () => {
     authActions.logOut();
@@ -709,57 +668,33 @@ const Profile = ({ navigation }) => {
   };
 
   const uploadAvatarFile = async file => {
-    const session = JSON.parse(localStorage.getItem('session') || '{}');
-    const token = user?.api_key || session?.api_key || session?.token;
-    if (!token) {
-      throw new Error(global.t?.t("people", "error", "Invalid session for photo upload."));
+    const mimeType = String(file?.type || '').trim().toLowerCase();
+    const fileName = String(file?.name || '').trim().toLowerCase();
+    if (mimeType !== 'image/png' && !fileName.endsWith('.png')) {
+      throw new Error(global.t?.t("people", "error", "Please select a PNG image."));
     }
-
-    const peopleIri = toPeopleIri(user);
-    const peopleId = extractId(peopleIri);
-    const companyId = extractId(currentCompany?.id || session?.mycompany || peopleId);
-    const host =
-      APP_ENV?.DOMAIN ||
-      (typeof globalThis !== 'undefined' ? globalThis?.location?.host || '' : '');
 
     const formData = new FormData();
     formData.append('file', file);
-    if (companyId) {
-      formData.append('people', companyId);
-    }
-    if (peopleId) {
-      formData.append('id', peopleId);
-    }
-    formData.append('context', 'profile');
 
-    const apiEntryPoint = String(APP_ENV?.API_ENTRYPOINT || '').replace(/\/$/, '');
-    const response = await fetch(`${apiEntryPoint}/files/upload`, {
-      method: 'POST',
-      headers: {
-        'API-TOKEN': token,
-        'App-Domain': host,
-        Accept: 'application/json',
-      },
-      body: formData,
-    });
-
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok || result?.['@type'] === 'Error') {
-      throw new Error(result?.description || result?.message ||  global.t?.t("people", "error", "Failed to upload profile photo."));
-    }
-
-    const uploadedFile = unwrapUploadFile(result);
+    const response = await api.upload('/people_media/upload', formData);
+    const uploadedFile = unwrapUploadFile(response);
     const fileId = extractId(
       uploadedFile?.id ||
       uploadedFile?.['@id'] ||
-      result?.id ||
-      result?.['@id'],
+      response?.data?.file?.id ||
+      response?.data?.file?.['@id'],
     );
     if (!fileId) {
       throw new Error(global.t?.t("people", "error", "Upload completed, but file not returned."));
     }
 
-    return resolveFileImageUrl(uploadedFile || fileId, {appDomain: host});
+    return {
+      avatar: uploadedFile || {id: fileId},
+      imageUrl: resolveFileImageUrl(uploadedFile || fileId, {
+        company: currentCompany,
+      }),
+    };
   };
 
   const handleChangeAvatar = async () => {
@@ -774,7 +709,7 @@ const Profile = ({ navigation }) => {
 
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'image/*';
+    input.accept = 'image/png,.png';
 
     input.onchange = async event => {
       const file = event?.target?.files?.[0];
@@ -784,12 +719,12 @@ const Profile = ({ navigation }) => {
 
       setIsSavingAvatar(true);
       try {
-        const avatarUrl = await uploadAvatarFile(file);
-        setAvatarOverride(avatarUrl);
+        const {avatar, imageUrl} = await uploadAvatarFile(file);
+        setAvatarOverride(imageUrl);
 
         authActions.logIn({
           ...user,
-          avatarUrl,
+          avatar,
         });
 
         showSuccess?.(global.t?.t("people", "success", "Profile photo updated successfully."));
@@ -1085,7 +1020,6 @@ const Profile = ({ navigation }) => {
         timezone: persistedTimezoneName,
         timezone_id: persistedTimezoneId || null,
         timezoneId: persistedTimezoneId || null,
-        avatarUrl: avatarOverride || user?.avatarUrl || '',
       });
 
       showSuccess?.(global.t?.t("people", "success", "Data saved successfully."));
@@ -1245,7 +1179,19 @@ const Profile = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.headerContainer}>
           <View style={styles.avatarContainer}>
-            <Image source={{ uri: getAvatarUrl() }} style={styles.avatar} />
+            <UserAvatar
+              imageUrl={avatarImageUrl}
+              email={avatarEmail}
+              name={getAvatarDisplayName(user)}
+              size={120}
+              backgroundColor={
+                avatarBrandColors.buttonBackground || avatarBrandColors.primary
+              }
+              borderColor={avatarBrandColors.buttonText || avatarBrandColors.white}
+              borderWidth={3}
+              textColor={avatarBrandColors.buttonText || avatarBrandColors.white}
+              style={styles.avatar}
+            />
             <TouchableOpacity
               style={styles.editAvatarButton}
               onPress={handleChangeAvatar}
