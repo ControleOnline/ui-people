@@ -17,7 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useStore } from '@store';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AddCompanyModal from '@controleonline/ui-people/src/react/components/AddCompanyModal';
-import CompactFilterSelector from '@controleonline/ui-default/src/react/components/filters/CompactFilterSelector';
+import DefaultExternalFilters from '@controleonline/ui-default/src/react/components/filters/DefaultExternalFilters';
 import DefaultTable from '@controleonline/ui-default/src/react/components/table/DefaultTable';
 import ImportsPage from '@controleonline/ui-common/src/react/pages/Imports';
 import { formatDisplayUppercase } from '@controleonline/ui-common/src/react/utils/entityDisplay';
@@ -67,14 +67,6 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
   const activeSearchPlaceholder = useMemo(
     () => resolvePeopleContextSearchPlaceholder(selectedLinkType, context),
     [context, selectedLinkType],
-  );
-
-  const activeTypeOption = useMemo(
-    () =>
-      contextConfig.options.find(option => option.key === selectedLinkType) ||
-      contextConfig.options[0] ||
-      null,
-    [contextConfig.options, selectedLinkType],
   );
 
   const runtimeContext = useMemo(
@@ -196,11 +188,34 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
     });
   }, [navigation, title]);
 
-  const handleLinkTypeChange = useCallback(
-    nextLinkType => {
-      setSelectedLinkType(nextLinkType);
+  const linkTypeFilters = useMemo(
+    () => ({
+      linkType: selectedLinkType,
+    }),
+    [selectedLinkType],
+  );
+  const linkTypeFilterColumns = useMemo(
+    () => [
+      {
+        externalFilter: true,
+        label: contextConfig.filterTitle || 'context',
+        list: contextConfig.options,
+        name: 'linkType',
+      },
+    ],
+    [contextConfig.filterTitle, contextConfig.options],
+  );
+
+  const handleLinkTypeFiltersChange = useCallback(
+    nextFilters => {
+      const nextLinkType = normalizePeopleContextType(nextFilters?.linkType) || contextConfig.defaultType;
+      setSelectedLinkType(
+        contextConfig.availableTypes.includes(nextLinkType)
+          ? nextLinkType
+          : contextConfig.defaultType,
+      );
     },
-    [],
+    [contextConfig.availableTypes, contextConfig.defaultType],
   );
 
   const handleEdit = useCallback(
@@ -282,22 +297,13 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
 
   return (
     <View style={styles.container}>
-      {contextConfig.hasTypeFilter && activeTypeOption ? (
-        <View style={styles.filterRow}>
-          <CompactFilterSelector
-            dense
-            icon="filter"
-            label={activeTypeOption.label}
-            title={contextConfig.filterTitle}
-            active
-            options={contextConfig.options}
-            selectedKey={selectedLinkType}
-            onSelect={optionKey => {
-              handleLinkTypeChange(optionKey);
-              return true;
-            }}
-          />
-        </View>
+      {contextConfig.hasTypeFilter ? (
+        <DefaultExternalFilters
+          columns={linkTypeFilterColumns}
+          filters={linkTypeFilters}
+          onChangeFilters={handleLinkTypeFiltersChange}
+          storeName="people"
+        />
       ) : null}
 
       <View style={styles.tableWrap}>
