@@ -80,6 +80,16 @@ export default {
       {
         editable: true,
         sortable: true,
+        table: false,
+        externalFilter: true,
+        list: true,
+        name: 'link.linkType',
+        align: 'left',
+        label: 'context',
+      },
+      {
+        editable: true,
+        sortable: true,
         list: [
           {
             label: 'Física',

@@ -190,25 +190,18 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
 
   const linkTypeFilters = useMemo(
     () => ({
-      linkType: selectedLinkType,
+      'link.linkType': selectedLinkType,
     }),
     [selectedLinkType],
   );
-  const linkTypeFilterColumns = useMemo(
-    () => [
-      {
-        externalFilter: true,
-        label: contextConfig.filterTitle || 'context',
-        list: contextConfig.options,
-        name: 'linkType',
-      },
-    ],
-    [contextConfig.filterTitle, contextConfig.options],
+  const getExternalFilterOptions = useCallback(
+    column => ((column?.name || column?.key) === 'link.linkType' ? contextConfig.options : []),
+    [contextConfig.options],
   );
 
   const handleLinkTypeFiltersChange = useCallback(
     nextFilters => {
-      const nextLinkType = normalizePeopleContextType(nextFilters?.linkType) || contextConfig.defaultType;
+      const nextLinkType = normalizePeopleContextType(nextFilters?.['link.linkType']) || contextConfig.defaultType;
       setSelectedLinkType(
         contextConfig.availableTypes.includes(nextLinkType)
           ? nextLinkType
@@ -299,8 +292,8 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
     <View style={styles.container}>
       {contextConfig.hasTypeFilter ? (
         <DefaultExternalFilters
-          columns={linkTypeFilterColumns}
           filters={linkTypeFilters}
+          getOptionsForColumn={getExternalFilterOptions}
           onChangeFilters={handleLinkTypeFiltersChange}
           storeName="people"
         />
