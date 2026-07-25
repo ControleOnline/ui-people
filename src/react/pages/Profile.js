@@ -1022,7 +1022,9 @@ const Profile = ({ navigation }) => {
         nickname: normalizedAlias,
         phone: persistedPhones[0]?.value || getPrimaryPhone(user?.phone),
         email: persistedEmails[0]?.value || getPrimaryEmail(user?.email),
-        timezone: persistedTimezoneName,
+        timezone: persistedTimezoneId
+          ? `/timezones/${persistedTimezoneId}`
+          : null,
         timezone_id: persistedTimezoneId || null,
         timezoneId: persistedTimezoneId || null,
       });
