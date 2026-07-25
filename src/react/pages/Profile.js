@@ -612,7 +612,7 @@ const Profile = ({ navigation }) => {
       },
       ...availableTimezones.map(timezone => ({
         key: timezone.id,
-        label: timezone.name,
+        label: timezone.displayName || timezone.name,
       })),
     ],
     [availableTimezones],
@@ -624,7 +624,7 @@ const Profile = ({ navigation }) => {
     );
 
     return (
-      matchedTimezone?.name ||
+      matchedTimezone?.displayName || matchedTimezone?.name ||
       global.t?.t('people', 'label', 'select_timezone')
     );
   })();
