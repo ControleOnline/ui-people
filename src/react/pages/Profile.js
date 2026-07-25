@@ -401,7 +401,7 @@ const isSameList = (left, right) => {
 let timezonesCache = null;
 let timezoneCachePromise = null;
 
-const fetchTimezonesCached = async () => {
+const fetchTimezonesCached = async (timezonesActions, timezoneFilters = {}) => {
   if (timezonesCache) {
     return timezonesCache;
   }
@@ -410,7 +410,7 @@ const fetchTimezonesCached = async () => {
     return timezoneCachePromise;
   }
 
-  timezoneCachePromise = api.fetch('timezones', {params: {}})
+  timezoneCachePromise = timezonesActions.getItems(timezoneFilters)
     .then(response => {
       timezonesCache = response;
       timezoneCachePromise = null;
@@ -452,6 +452,7 @@ const Profile = ({ navigation }) => {
   const peopleStore = useStore('people');
   const phonesStore = useStore('phones');
   const emailsStore = useStore('emails');
+  const timezonesStore = useStore('timezones');
   const usersStore = useStore('users');
   const {showSuccess, showError} = useMessage() || {};
   const userGetters = authStore.getters;
@@ -460,6 +461,8 @@ const Profile = ({ navigation }) => {
   const peopleActions = peopleStore.actions;
   const phonesActions = phonesStore.actions;
   const emailsActions = emailsStore.actions;
+  const timezonesActions = timezonesStore.actions;
+  const timezoneFilters = timezonesStore.getters.filters;
   const usersActions = usersStore.actions;
   const { user: storeUser } = userGetters;
   const user = useMemo(() => {
@@ -541,7 +544,7 @@ const Profile = ({ navigation }) => {
           peopleIri
             ? emailsActions.getItems({people: peopleIri}).catch(() => fallbackEmails)
             : Promise.resolve(fallbackEmails),
-          fetchTimezonesCached().catch(() => ({
+          fetchTimezonesCached(timezonesActions, timezoneFilters).catch(() => ({
             member: [],
           })),
         ]);
@@ -582,7 +585,7 @@ const Profile = ({ navigation }) => {
         originalTimezoneSnapshot.current = parsedTimezoneId;
         originalNameSnapshot.current = loadedName;
         originalAliasSnapshot.current = loadedAlias;
-        
+
         hasInitiallyLoadedRef.current = true;
       } finally {
         setIsFetchingProfile(false);
@@ -592,7 +595,7 @@ const Profile = ({ navigation }) => {
 
     fetchPromiseRef.current = promise;
     return promise;
-  }, [emailsActions, phonesActions, user]);
+  }, [emailsActions, phonesActions, timezoneFilters, timezonesActions, user]);
 
   useFocusEffect(
     useCallback(() => {
@@ -1336,4 +1339,3 @@ const Profile = ({ navigation }) => {
 };
 
 export default Profile;
-// TODO(store-first): quando este arquivo for mexido, mover a leitura para stores, remover api.fetch e evitar repassar dados em objetos quando o store ja resolver isso.
