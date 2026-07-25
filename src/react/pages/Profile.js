@@ -240,6 +240,7 @@ const toTimezoneItem = entry => {
 
   const id = extractId(entry?.id || entry?.['@id']);
   const name = String(entry?.name || '').trim();
+  const displayName = String(entry?.displayName || '').trim(); // ✅ novo
 
   if (!id || !name) {
     return null;
@@ -248,6 +249,7 @@ const toTimezoneItem = entry => {
   return {
     id,
     name,
+    displayName, // ✅ importante
   };
 };
 
