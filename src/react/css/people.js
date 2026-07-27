@@ -176,12 +176,14 @@ const css = (palette = {}) => {
       outlineStyle: 'none',
     },
     deleteAction: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
+      width: 34,
+      height: 34,
+      borderRadius: 8,
+      borderWidth: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: palette.buttonBackgroundSecondary,
+      backgroundColor: palette.buttonBackground,
+      borderColor: palette.buttonBackground,
     },
     menuItem: {
       flexDirection: 'row',

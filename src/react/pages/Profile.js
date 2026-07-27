@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import css from '@controleonline/ui-people/src/react/css/people';
 import { useStore } from '@store';
 import { useFocusEffect } from '@react-navigation/native';
+import FeatherIcon from 'react-native-vector-icons/Feather';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { api } from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
@@ -437,6 +438,7 @@ const Profile = ({ navigation }) => {
       textSecondary: themeColors.textSecondary,
       buttonBackground: themeColors.buttonBackground,
       buttonBorder: themeColors.buttonBorder,
+      buttonIcon: themeColors.buttonIcon,
       buttonBackgroundSecondary: themeColors.buttonBackgroundSecondary,
       buttonText: themeColors.buttonText,
       buttonIconSecondary: themeColors.buttonIconSecondary,
@@ -1128,7 +1130,7 @@ const Profile = ({ navigation }) => {
               setItems(newItems);
             }}
             style={styles.deleteAction}>
-            <Icon name="close" size={16} color={palette.buttonIconSecondary} />
+            <FeatherIcon name="trash-2" size={16} color={palette.buttonIcon} />
           </TouchableOpacity>
         </View>
       ))}
