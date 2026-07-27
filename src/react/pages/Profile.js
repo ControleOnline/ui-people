@@ -1096,11 +1096,13 @@ const Profile = ({ navigation }) => {
         <TouchableOpacity
           onPress={() => setItems([...items, {id: '', value: ''}])}
           style={styles.addButton}>
-          <Icon name="add" size={20} color={palette.buttonText} />
+          <FeatherIcon name="plus" size={16} color={palette.buttonIcon} />
         </TouchableOpacity>
       </View>
       {items.map((item, index) => (
-        <View key={`${type}-${item.id || index}`} style={styles.cardItem}>
+        <View
+          key={`${type}-${item.id || index}`}
+          style={[styles.cardItem, styles.cardItemWithActions]}>
           <Icon
             name={type === 'phone' ? 'phone' : 'email'}
             size={20}

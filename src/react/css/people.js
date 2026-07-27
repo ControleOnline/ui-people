@@ -145,12 +145,14 @@ const css = (palette = {}) => {
       color: palette.textPrimary,
     },
     addButton: {
-      backgroundColor: palette.buttonBackground,
-      width: 28,
-      height: 28,
-      borderRadius: 14,
+      width: 34,
+      height: 34,
+      borderRadius: 8,
+      borderWidth: 1,
       alignItems: 'center',
       justifyContent: 'center',
+      backgroundColor: palette.buttonBackground,
+      borderColor: palette.buttonBackground,
     },
     cardItem: {
       flexDirection: 'row',
@@ -164,6 +166,9 @@ const css = (palette = {}) => {
       shadowOpacity: 0.05,
       shadowRadius: 4,
       elevation: 1,
+    },
+    cardItemWithActions: {
+      paddingRight: 4,
     },
     cardIcon: {
       marginRight: 12,
