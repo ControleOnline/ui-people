@@ -1,6 +1,4 @@
 import { api } from "@controleonline/ui-common/src/api";
-import { env as APP_ENV } from "@env";
-import { resolveAppDomain } from "@controleonline/ui-common/src/utils/appDomain";
 import {
   persistCurrentCompanyInSession,
   resolveCurrentCompanySelection,
@@ -80,11 +78,8 @@ export const myCompaniesByLinkType = (_context, payload = {}) => {
 export const defaultCompany = ({ commit }) => {
   commit(types.SET_ISLOADING, false);
 
-  const appDomain = resolveAppDomain(APP_ENV.DOMAIN);
-  const values = appDomain ? { "app-domain": appDomain } : {};
-
   return api
-    .fetch(`${RESOURCE_ENDPOINT}/company/default`, { params: values })
+    .fetch(`${RESOURCE_ENDPOINT}/company/default`)
     .then((data) => {
       const company = unwrapResponseData(data) || {};
       commit(customTypes.SET_DEFAULT_COMPANY, company);
