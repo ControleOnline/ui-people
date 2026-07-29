@@ -37,27 +37,57 @@ const getId = value => {
   return match ? parseInt(match[1], 10) : null;
 };
 
-const isPngFile = file => {
-  const mimeType = String(file?.type || file?.mimeType || '').trim().toLowerCase();
-  if (mimeType === 'image/png') return true;
+const ACCEPTED_COMPANY_MEDIA_MIME_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/pjpeg'];
+const ACCEPTED_COMPANY_MEDIA_EXTENSIONS = ['png', 'jpg', 'jpeg'];
+const COMPANY_MEDIA_ACCEPT_ATTRIBUTE = 'image/png,image/jpeg,.png,.jpg,.jpeg';
 
-  const name = String(file?.name || file?.fileName || '').trim().toLowerCase();
-  return name.endsWith('.png');
+const getCompanyMediaExtension = file => {
+  const directExtension = String(file?.extension || '').trim().toLowerCase().replace(/^\./, '');
+  if (directExtension) return directExtension;
+
+  const name = String(file?.name || file?.fileName || file?.url || '').trim().toLowerCase();
+  const match = name.match(/\.([a-z0-9]+)$/);
+  return match ? match[1] : '';
 };
 
-const pickSinglePngFile = () => {
+const getCompanyMediaFormatLabel = file => {
+  const extension = String(file?.extension || '').trim().toLowerCase().replace(/^\./, '');
+  if (extension === 'jpg' || extension === 'jpeg') return 'JPG';
+  if (extension === 'png') return 'PNG';
+  return '';
+};
+
+const getCompanyMediaMimeType = file => {
+  const mimeType = String(file?.type || file?.mimeType || '').trim().toLowerCase();
+  if (ACCEPTED_COMPANY_MEDIA_MIME_TYPES.includes(mimeType)) return mimeType;
+
+  const extension = getCompanyMediaExtension(file);
+  if (extension === 'png') return 'image/png';
+  if (extension === 'jpg' || extension === 'jpeg') return 'image/jpeg';
+
+  return '';
+};
+
+const isCompanyMediaImageFile = file => {
+  const mimeType = getCompanyMediaMimeType(file);
+  if (mimeType) return true;
+
+  return ACCEPTED_COMPANY_MEDIA_EXTENSIONS.includes(getCompanyMediaExtension(file));
+};
+
+const pickSingleCompanyMediaFile = () => {
   if (typeof document !== 'undefined') {
     return new Promise(resolve => {
       const input = document.createElement('input');
       input.type = 'file';
-      input.accept = 'image/png,.png';
+      input.accept = COMPANY_MEDIA_ACCEPT_ATTRIBUTE;
       input.onchange = event => resolve(event?.target?.files?.[0] || null);
       input.click();
     });
   }
 
   return DocumentPicker.getDocumentAsync({
-    type: ['image/png'],
+    type: ['image/png', 'image/jpeg'],
     copyToCacheDirectory: true,
     multiple: false,
   }).then(result => {
@@ -184,11 +214,11 @@ export default function MyCompaniesPage() {
         return;
       }
 
-      const selectedFile = providedFile || (await pickSinglePngFile());
+      const selectedFile = providedFile || (await pickSingleCompanyMediaFile());
       if (!selectedFile) return;
 
-      if (!isPngFile(selectedFile)) {
-        showError('Envie apenas arquivos PNG.');
+      if (!isCompanyMediaImageFile(selectedFile)) {
+        showError('Envie apenas arquivos PNG ou JPG.');
         return;
       }
 
@@ -203,10 +233,12 @@ export default function MyCompaniesPage() {
         if (Platform.OS === 'web') {
           formData.append('file', selectedFile);
         } else {
+          const extension = getCompanyMediaExtension(selectedFile) || 'png';
+          const mimeType = getCompanyMediaMimeType(selectedFile) || 'image/png';
           formData.append('file', {
             uri: selectedFile.uri,
-            name: selectedFile.name || `${mediaType?.type || 'media'}.png`,
-            type: selectedFile.mimeType || 'image/png',
+            name: selectedFile.name || `${mediaType?.type || 'media'}.${extension}`,
+            type: selectedFile.mimeType || mimeType,
           });
         }
 
@@ -339,8 +371,8 @@ export default function MyCompaniesPage() {
             {isUploading
               ? 'Enviando arquivo...'
               : Platform.OS === 'web'
-                ? 'Clique para enviar ou arraste um PNG até aqui.'
-                : 'Toque para enviar um arquivo PNG.'}
+                ? 'Clique para enviar ou arraste um PNG ou JPG até aqui.'
+                : 'Toque para enviar um arquivo PNG ou JPG.'}
           </Text>
         </>
       );
@@ -444,7 +476,7 @@ export default function MyCompaniesPage() {
           </Text>
 
           <Text style={[styles.sectionDescription, { color: palette.textSecondary || '#64748B' }]}>
-            Envie arquivos PNG para cada tipo de midia da empresa. A prévia abaixo sempre reflete o que já está salvo no banco.
+            Envie arquivos PNG ou JPG para cada tipo de midia da empresa. A prévia abaixo sempre reflete o que já está salvo no banco.
           </Text>
 
           {mediaTypesLoading || peopleMediaLoading ? (
@@ -459,6 +491,9 @@ export default function MyCompaniesPage() {
                 const isUploading = Boolean(uploadingByTypeId[mediaTypeId]);
                 const isDeleting = Boolean(deletingByTypeId[mediaTypeId]);
                 const isDragOver = Boolean(dragOverByTypeId[mediaTypeId]);
+                const mediaFormatLabel = currentMedia
+                  ? getCompanyMediaFormatLabel(currentMedia.file)
+                  : '';
 
                 return (
                   <View
@@ -505,16 +540,18 @@ export default function MyCompaniesPage() {
                             )}
                           </TouchableOpacity>
                         ) : null}
-                        <View
-                          style={[
-                            styles.mediaBadge,
-                            { backgroundColor: withOpacity(palette.primary || '#2563EB', 0.12) },
-                          ]}
-                        >
-                          <Text style={[styles.mediaBadgeText, { color: palette.primary || '#2563EB' }]}>
-                            PNG
-                          </Text>
-                        </View>
+                        {mediaFormatLabel ? (
+                          <View
+                            style={[
+                              styles.mediaBadge,
+                              { backgroundColor: withOpacity(palette.primary || '#2563EB', 0.12) },
+                            ]}
+                          >
+                            <Text style={[styles.mediaBadgeText, { color: palette.primary || '#2563EB' }]}>
+                              {mediaFormatLabel}
+                            </Text>
+                          </View>
+                        ) : null}
                       </View>
                     </View>
 
