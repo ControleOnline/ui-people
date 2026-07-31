@@ -636,10 +636,6 @@ const Profile = ({ navigation }) => {
     );
   })();
 
-  const canShowResyncTranslations = useMemo(() => {
-    return String(app_type || '').toUpperCase() !== 'POS';
-  }, []);
-
   const canConfigureManagerNotifications = useMemo(
     () => isManagerAppType(app_type),
     [],
@@ -654,24 +650,6 @@ const Profile = ({ navigation }) => {
       index: 0,
       routes: [{ name: 'SignInPage' }],
     });
-  };
-
-  const handleClearTranslate = () => {
-    Promise.resolve(global.t?.reload?.())
-      .then(() => {
-        global.refreshTranslationsUI?.();
-
-        if (Platform.OS === 'web' && typeof window !== 'undefined') {
-          window.location.reload();
-          return;
-        }
-
-        navigation.reset({
-          index: 0,
-          routes: [{name: 'ProfilePage'}],
-        });
-      })
-      .catch(() => {});
   };
 
   const uploadAvatarFile = async file => {
@@ -1304,23 +1282,6 @@ const Profile = ({ navigation }) => {
               />
               <Text style={styles.profileActionButtonText}>
                 Configurar notificações de pedidos
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          {canShowResyncTranslations && (
-            <TouchableOpacity
-              style={styles.profileActionButton}
-              onPress={handleClearTranslate}
-              activeOpacity={0.85}>
-              <Icon
-                name="add-circle"
-                size={20}
-                color={palette.buttonText}
-                style={inlineStyle_1042_16}
-              />
-              <Text style={styles.profileActionButtonText}>
-                {global.t?.t("configs", "label", "resync translations")}
               </Text>
             </TouchableOpacity>
           )}
