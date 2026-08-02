@@ -88,14 +88,14 @@ const styles = StyleSheet.create({
     }),
   },
 
+  contactCard: {
+    borderRadius: 16,
+    paddingVertical: 14,
+  },
+
   cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
 
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
     marginRight: 12,
   },
 
@@ -111,6 +111,31 @@ const styles = StyleSheet.create({
   clientSubtitle: {
     fontSize: 14,
     lineHeight: 18,
+  },
+
+  contactLine: {
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 2,
+  },
+
+  contactTitleRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+
+  peopleTypeBadge: {
+    borderRadius: 999,
+    borderWidth: 1,
+    marginLeft: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+
+  peopleTypeBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.6,
   },
 
   cardBody: { marginTop: 4 },

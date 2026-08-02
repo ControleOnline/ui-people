@@ -21,6 +21,21 @@ const normalizeCollection = (payload) => {
   return [];
 };
 
+const extractId = value => {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  const raw = typeof value === 'string' ? value : value?.id || value?.['@id'];
+  const match = String(raw || '').match(/(\d+)$/);
+  return match ? match[1] : '';
+};
+
+const toPeopleIri = value => {
+  const id = extractId(value);
+  return id ? `/people/${id}` : '';
+};
+
 export const company = ({ commit }, values) => {
   commit(types.SET_ERROR, "");
   commit(types.SET_ISLOADING);
@@ -70,6 +85,98 @@ export const myCompaniesByLinkType = (_context, payload = {}) => {
   return api
     .fetch(`${RESOURCE_ENDPOINT}/companies/my`, requestOptions)
     .then((data) => normalizeCollection(unwrapResponseData(data)))
+    .catch((e) => {
+      throw e;
+    });
+};
+
+export const getMediaTypes = (_context, payload = {}) => {
+  const normalizedPayload = payload && typeof payload === 'object' ? payload : {};
+  const params = Object.keys(normalizedPayload).length > 0 ? normalizedPayload : {};
+
+  return api
+    .fetch('/media_types', { params })
+    .then((data) => normalizeCollection(unwrapResponseData(data)))
+    .catch((e) => {
+      throw e;
+    });
+};
+
+export const getPeopleMedia = (_context, payload = {}) => {
+  const normalizedPayload = payload && typeof payload === 'object' ? payload : {};
+  const params = Object.keys(normalizedPayload).length > 0 ? normalizedPayload : {};
+
+  return api
+    .fetch('/people_media', { params })
+    .then((data) => normalizeCollection(unwrapResponseData(data)))
+    .catch((e) => {
+      throw e;
+    });
+};
+
+export const uploadPeopleMedia = (_context, payload = {}) => {
+  const normalizedPayload = payload && typeof payload === 'object' ? payload : {};
+  const peopleIri = String(normalizedPayload.people || normalizedPayload.peopleIri || '')
+    .trim() || toPeopleIri(normalizedPayload.peopleId);
+  const mediaTypeId = extractId(normalizedPayload.mediaTypeId || normalizedPayload.mediaType);
+  const file = normalizedPayload.file;
+
+  if (!peopleIri || !mediaTypeId || !file) {
+    throw new Error('Nao foi possivel identificar a midia para envio.');
+  }
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('people', peopleIri);
+  formData.append('media_type_id', String(mediaTypeId));
+
+  return api
+    .upload('/people_media/upload', formData)
+    .then((data) => unwrapResponseData(data))
+    .catch((e) => {
+      throw e;
+    });
+};
+
+export const savePeopleMedia = (_context, payload = {}) => {
+  const normalizedPayload = payload && typeof payload === 'object' ? payload : {};
+  const peopleIri = String(normalizedPayload.people || normalizedPayload.peopleIri || '')
+    .trim() || toPeopleIri(normalizedPayload.peopleId);
+  const mediaTypeIri = String(normalizedPayload.mediaType || normalizedPayload.mediaTypeIri || '')
+    .trim() || (extractId(normalizedPayload.mediaTypeId) ? `/media_types/${extractId(normalizedPayload.mediaTypeId)}` : '');
+  const fileIri = String(normalizedPayload.file || normalizedPayload.fileIri || '')
+    .trim() || (extractId(normalizedPayload.fileId) ? `/files/${extractId(normalizedPayload.fileId)}` : '');
+  const mediaId = extractId(normalizedPayload.id || normalizedPayload.mediaId);
+
+  if (!peopleIri || !mediaTypeIri || !fileIri) {
+    throw new Error('Nao foi possivel identificar a midia para salvar.');
+  }
+
+  return api
+    .fetch(mediaId ? `/people_media/${mediaId}` : '/people_media', {
+      method: mediaId ? 'PUT' : 'POST',
+      body: {
+        people: peopleIri,
+        mediaType: mediaTypeIri,
+        file: fileIri,
+      },
+    })
+    .then((data) => unwrapResponseData(data))
+    .catch((e) => {
+      throw e;
+    });
+};
+
+export const deletePeopleMedia = (_context, payload = {}) => {
+  const mediaId = extractId(payload?.mediaId || payload);
+
+  if (!mediaId) {
+    throw new Error('Nao foi possivel identificar a midia para exclusao.');
+  }
+
+  return api
+    .fetch(`/people_media/${mediaId}`, { method: 'DELETE' })
+    .then((data) => unwrapResponseData(data))
     .catch((e) => {
       throw e;
     });

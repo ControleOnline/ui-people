@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
 import {
   Text,
@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Platform,
 } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,7 +15,6 @@ import { useStore } from '@store';
 import { useFocusEffect } from '@react-navigation/native';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { api } from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import CompactFilterSelector from '@controleonline/ui-default/src/react/components/filters/CompactFilterSelector';
 import {app_type} from '@appType';
@@ -26,11 +24,13 @@ import {
 } from '@controleonline/ui-common/src/react/utils/entityDisplay';
 import { resolveFileImageUrl } from '@controleonline/ui-common/src/react/utils/fileUrl';
 import UserAvatar from '@controleonline/ui-common/src/react/components/UserAvatar';
+import DefaultUpload from '@controleonline/ui-default/src/react/components/upload/DefaultUpload';
+import { extractFileId } from '@controleonline/ui-default/src/react/components/upload/fileUpload';
 import {
   getAvatarDisplayName,
-  resolveUserAvatarUrl,
   resolveUserPeopleIri,
 } from '@controleonline/ui-common/src/react/utils/userAvatar';
+import { resolvePeopleImageUrl } from '@controleonline/ui-people/src/react/utils/peopleImage';
 import {resolveThemePalette} from '@controleonline/../../src/styles/branding';
 import {colors} from '@controleonline/../../src/styles/colors';
 import { isManagerAppType } from '@controleonline/ui-common/src/react/utils/managerOrderNotifications';
@@ -83,36 +83,6 @@ const extractId = value => {
   return normalized || '';
 };
 
-const unwrapUploadFile = payload => {
-  const data = payload?.response?.data ?? payload?.data ?? payload;
-
-  if (!data) {
-    return null;
-  }
-
-  if (data?.file) {
-    return data.file;
-  }
-
-  if (Array.isArray(data)) {
-    return data[0] || null;
-  }
-
-  if (Array.isArray(data?.member)) {
-    return data.member[0] || null;
-  }
-
-  if (Array.isArray(data?.['hydra:member'])) {
-    return data['hydra:member'][0] || null;
-  }
-
-  if (Array.isArray(data?.files)) {
-    return data.files[0] || null;
-  }
-
-  return data;
-};
-
 const getSessionData = () => {
   try {
     return JSON.parse(localStorage.getItem('session') || '{}');
@@ -124,6 +94,15 @@ const getSessionData = () => {
 const toPeopleIri = user => {
   const session = getSessionData();
   return resolveUserPeopleIri(user, session);
+};
+
+const normalizeCollection = payload => {
+  if (Array.isArray(payload)) return payload;
+  if (!payload || typeof payload !== 'object') return [];
+  if (Array.isArray(payload.member)) return payload.member;
+  if (Array.isArray(payload['hydra:member'])) return payload['hydra:member'];
+  if (Array.isArray(payload.items)) return payload.items;
+  return [];
 };
 
 const toPhoneItem = entry => {
@@ -214,7 +193,7 @@ const getDisplayAlias = user =>
   String(user?.alias || user?.nickname || '').trim();
 
 const getAvatarFromUser = user => {
-  return resolveUserAvatarUrl(user, resolveFileImageUrl);
+  return resolvePeopleImageUrl(user, resolveFileImageUrl);
 };
 
 const validateEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -498,8 +477,9 @@ const Profile = ({ navigation }) => {
   const [isEditingAlias, setIsEditingAlias] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isFetchingProfile, setIsFetchingProfile] = useState(true);
-  const [isSavingAvatar, setIsSavingAvatar] = useState(false);
   const [avatarOverride, setAvatarOverride] = useState('');
+  const [avatarMediaType, setAvatarMediaType] = useState(null);
+  const [avatarPeopleMedia, setAvatarPeopleMedia] = useState(null);
   const originalPhoneIds = useRef([]);
   const originalEmailIds = useRef([]);
   const originalPhonesSnapshot = useRef([]);
@@ -607,6 +587,42 @@ const Profile = ({ navigation }) => {
     }, [fetchUser]),
   );
 
+  const loadAvatarMedia = useCallback(async () => {
+    const peopleIri = toPeopleIri(user);
+
+    if (!peopleIri) {
+      setAvatarMediaType(null);
+      setAvatarPeopleMedia(null);
+      return;
+    }
+
+    const [mediaTypes, peopleMedia] = await Promise.all([
+      peopleActions.getMediaTypes({
+        type: 'avatar',
+        peopleType: 'F',
+        itemsPerPage: 1,
+      }).catch(() => []),
+      peopleActions.getPeopleMedia({
+        people: peopleIri,
+        'mediaType.type': 'avatar',
+        itemsPerPage: 1,
+      }).catch(() => []),
+    ]);
+
+    setAvatarMediaType(normalizeCollection(mediaTypes)[0] || null);
+    const nextPeopleMedia = normalizeCollection(peopleMedia)[0] || null;
+    setAvatarPeopleMedia(nextPeopleMedia);
+    if (nextPeopleMedia?.file) {
+      setAvatarOverride(resolveFileImageUrl(nextPeopleMedia.file, { company: currentCompany }));
+    } else {
+      setAvatarOverride('');
+    }
+  }, [currentCompany, peopleActions, user]);
+
+  useEffect(() => {
+    void loadAvatarMedia();
+  }, [loadAvatarMedia]);
+
   const availableTimezones = useMemo(() => {
     return Array.isArray(timezones) ? timezones : [];
   }, [timezones]);
@@ -636,10 +652,6 @@ const Profile = ({ navigation }) => {
     );
   })();
 
-  const canShowResyncTranslations = useMemo(() => {
-    return String(app_type || '').toUpperCase() !== 'POS';
-  }, []);
-
   const canConfigureManagerNotifications = useMemo(
     () => isManagerAppType(app_type),
     [],
@@ -656,94 +668,46 @@ const Profile = ({ navigation }) => {
     });
   };
 
-  const handleClearTranslate = () => {
-    Promise.resolve(global.t?.reload?.())
-      .then(() => {
-        global.refreshTranslationsUI?.();
+  const handleAvatarChanged = useCallback(async () => {
+    await loadAvatarMedia();
+    showSuccess?.(global.t?.t("people", "success", "Profile photo updated successfully."));
+  }, [loadAvatarMedia, showSuccess]);
 
-        if (Platform.OS === 'web' && typeof window !== 'undefined') {
-          window.location.reload();
-          return;
-        }
+  const attachAvatarFile = useCallback(async file => {
+    const fileId = extractFileId(file);
+    const peopleIri = toPeopleIri(user);
+    const mediaTypeId = extractId(avatarMediaType?.id || avatarMediaType?.['@id']);
 
-        navigation.reset({
-          index: 0,
-          routes: [{name: 'ProfilePage'}],
-        });
-      })
-      .catch(() => {});
-  };
+    if (!fileId || !peopleIri || !mediaTypeId) {
+      throw new Error(global.t?.t("people", "error", "Unable to update profile photo."));
+    }
 
-  const uploadAvatarFile = async file => {
+    return peopleActions.savePeopleMedia({
+      id: avatarPeopleMedia?.id || avatarPeopleMedia?.['@id'],
+      people: peopleIri,
+      mediaType: `/media_types/${mediaTypeId}`,
+      file: `/files/${fileId}`,
+    });
+  }, [avatarMediaType, avatarPeopleMedia, peopleActions, user]);
+
+  const uploadAvatarFile = useCallback(async ({file}) => {
     const mimeType = String(file?.type || '').trim().toLowerCase();
     const fileName = String(file?.name || '').trim().toLowerCase();
     if (mimeType !== 'image/png' && !fileName.endsWith('.png')) {
       throw new Error(global.t?.t("people", "error", "Please select a PNG image."));
     }
 
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await api.upload('/people_media/upload', formData);
-    const uploadedFile = unwrapUploadFile(response);
-    const fileId = extractId(
-      uploadedFile?.id ||
-      uploadedFile?.['@id'] ||
-      response?.data?.file?.id ||
-      response?.data?.file?.['@id'],
-    );
-    if (!fileId) {
-      throw new Error(global.t?.t("people", "error", "Upload completed, but file not returned."));
+    const mediaTypeId = extractId(avatarMediaType?.id || avatarMediaType?.['@id']);
+    if (!mediaTypeId) {
+      throw new Error(global.t?.t("people", "error", "Unable to update profile photo."));
     }
 
-    return {
-      avatar: uploadedFile || {id: fileId},
-      imageUrl: resolveFileImageUrl(uploadedFile || fileId, {
-        company: currentCompany,
-      }),
-    };
-  };
-
-  const handleChangeAvatar = async () => {
-    if (isSavingAvatar) {
-      return;
-    }
-
-    if (Platform.OS !== 'web' || typeof document === 'undefined') {
-      showError?.(global.t?.t("people", "error", "Photo change available only in web mode in this version."));
-      return;
-    }
-
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/png,.png';
-
-    input.onchange = async event => {
-      const file = event?.target?.files?.[0];
-      if (!file) {
-        return;
-      }
-
-      setIsSavingAvatar(true);
-      try {
-        const {avatar, imageUrl} = await uploadAvatarFile(file);
-        setAvatarOverride(imageUrl);
-
-        authActions.logIn({
-          ...user,
-          avatar,
-        });
-
-        showSuccess?.(global.t?.t("people", "success", "Profile photo updated successfully."));
-      } catch (error) {
-        showError?.(error?.message || global.t?.t("people", "error", "Unable to update profile photo."));
-      } finally {
-        setIsSavingAvatar(false);
-      }
-    };
-
-    input.click();
-  };
+    return peopleActions.uploadPeopleMedia({
+      people: toPeopleIri(user),
+      mediaTypeId,
+      file,
+    });
+  }, [avatarMediaType, peopleActions, user]);
 
   const syncRemovedItems = async (originalIds, currentIds, removeAction) => {
     const currentSet = new Set(currentIds.filter(Boolean));
@@ -1203,17 +1167,51 @@ const Profile = ({ navigation }) => {
               textColor={avatarBrandColors.buttonText || avatarBrandColors.white}
               style={styles.avatar}
             />
-            <TouchableOpacity
-              style={styles.editAvatarButton}
-              onPress={handleChangeAvatar}
-              activeOpacity={0.85}
-              disabled={isSavingAvatar}>
-              {isSavingAvatar ? (
-                <ActivityIndicator size="small" color={palette.buttonText} />
-              ) : (
-                <Icon name="camera-alt" size={20} color={palette.buttonText} />
+            <DefaultUpload
+              relationStoreName="people"
+              relationField="people"
+              relationResource="people"
+              entityId={extractId(toPeopleIri(user))}
+              companyId={extractId(toPeopleIri(user))}
+              context="people_media"
+              libraryContexts={['people_media']}
+              attachments={avatarPeopleMedia ? [avatarPeopleMedia] : []}
+              acceptedTypes="image/png,.png"
+              fileType="image"
+              fileTypeLabel="imagem"
+              title="avatar"
+              triggerLabel="Gerenciar avatar"
+              managerTitle="Gerenciador de avatar"
+              searchPlaceholder="Buscar imagem"
+              uploadButtonLabel="Enviar nova"
+              emptyAttachmentLabel="Nenhuma imagem vinculada."
+              emptyLibraryLabel="Nenhuma imagem encontrada."
+              uploadSuccessMessage="Avatar atualizado com sucesso."
+              attachSuccessMessage="Avatar vinculado com sucesso."
+              removeSuccessMessage="Avatar removido."
+              showInlineContent={false}
+              uploadResultAlreadyAttached
+              onAttachFile={attachAvatarFile}
+              onUploadFile={uploadAvatarFile}
+              onRemoveAttachment={async relation => {
+                await peopleActions.deletePeopleMedia({mediaId: relation?.id || relation?.['@id']});
+              }}
+              onChanged={handleAvatarChanged}
+              renderTrigger={({disabled, openManager, uploading}) => (
+                <TouchableOpacity
+                  style={styles.editAvatarButton}
+                  onPress={openManager}
+                  accessibilityLabel="subir avatar"
+                  activeOpacity={0.85}
+                  disabled={disabled}>
+                  {uploading ? (
+                    <ActivityIndicator size="small" color={palette.buttonText} />
+                  ) : (
+                    <Icon name="camera-alt" size={20} color={palette.buttonText} />
+                  )}
+                </TouchableOpacity>
               )}
-            </TouchableOpacity>
+            />
           </View>
           <View style={styles.userNameRow}>
             {isEditingName ? (
@@ -1304,23 +1302,6 @@ const Profile = ({ navigation }) => {
               />
               <Text style={styles.profileActionButtonText}>
                 Configurar notificações de pedidos
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          {canShowResyncTranslations && (
-            <TouchableOpacity
-              style={styles.profileActionButton}
-              onPress={handleClearTranslate}
-              activeOpacity={0.85}>
-              <Icon
-                name="add-circle"
-                size={20}
-                color={palette.buttonText}
-                style={inlineStyle_1042_16}
-              />
-              <Text style={styles.profileActionButtonText}>
-                {global.t?.t("configs", "label", "resync translations")}
               </Text>
             </TouchableOpacity>
           )}
