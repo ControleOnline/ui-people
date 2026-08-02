@@ -138,6 +138,35 @@ export const uploadPeopleMedia = (_context, payload = {}) => {
     });
 };
 
+export const savePeopleMedia = (_context, payload = {}) => {
+  const normalizedPayload = payload && typeof payload === 'object' ? payload : {};
+  const peopleIri = String(normalizedPayload.people || normalizedPayload.peopleIri || '')
+    .trim() || toPeopleIri(normalizedPayload.peopleId);
+  const mediaTypeIri = String(normalizedPayload.mediaType || normalizedPayload.mediaTypeIri || '')
+    .trim() || (extractId(normalizedPayload.mediaTypeId) ? `/media_types/${extractId(normalizedPayload.mediaTypeId)}` : '');
+  const fileIri = String(normalizedPayload.file || normalizedPayload.fileIri || '')
+    .trim() || (extractId(normalizedPayload.fileId) ? `/files/${extractId(normalizedPayload.fileId)}` : '');
+  const mediaId = extractId(normalizedPayload.id || normalizedPayload.mediaId);
+
+  if (!peopleIri || !mediaTypeIri || !fileIri) {
+    throw new Error('Nao foi possivel identificar a midia para salvar.');
+  }
+
+  return api
+    .fetch(mediaId ? `/people_media/${mediaId}` : '/people_media', {
+      method: mediaId ? 'PUT' : 'POST',
+      body: {
+        people: peopleIri,
+        mediaType: mediaTypeIri,
+        file: fileIri,
+      },
+    })
+    .then((data) => unwrapResponseData(data))
+    .catch((e) => {
+      throw e;
+    });
+};
+
 export const deletePeopleMedia = (_context, payload = {}) => {
   const mediaId = extractId(payload?.mediaId || payload);
 
