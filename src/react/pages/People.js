@@ -17,6 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useStore } from '@store';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AddCompanyModal from '@controleonline/ui-people/src/react/components/AddCompanyModal';
+import PeopleAvatar from '@controleonline/ui-people/src/react/components/PeopleAvatar';
 import DefaultExternalFilters from '@controleonline/ui-default/src/react/components/filters/DefaultExternalFilters';
 import DefaultTable from '@controleonline/ui-default/src/react/components/table/DefaultTable';
 import ImportsPage from '@controleonline/ui-common/src/react/pages/Imports';
@@ -26,17 +27,29 @@ import {
   normalizePeopleContextType,
   resolvePeopleContextSearchPlaceholder,
 } from '@controleonline/ui-people/src/react/utils/peopleContext';
+import {
+  ALL_PEOPLE_LINK_TYPES_KEY,
+  buildParentCompanyRequestParams,
+  buildPeopleLinkRequestParams,
+} from '@controleonline/ui-people/src/react/utils/peopleLinkFilters';
+import {
+  isCompanyPeople,
+  resolvePeopleAvatarEmail,
+  resolvePeopleDisplayName,
+} from '@controleonline/ui-people/src/react/utils/peopleImage';
 import styles from './People.styles';
 import { inlineStyle_133_14, inlineStyle_137_16 } from './People.styles';
 
-const People = ({ context = {}, initialShowAddModal = false }) => {
+const People = ({ context = {}, initialShowAddModal = false, companyScope = 'people' }) => {
   const contextConfig = useMemo(() => buildPeopleContextConfig(context), [context]);
   const title = context.title;
 
   const peopleStore = useStore('people');
+  const authStore = useStore('auth');
   const themeStore = useStore('theme');
   const { getters, actions } = peopleStore;
   const { currentCompany } = getters;
+  const { user } = authStore.getters || {};
   const { colors: themeColors } = themeStore.getters;
 
   const navigation = useNavigation();
@@ -44,6 +57,7 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
   const [selectedLinkType, setSelectedLinkType] = useState(contextConfig.defaultType);
   const [showAddCompanyModal, setShowAddCompanyModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const isCompanyScope = companyScope === 'companies';
 
   const hasAutoOpenedAddModalRef = useRef(false);
 
@@ -124,13 +138,6 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
     [palette.cardIcon],
   );
 
-  const avatarTextStyle = useMemo(
-    () => ({
-      color: palette.iconInverse,
-    }),
-    [palette.iconInverse],
-  );
-
   const clientNameStyle = useMemo(
     () => ({
       color: palette.listItemText,
@@ -173,13 +180,24 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
   );
 
   const requestParams = useMemo(
-    () => ({
-      ...(currentCompany?.id
-        ? { 'link.company': `/people/${currentCompany.id}` }
-        : {}),
-      'link.linkType': normalizePeopleContextType(selectedLinkType),
-    }),
-    [currentCompany?.id, selectedLinkType],
+    () =>
+      isCompanyScope
+        ? buildParentCompanyRequestParams({
+            availableTypes: contextConfig.availableTypes,
+            selectedLinkType,
+            user,
+          })
+        : buildPeopleLinkRequestParams({
+            currentCompany,
+            selectedLinkType,
+          }),
+    [
+      contextConfig.availableTypes,
+      currentCompany,
+      isCompanyScope,
+      selectedLinkType,
+      user,
+    ],
   );
 
   useLayoutEffect(() => {
@@ -225,7 +243,10 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
           ? context.detailsRouteParams(client, selectedLinkType)
           : (context?.detailsRouteParams || {
               clientId,
-              contextKey: String(selectedLinkType || ''),
+              contextKey:
+                selectedLinkType === ALL_PEOPLE_LINK_TYPES_KEY
+                  ? ''
+                  : String(selectedLinkType || ''),
             });
 
       navigation.push(detailsRouteName, detailsRouteParams);
@@ -250,50 +271,100 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
     [actions, contextConfig.availableTypes, selectedLinkType],
   );
 
-  const renderClientCard = useCallback(
-    ({ item: client, openRow }) => (
-      <TouchableOpacity
-        style={[styles.card, cardStyle]}
-        onPress={openRow || (() => handleEdit(client))}
-        activeOpacity={0.8}
-      >
-        <View style={styles.cardHeader}>
-          <View style={[styles.avatar, avatarStyle]}>
-            <Text style={[styles.avatarText, avatarTextStyle]}>
-              {client?.name?.charAt(0)?.toUpperCase() || 'C'}
-            </Text>
-          </View>
+  const renderContactLine = useCallback(people => {
+    const email = resolvePeopleAvatarEmail(people);
+    const phone = Array.isArray(people?.phone)
+      ? people.phone.find(item => item?.phone || item?.value)
+      : people?.phone;
+    const phoneValue =
+      typeof phone === 'object'
+        ? String(phone?.phone || phone?.value || '').trim()
+        : String(phone || '').trim();
 
-          <View style={inlineStyle_133_14}>
-            <Text style={[styles.clientName, clientNameStyle]} numberOfLines={1}>
-              {formatDisplayUppercase(client.alias)}
-            </Text>
-            <Text style={[styles.clientSubtitle, inlineStyle_137_16, clientSubtitleStyle]}>
-              {client.peopleType === 'J' ? ' (PJ)' : ' (PF)'} {formatDisplayUppercase(client.name)}
-            </Text>
-          </View>
+    return email || phoneValue || '';
+  }, []);
 
-          <Icon name="chevron-right" size={14} color={palette.listItemIcon} />
-        </View>
-      </TouchableOpacity>
-    ),
+  const renderPeopleCard = useCallback(
+    ({ item: people, openRow }) => {
+      const displayName = formatDisplayUppercase(resolvePeopleDisplayName(people));
+      const legalName = formatDisplayUppercase(people?.name || people?.alias);
+      const contactLine = renderContactLine(people);
+      const peopleTypeLabel = isCompanyPeople(people) ? 'PJ' : 'PF';
+
+      return (
+        <TouchableOpacity
+          style={[styles.card, styles.contactCard, cardStyle]}
+          onPress={openRow || (() => handleEdit(people))}
+          activeOpacity={0.8}
+        >
+          <View style={styles.cardHeader}>
+            <PeopleAvatar
+              people={people}
+              size={52}
+              backgroundColor={avatarStyle.backgroundColor}
+              borderColor={palette.cardBorder || avatarStyle.backgroundColor}
+              borderWidth={1}
+              textColor={palette.iconInverse}
+              iconColor={palette.iconInverse}
+              style={styles.avatar}
+            />
+
+            <View style={inlineStyle_133_14}>
+              <View style={styles.contactTitleRow}>
+                <Text style={[styles.clientName, clientNameStyle]} numberOfLines={1}>
+                  {displayName || legalName || '-'}
+                </Text>
+                <View style={[styles.peopleTypeBadge, { borderColor: palette.cardBorder }]}>
+                  <Text style={[styles.peopleTypeBadgeText, { color: palette.listItemSubtitleText }]}>
+                    {peopleTypeLabel}
+                  </Text>
+                </View>
+              </View>
+              <Text style={[styles.clientSubtitle, inlineStyle_137_16, clientSubtitleStyle]} numberOfLines={1}>
+                {legalName && legalName !== displayName ? legalName : contactLine || '-'}
+              </Text>
+              {legalName && legalName !== displayName && contactLine ? (
+                <Text style={[styles.contactLine, clientSubtitleStyle]} numberOfLines={1}>
+                  {contactLine}
+                </Text>
+              ) : null}
+            </View>
+
+            <Icon name="chevron-right" size={14} color={palette.listItemIcon} />
+          </View>
+        </TouchableOpacity>
+      );
+    },
     [
-      avatarStyle,
-      avatarTextStyle,
+      avatarStyle.backgroundColor,
       cardStyle,
       clientNameStyle,
       clientSubtitleStyle,
       handleEdit,
+      palette.cardBorder,
+      palette.iconInverse,
       palette.listItemIcon,
+      palette.listItemSubtitleText,
+      renderContactLine,
     ],
+  );
+
+  const renderClientCard = useCallback(
+    args => renderPeopleCard(args),
+    [renderPeopleCard],
+  );
+
+  const renderCompanyCard = useCallback(
+    args => renderPeopleCard(args),
+    [renderPeopleCard],
   );
 
   return (
     <View style={styles.container}>
       {contextConfig.hasTypeFilter ? (
-        <DefaultExternalFilters
-          filters={linkTypeFilters}
-          getOptionsForColumn={getExternalFilterOptions}
+          <DefaultExternalFilters
+            filters={linkTypeFilters}
+            getOptionsForColumn={getExternalFilterOptions}
           onChangeFilters={handleLinkTypeFiltersChange}
           storeName="people"
         />
@@ -303,13 +374,13 @@ const People = ({ context = {}, initialShowAddModal = false }) => {
         <DefaultTable
           actions={actions}
           add={false}
+          initialViewMode="cards"
           requestParams={requestParams}
           onRowPress={handleEdit}
-          renderCard={renderClientCard}
-          searchProps={{
-            placeholder: activeSearchPlaceholder,
-            searchKey: 'search',
-          }}
+          renderCard={isCompanyScope ? renderCompanyCard : renderClientCard}
+          searchKey="search"
+          searchPlaceholder={activeSearchPlaceholder}
+          showSearch
           showRowActions={false}
           storeName="people"
           toolbarActions={toolbarActions}
