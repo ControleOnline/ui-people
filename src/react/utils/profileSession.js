@@ -29,6 +29,28 @@ const readStoredSession = () => {
   }
 };
 
+/**
+ * Re-persist the auth session with the latest avatar file (or null on remove).
+ * Keeps all other session fields unchanged.
+ */
+export const persistSessionAvatar = avatarFile => {
+  if (typeof localStorage === 'undefined' || !localStorage?.setItem) {
+    return readStoredSession();
+  }
+
+  try {
+    const session = readStoredSession();
+    const nextSession = {
+      ...session,
+      avatar: avatarFile == null ? null : avatarFile,
+    };
+    localStorage.setItem('session', JSON.stringify(nextSession));
+    return nextSession;
+  } catch {
+    return readStoredSession();
+  }
+};
+
 export const resolveLoggedUserId = currentUser => {
   const session = readStoredSession();
 

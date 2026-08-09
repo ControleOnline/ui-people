@@ -34,7 +34,7 @@ import { resolvePeopleImageUrl } from '@controleonline/ui-people/src/react/utils
 import {resolveThemePalette} from '@controleonline/../../src/styles/branding';
 import {colors} from '@controleonline/../../src/styles/colors';
 import { isManagerAppType } from '@controleonline/ui-common/src/react/utils/managerOrderNotifications';
-import { resolveLoggedUserId } from '@controleonline/ui-people/src/react/utils/profileSession';
+import { resolveLoggedUserId, persistSessionAvatar } from '@controleonline/ui-people/src/react/utils/profileSession';
 import { inlineStyle_1025_20, inlineStyle_1042_16, inlineStyle_1051_63 } from './Profile.styles';
 
 const extractPhoneDigits = value =>
@@ -593,7 +593,7 @@ const Profile = ({ navigation }) => {
     if (!peopleIri) {
       setAvatarMediaType(null);
       setAvatarPeopleMedia(null);
-      return;
+      return null;
     }
 
     const [mediaTypes, peopleMedia] = await Promise.all([
@@ -617,6 +617,7 @@ const Profile = ({ navigation }) => {
     } else {
       setAvatarOverride('');
     }
+    return nextPeopleMedia;
   }, [currentCompany, peopleActions, user]);
 
   useEffect(() => {
@@ -674,7 +675,13 @@ const Profile = ({ navigation }) => {
   };
 
   const handleAvatarChanged = useCallback(async () => {
-    await loadAvatarMedia();
+    const nextPeopleMedia = await loadAvatarMedia();
+    // Keep localStorage session.avatar in sync so headers/menus stop using stale URLs.
+    try {
+      persistSessionAvatar(nextPeopleMedia?.file ?? null);
+    } catch {
+      // session sync is best-effort; profile media already reloaded above
+    }
     showSuccess?.(global.t?.t("people", "success", "Profile photo updated successfully."));
   }, [loadAvatarMedia, showSuccess]);
 
