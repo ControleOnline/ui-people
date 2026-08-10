@@ -1,6 +1,5 @@
 import Profile from '@controleonline/ui-people/src/react/pages/Profile';
 
-
 const peopleRoutes = [
   {
     name: 'ProfilePage',
@@ -10,7 +9,6 @@ const peopleRoutes = [
       showBottomToolBar: true,
       title: () => global.t?.t('people', 'title', 'profile'),
     },
-    initialParams: {store: 'auth'},
   },
 ];
 

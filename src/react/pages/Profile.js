@@ -664,7 +664,12 @@ const Profile = ({ navigation }) => {
     authActions.logOut();
     navigation.reset({
       index: 0,
-      routes: [{ name: 'SignInPage' }],
+      routes: [
+        {
+          name: 'SignInPage',
+          params: {redirectRoute: 'HomePage'},
+        },
+      ],
     });
   };
 
