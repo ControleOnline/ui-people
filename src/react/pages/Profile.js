@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import css from '@controleonline/ui-people/src/react/css/people';
 import { useStore } from '@store';
+import PeopleAddressesPanel from '@controleonline/ui-people/src/react/components/address/PeopleAddressesPanel';
 import { useFocusEffect } from '@react-navigation/native';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -1271,6 +1272,13 @@ const Profile = ({ navigation }) => {
           {renderTimezoneSelector()}
           {renderEditableList(phones, setPhones, 'phone')}
           {renderEditableList(emails, setEmails, 'email')}
+
+          {toPeopleIri(user) ? (
+            <PeopleAddressesPanel
+              peopleIri={toPeopleIri(user)}
+              title={global.t?.t('people', 'label', 'addresses') || 'Endereços'}
+            />
+          ) : null}
 
           {(hasUnsavedChanges || isSaving) && (
             <TouchableOpacity
