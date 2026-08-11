@@ -21,7 +21,7 @@ export default {
       {
         sortable: true,
         name: 'nickname',
-        editable: false,
+        editable: true,
         label: 'nickname',
         align: 'left',
         format(value, column, row) {
@@ -31,7 +31,7 @@ export default {
       {
         sortable: true,
         name: 'cep',
-        editable: false,
+        editable: true,
         label: 'CEP',
         align: 'left',
         format(value, column, row) {
@@ -41,7 +41,7 @@ export default {
       {
         sortable: true,
         name: 'street',
-        editable: false,
+        editable: true,
         label: 'street',
         align: 'left',
         format(value, column, row) {
@@ -51,7 +51,7 @@ export default {
       {
         sortable: true,
         name: 'number',
-        editable: false,
+        editable: true,
         label: 'number',
         align: 'left',
         format(value, column, row) {
@@ -61,7 +61,7 @@ export default {
       {
         sortable: true,
         name: 'complement',
-        editable: false,
+        editable: true,
         label: 'complement',
         align: 'left',
         format(value, column, row) {
@@ -71,7 +71,7 @@ export default {
       {
         sortable: true,
         name: 'district',
-        editable: false,
+        editable: true,
         label: 'district',
         align: 'left',
         format(value, column, row) {
@@ -81,7 +81,7 @@ export default {
       {
         sortable: true,
         name: 'city',
-        editable: false,
+        editable: true,
         label: 'city',
         align: 'left',
         format(value, column, row) {
@@ -91,7 +91,7 @@ export default {
       {
         sortable: true,
         name: 'state',
-        editable: false,
+        editable: true,
         label: 'state',
         align: 'left',
         format(value, column, row) {
@@ -101,7 +101,7 @@ export default {
       {
         sortable: true,
         name: 'country',
-        editable: false,
+        editable: true,
         label: 'country',
         align: 'left',
         format(value, column, row) {
