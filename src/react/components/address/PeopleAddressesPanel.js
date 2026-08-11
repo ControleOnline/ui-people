@@ -9,9 +9,9 @@ import {
   View,
 } from 'react-native';
 import {useStore} from '@store';
-import AddressForm from '@controleonline/ui-common/src/react/components/address/AddressForm';
+import DefaultAddress from '@controleonline/ui-default/src/react/components/address/DefaultAddress';
 import {buildAddressOptionSummary} from '@controleonline/ui-common/src/react/utils/entityDisplay';
-import {buildAddressSavePayload} from '@controleonline/ui-common/src/react/services/addressGeo';
+import {buildAddressSavePayload} from '@controleonline/ui-default/src/react/services/addressGeo';
 
 /**
  * List + create/edit addresses for a people (person or company) IRI.
@@ -115,7 +115,7 @@ export default function PeopleAddressesPanel({peopleIri, title = 'Endereços'}) 
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
-            <AddressForm
+            <DefaultAddress
               mode={editing && (editing.id || editing['@id']) ? 'edit' : 'create'}
               row={editing && (editing.id || editing['@id']) ? editing : null}
               peopleIri={peopleIri}

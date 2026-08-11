@@ -1,1 +1,1 @@
-export * from '@controleonline/ui-common/src/react/services/addressGeo';
+export * from '@controleonline/ui-default/src/react/services/addressGeo';
