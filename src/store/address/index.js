@@ -132,6 +132,43 @@ export default {
           return row?.openingHours;
         },
       },
+      {
+        sortable: false,
+        name: 'categories',
+        editable: true,
+        label: 'categories',
+        list: 'categories/getItems',
+        searchParam: 'name',
+        multiple: true,
+        format(value, column, row) {
+          const categories = Array.isArray(row?.categories)
+            ? row.categories
+            : Array.isArray(row?.category)
+              ? row.category
+              : [];
+
+          return categories
+            .map(category => category?.name || category?.id || category)
+            .filter(Boolean)
+            .join(', ');
+        },
+        saveFormat(value) {
+          const values = Array.isArray(value)
+            ? value
+            : value
+              ? [value]
+              : [];
+
+          return values.map(category => {
+            if (typeof category === 'string' && category.startsWith('/')) {
+              return category;
+            }
+
+            const id = category?.value || category?.id || category?.['@id'] || category;
+            return id ? '/categories/' + String(id).replace(/\D+/g, '') : null;
+          }).filter(Boolean);
+        },
+      },
     ],
   },
   actions: actions,
