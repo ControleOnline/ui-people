@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -11,44 +11,75 @@ import {
 import {useStore} from '@store';
 import DefaultAddress from '@controleonline/ui-default/src/react/components/address/DefaultAddress';
 import {buildAddressOptionSummary} from '@controleonline/ui-common/src/react/utils/entityDisplay';
-import {buildAddressSavePayload} from '@controleonline/ui-default/src/react/services/addressGeo';
 
 /**
  * List + create/edit addresses for a people (person or company) IRI.
+ *
+ * Load is guarded against infinite re-fetch loops: addressStore must not be
+ * a useCallback dependency (useStore can return a new reference each render),
+ * and concurrent loads for the same peopleIri are coalesced.
  */
 export default function PeopleAddressesPanel({peopleIri, title = 'Endereços'}) {
   const addressStore = useStore('address');
+  const addressStoreRef = useRef(addressStore);
+  addressStoreRef.current = addressStore;
+
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(null); // null | {} create | row edit
   const [modalVisible, setModalVisible] = useState(false);
 
-  const load = useCallback(async () => {
-    if (!peopleIri || !addressStore?.actions?.getItems) {
+  const loadPromiseRef = useRef(null);
+  const lastLoadedIriRef = useRef(null);
+
+  const load = useCallback(async (force = false) => {
+    const store = addressStoreRef.current;
+    if (!peopleIri || !store?.actions?.getItems) {
+      setItems([]);
       return;
     }
+
+    // Skip if already loaded this IRI and not forced (e.g. after save)
+    if (!force && lastLoadedIriRef.current === peopleIri && loadPromiseRef.current == null) {
+      return;
+    }
+
+    // Coalesce concurrent loads
+    if (loadPromiseRef.current) {
+      return loadPromiseRef.current;
+    }
+
     setLoading(true);
     setError(null);
-    try {
-      const result = await addressStore.actions.getItems({
-        people: peopleIri,
-        itemsPerPage: 50,
-      });
-      const list = Array.isArray(result)
-        ? result
-        : result?.member || addressStore.getters?.items || [];
-      setItems(Array.isArray(list) ? list : []);
-    } catch (e) {
-      setError(e?.message || 'Falha ao carregar endereços');
-    } finally {
-      setLoading(false);
-    }
-  }, [peopleIri, addressStore]);
+
+    const promise = (async () => {
+      try {
+        const result = await store.actions.getItems({
+          people: peopleIri,
+          itemsPerPage: 50,
+        });
+        const list = Array.isArray(result)
+          ? result
+          : result?.member || store.getters?.items || [];
+        setItems(Array.isArray(list) ? list : []);
+        lastLoadedIriRef.current = peopleIri;
+      } catch (e) {
+        setError(e?.message || 'Falha ao carregar endereços');
+      } finally {
+        setLoading(false);
+        loadPromiseRef.current = null;
+      }
+    })();
+
+    loadPromiseRef.current = promise;
+    return promise;
+  }, [peopleIri]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    lastLoadedIriRef.current = null; // allow load when peopleIri changes
+    load(true);
+  }, [peopleIri, load]);
 
   const openCreate = () => {
     setEditing({});
@@ -66,13 +97,14 @@ export default function PeopleAddressesPanel({peopleIri, title = 'Endereços'}) 
   };
 
   const saveAction = async payload => {
+    const store = addressStoreRef.current;
     const mode = editing && (editing.id || editing['@id']) ? 'edit' : 'create';
     const body = {...payload, people: peopleIri};
     if (mode === 'edit') {
       body.id = editing['@id'] || editing.id;
     }
-    if (typeof addressStore.actions.save === 'function') {
-      return addressStore.actions.save(body);
+    if (typeof store?.actions?.save === 'function') {
+      return store.actions.save(body);
     }
     throw new Error('address store save indisponível');
   };
@@ -82,12 +114,12 @@ export default function PeopleAddressesPanel({peopleIri, title = 'Endereços'}) 
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
         <TouchableOpacity style={styles.addBtn} onPress={openCreate}>
-          <Text style={styles.addBtnText}>Novo</Text>
+          <Text style={styles.addBtnText}>Adicionar</Text>
         </TouchableOpacity>
       </View>
 
-      {loading ? <ActivityIndicator /> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
+      {loading ? <ActivityIndicator /> : null}
 
       <ScrollView style={styles.list}>
         {items.map(row => {
@@ -123,7 +155,7 @@ export default function PeopleAddressesPanel({peopleIri, title = 'Endereços'}) 
               onCancel={closeModal}
               onSaved={() => {
                 closeModal();
-                load();
+                load(true);
               }}
               submitLabel="Salvar endereço"
             />
