@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -18,9 +18,16 @@ const extractId = value => String(value || '').replace(/\D/g, '');
 
 /**
  * List + create/edit addresses for a people (person or company) IRI.
+ *
+ * Load is guarded against infinite re-fetch loops: addressStore must not be
+ * a useCallback dependency (useStore can return a new reference each render),
+ * and concurrent loads for the same peopleIri are coalesced.
  */
 export default function PeopleAddressesPanel({peopleIri, title = 'Endereços'}) {
   const addressStore = useStore('address');
+  const addressStoreRef = useRef(addressStore);
+  addressStoreRef.current = addressStore;
+
   const themeStore = useStore('theme');
   const {colors: themeColors} = themeStore.getters;
   const {showDialog, showError, showSuccess} = useMessage() || {};
@@ -48,31 +55,54 @@ export default function PeopleAddressesPanel({peopleIri, title = 'Endereços'}) 
   const [modalVisible, setModalVisible] = useState(false);
   const [deletingAddressId, setDeletingAddressId] = useState('');
 
-  const load = useCallback(async () => {
-    if (!peopleIri || !addressStore?.actions?.getItems) {
+  const loadPromiseRef = useRef(null);
+  const lastLoadedIriRef = useRef(null);
+
+  const load = useCallback(async (force = false) => {
+    const store = addressStoreRef.current;
+    if (!peopleIri || !store?.actions?.getItems) {
+      setItems([]);
       return;
     }
+
+    if (!force && lastLoadedIriRef.current === peopleIri && loadPromiseRef.current == null) {
+      return;
+    }
+
+    if (loadPromiseRef.current) {
+      return loadPromiseRef.current;
+    }
+
     setLoading(true);
     setError(null);
-    try {
-      const result = await addressStore.actions.getItems({
-        people: peopleIri,
-        itemsPerPage: 50,
-      });
-      const list = Array.isArray(result)
-        ? result
-        : result?.member || addressStore.getters?.items || [];
-      setItems(Array.isArray(list) ? list : []);
-    } catch (e) {
-      setError(e?.message || 'Falha ao carregar endereços');
-    } finally {
-      setLoading(false);
-    }
-  }, [peopleIri, addressStore]);
+
+    const promise = (async () => {
+      try {
+        const result = await store.actions.getItems({
+          people: peopleIri,
+          itemsPerPage: 50,
+        });
+        const list = Array.isArray(result)
+          ? result
+          : result?.member || store.getters?.items || [];
+        setItems(Array.isArray(list) ? list : []);
+        lastLoadedIriRef.current = peopleIri;
+      } catch (e) {
+        setError(e?.message || 'Falha ao carregar endereços');
+      } finally {
+        setLoading(false);
+        loadPromiseRef.current = null;
+      }
+    })();
+
+    loadPromiseRef.current = promise;
+    return promise;
+  }, [peopleIri]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    lastLoadedIriRef.current = null;
+    load(true);
+  }, [peopleIri, load]);
 
   const openCreate = () => {
     setEditing({});
@@ -90,21 +120,23 @@ export default function PeopleAddressesPanel({peopleIri, title = 'Endereços'}) 
   };
 
   const saveAction = async payload => {
+    const store = addressStoreRef.current;
     const mode = editing && (editing.id || editing['@id']) ? 'edit' : 'create';
     const body = {...payload, people: peopleIri};
     if (mode === 'edit') {
       body.id = editing['@id'] || editing.id;
     }
-    if (typeof addressStore.actions.save === 'function') {
-      return addressStore.actions.save(body);
+    if (typeof store?.actions?.save === 'function') {
+      return store.actions.save(body);
     }
     throw new Error('address store save indisponível');
   };
 
   const removeAddress = async row => {
+    const store = addressStoreRef.current;
     const addressId = extractId(row?.id || row?.['@id']);
 
-    if (!addressId || typeof addressStore.actions.remove !== 'function') {
+    if (!addressId || typeof store?.actions?.remove !== 'function') {
       showError?.('Serviço de endereços indisponível no momento.');
       return;
     }
@@ -112,7 +144,7 @@ export default function PeopleAddressesPanel({peopleIri, title = 'Endereços'}) 
     setDeletingAddressId(addressId);
 
     try {
-      await addressStore.actions.remove(addressId);
+      await store.actions.remove(addressId);
       setItems(currentItems =>
         currentItems.filter(item => extractId(item?.id || item?.['@id']) !== addressId),
       );
@@ -144,24 +176,22 @@ export default function PeopleAddressesPanel({peopleIri, title = 'Endereços'}) 
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
         <TouchableOpacity style={styles.addButton} onPress={openCreate}>
-          <FeatherIcon name="plus" size={16} color={palette.buttonIcon} />
+          <FeatherIcon name="plus" size={18} color={palette.buttonIcon || '#fff'} />
         </TouchableOpacity>
       </View>
 
-      {loading ? <ActivityIndicator color={palette.loadingSpinner} /> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
+      {loading ? <ActivityIndicator color={palette.loadingSpinner} /> : null}
 
       <ScrollView style={styles.list}>
         {items.map(row => {
           const summary = buildAddressOptionSummary(row);
           const key = row['@id'] || row.id;
           const addressId = extractId(row?.id || row?.['@id']);
-          const isDeleting = addressId && deletingAddressId === addressId;
+          const isDeleting = deletingAddressId === addressId;
           return (
             <View key={key} style={styles.card}>
-              <TouchableOpacity
-                style={styles.cardContent}
-                onPress={() => openEdit(row)}>
+              <TouchableOpacity style={styles.cardContent} onPress={() => openEdit(row)}>
                 <Text style={styles.cardPrimary}>
                   {summary.primary || row.nickname || 'Endereço'}
                 </Text>
@@ -172,11 +202,11 @@ export default function PeopleAddressesPanel({peopleIri, title = 'Endereços'}) 
               <TouchableOpacity
                 style={styles.deleteAction}
                 onPress={() => confirmRemoveAddress(row)}
-                disabled={!!isDeleting}>
+                disabled={isDeleting}>
                 {isDeleting ? (
-                  <ActivityIndicator size="small" color={palette.buttonIcon} />
+                  <ActivityIndicator size="small" color={palette.buttonIcon || '#fff'} />
                 ) : (
-                  <FeatherIcon name="trash-2" size={16} color={palette.buttonIcon} />
+                  <FeatherIcon name="trash-2" size={16} color={palette.buttonIcon || '#fff'} />
                 )}
               </TouchableOpacity>
             </View>
@@ -198,7 +228,7 @@ export default function PeopleAddressesPanel({peopleIri, title = 'Endereços'}) 
               onCancel={closeModal}
               onSaved={() => {
                 closeModal();
-                load();
+                load(true);
               }}
               submitLabel="Salvar endereço"
             />
