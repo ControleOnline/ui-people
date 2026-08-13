@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -9,20 +9,44 @@ import {
   View,
 } from 'react-native';
 import {useStore} from '@store';
+import FeatherIcon from 'react-native-vector-icons/Feather';
 import DefaultAddress from '@controleonline/ui-default/src/react/components/address/DefaultAddress';
+import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import {buildAddressOptionSummary} from '@controleonline/ui-common/src/react/utils/entityDisplay';
-import {buildAddressSavePayload} from '@controleonline/ui-default/src/react/services/addressGeo';
+
+const extractId = value => String(value || '').replace(/\D/g, '');
 
 /**
  * List + create/edit addresses for a people (person or company) IRI.
  */
 export default function PeopleAddressesPanel({peopleIri, title = 'Endereços'}) {
   const addressStore = useStore('address');
+  const themeStore = useStore('theme');
+  const {colors: themeColors} = themeStore.getters;
+  const {showDialog, showError, showSuccess} = useMessage() || {};
+  const palette = useMemo(
+    () => ({
+      buttonBackground: themeColors.buttonBackground,
+      buttonIcon: themeColors.buttonIcon,
+      cardBackground: themeColors.cardBackground,
+      cardBorder: themeColors.cardBorder,
+      cardText: themeColors.cardText,
+      loadingSpinner: themeColors.loadingSpinner,
+      modalBackground: themeColors.modalBackground,
+      modalOverlay: themeColors.modalOverlay,
+      textDanger: themeColors.textDanger,
+      textPrimary: themeColors.textPrimary,
+      textSecondary: themeColors.textSecondary,
+    }),
+    [themeColors],
+  );
+  const styles = useMemo(() => createStyles(palette), [palette]);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(null); // null | {} create | row edit
   const [modalVisible, setModalVisible] = useState(false);
+  const [deletingAddressId, setDeletingAddressId] = useState('');
 
   const load = useCallback(async () => {
     if (!peopleIri || !addressStore?.actions?.getItems) {
@@ -77,34 +101,85 @@ export default function PeopleAddressesPanel({peopleIri, title = 'Endereços'}) 
     throw new Error('address store save indisponível');
   };
 
+  const removeAddress = async row => {
+    const addressId = extractId(row?.id || row?.['@id']);
+
+    if (!addressId || typeof addressStore.actions.remove !== 'function') {
+      showError?.('Serviço de endereços indisponível no momento.');
+      return;
+    }
+
+    setDeletingAddressId(addressId);
+
+    try {
+      await addressStore.actions.remove(addressId);
+      setItems(currentItems =>
+        currentItems.filter(item => extractId(item?.id || item?.['@id']) !== addressId),
+      );
+      showSuccess?.('Endereço removido com sucesso.');
+    } catch {
+      showError?.('Falha ao remover endereço. Tente novamente.');
+    } finally {
+      setDeletingAddressId('');
+    }
+  };
+
+  const confirmRemoveAddress = row => {
+    const onConfirm = () => removeAddress(row);
+
+    if (showDialog) {
+      showDialog({
+        title: 'Confirmar exclusão',
+        message: 'Deseja realmente remover este endereço?',
+        onConfirm,
+      });
+      return;
+    }
+
+    onConfirm();
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
-        <TouchableOpacity style={styles.addBtn} onPress={openCreate}>
-          <Text style={styles.addBtnText}>Novo</Text>
+        <TouchableOpacity style={styles.addButton} onPress={openCreate}>
+          <FeatherIcon name="plus" size={16} color={palette.buttonIcon} />
         </TouchableOpacity>
       </View>
 
-      {loading ? <ActivityIndicator /> : null}
+      {loading ? <ActivityIndicator color={palette.loadingSpinner} /> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <ScrollView style={styles.list}>
         {items.map(row => {
           const summary = buildAddressOptionSummary(row);
           const key = row['@id'] || row.id;
+          const addressId = extractId(row?.id || row?.['@id']);
+          const isDeleting = addressId && deletingAddressId === addressId;
           return (
-            <TouchableOpacity
-              key={key}
-              style={styles.card}
-              onPress={() => openEdit(row)}>
-              <Text style={styles.cardPrimary}>
-                {summary.primary || row.nickname || 'Endereço'}
-              </Text>
-              <Text style={styles.cardSecondary}>
-                {summary.secondary || ''}
-              </Text>
-            </TouchableOpacity>
+            <View key={key} style={styles.card}>
+              <TouchableOpacity
+                style={styles.cardContent}
+                onPress={() => openEdit(row)}>
+                <Text style={styles.cardPrimary}>
+                  {summary.primary || row.nickname || 'Endereço'}
+                </Text>
+                <Text style={styles.cardSecondary}>
+                  {summary.secondary || ''}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deleteAction}
+                onPress={() => confirmRemoveAddress(row)}
+                disabled={!!isDeleting}>
+                {isDeleting ? (
+                  <ActivityIndicator size="small" color={palette.buttonIcon} />
+                ) : (
+                  <FeatherIcon name="trash-2" size={16} color={palette.buttonIcon} />
+                )}
+              </TouchableOpacity>
+            </View>
           );
         })}
         {!loading && items.length === 0 ? (
@@ -134,7 +209,7 @@ export default function PeopleAddressesPanel({peopleIri, title = 'Endereços'}) 
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = palette => StyleSheet.create({
   container: {flex: 1, padding: 12},
   header: {
     flexDirection: 'row',
@@ -142,35 +217,54 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  title: {fontSize: 16, fontWeight: '700', color: '#0F172A'},
-  addBtn: {
-    backgroundColor: '#1D4ED8',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+  title: {fontSize: 16, fontWeight: '700', color: palette.textPrimary},
+  addButton: {
+    width: 34,
+    height: 34,
+    borderWidth: 1,
     borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: palette.buttonBackground,
+    borderColor: palette.buttonBackground,
   },
-  addBtnText: {color: '#fff', fontWeight: '600'},
   list: {flex: 1},
   card: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: palette.cardBorder,
     borderRadius: 8,
     padding: 12,
     marginBottom: 8,
-    backgroundColor: '#fff',
+    backgroundColor: palette.cardBackground,
   },
-  cardPrimary: {fontWeight: '600', color: '#0F172A'},
-  cardSecondary: {color: '#64748B', marginTop: 4},
-  empty: {color: '#64748B', marginTop: 12},
-  error: {color: '#B91C1C', marginBottom: 8},
+  cardContent: {
+    flex: 1,
+  },
+  cardPrimary: {fontWeight: '600', color: palette.cardText},
+  cardSecondary: {color: palette.textSecondary, marginTop: 4},
+  deleteAction: {
+    width: 34,
+    height: 34,
+    borderWidth: 1,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 12,
+    backgroundColor: palette.buttonBackground,
+    borderColor: palette.buttonBackground,
+  },
+  empty: {color: palette.textSecondary, marginTop: 12},
+  error: {color: palette.textDanger, marginBottom: 8},
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(15,23,42,0.45)',
+    backgroundColor: palette.modalOverlay,
     justifyContent: 'flex-end',
   },
   modalCard: {
     maxHeight: '90%',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: palette.modalBackground,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     paddingBottom: 24,
