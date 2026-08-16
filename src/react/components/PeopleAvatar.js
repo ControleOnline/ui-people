@@ -16,9 +16,11 @@ const PeopleAvatar = ({
   size = 40,
   style,
   textColor,
+  useGravatar = false,
+  usePeopleImage = true,
 }) => {
   const meta = useMemo(() => resolvePeopleAvatarMeta(people), [people]);
-  const effectiveImageUrl = imageUrl || meta.imageUrl;
+  const effectiveImageUrl = imageUrl || (usePeopleImage ? meta.imageUrl : '');
   const fallbackIcon = meta.isCompany ? 'building' : 'user';
 
   if (!effectiveImageUrl && meta.isCompany) {
@@ -38,7 +40,11 @@ const PeopleAvatar = ({
           },
         ]}
       >
-        <Icon name={fallbackIcon} size={Math.max(Math.round(size * 0.42), 16)} color={iconColor || textColor} />
+        <Icon
+          name={fallbackIcon}
+          size={Math.max(Math.round(size * 0.42), 16)}
+          color={iconColor || textColor}
+        />
       </View>
     );
   }
@@ -54,6 +60,7 @@ const PeopleAvatar = ({
       borderWidth={borderWidth}
       textColor={textColor}
       style={style}
+      useGravatar={useGravatar}
     />
   );
 };
