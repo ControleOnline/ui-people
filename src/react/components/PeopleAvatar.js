@@ -17,7 +17,7 @@ const PeopleAvatar = ({
   style,
   textColor,
   useGravatar = false,
-  usePeopleImage = true,
+  usePeopleImage = false,
 }) => {
   const meta = useMemo(() => resolvePeopleAvatarMeta(people), [people]);
   const effectiveImageUrl = imageUrl || (usePeopleImage ? meta.imageUrl : '');
