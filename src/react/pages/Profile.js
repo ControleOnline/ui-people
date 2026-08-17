@@ -485,6 +485,8 @@ const Profile = ({ navigation }) => {
   const originalEmailIds = useRef([]);
   const originalPhonesSnapshot = useRef([]);
   const originalEmailsSnapshot = useRef([]);
+  const originalPhonesItems = useRef([]);
+  const originalEmailsItems = useRef([]);
   const originalTimezoneSnapshot = useRef('');
   const originalNameSnapshot = useRef('');
   const originalAliasSnapshot = useRef('');
@@ -567,6 +569,8 @@ const Profile = ({ navigation }) => {
         originalEmailIds.current = parsedEmails.map(item => item.id).filter(Boolean);
         originalPhonesSnapshot.current = normalizePhonesForCompare(parsedPhones);
         originalEmailsSnapshot.current = normalizeEmailsForCompare(parsedEmails);
+        originalPhonesItems.current = parsedPhones.map(item => ({ ...item }));
+        originalEmailsItems.current = parsedEmails.map(item => ({ ...item }));
         originalTimezoneSnapshot.current = parsedTimezoneId;
         originalNameSnapshot.current = loadedName;
         originalAliasSnapshot.current = loadedAlias;
@@ -983,6 +987,8 @@ const Profile = ({ navigation }) => {
       originalEmailIds.current = persistedEmails.map(item => item.id).filter(Boolean);
       originalPhonesSnapshot.current = normalizePhonesForCompare(persistedPhones);
       originalEmailsSnapshot.current = normalizeEmailsForCompare(persistedEmails);
+      originalPhonesItems.current = persistedPhones.map(item => ({ ...item }));
+      originalEmailsItems.current = persistedEmails.map(item => ({ ...item }));
       originalTimezoneSnapshot.current = persistedTimezoneId;
       originalNameSnapshot.current = normalizedName;
       originalAliasSnapshot.current = normalizedAlias;
@@ -1010,6 +1016,15 @@ const Profile = ({ navigation }) => {
 
       showSuccess?.(global.t?.t("people", "success", "Data saved successfully."));
     } catch (error) {
+      // Restore local form state on failure so a uniqueness/API error does not leave
+      // the UI with a value that was never persisted (app-community#5).
+      setEmails(originalEmailsItems.current.map(item => ({ ...item })));
+      setPhones(originalPhonesItems.current.map(item => ({ ...item })));
+      setProfileName(originalNameSnapshot.current || '');
+      setProfileAlias(originalAliasSnapshot.current || '');
+      setSelectedTimezoneId(originalTimezoneSnapshot.current || '');
+      setIsEditingName(false);
+      setIsEditingAlias(false);
       showError?.(error?.message || global.t?.t("people", "error", "Unable to save profile data."));
     } finally {
       setIsSaving(false);
