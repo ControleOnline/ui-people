@@ -512,6 +512,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
                 placeholderTextColor="#6c757d"
                 keyboardType="numeric"
                 maxLength={10}
+                editable={true}
               />
             </View>
           </View>
