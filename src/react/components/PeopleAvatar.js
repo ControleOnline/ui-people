@@ -19,8 +19,11 @@ const PeopleAvatar = ({
   useGravatar = false,
   usePeopleImage = false,
 }) => {
-  const meta = useMemo(() => resolvePeopleAvatarMeta(people), [people]);
-  const effectiveImageUrl = imageUrl || (usePeopleImage ? meta.imageUrl : '');
+  const meta = useMemo(
+    () => resolvePeopleAvatarMeta(people, {usePeopleImage}),
+    [people, usePeopleImage],
+  );
+  const effectiveImageUrl = imageUrl || meta.imageUrl;
   const fallbackIcon = meta.isCompany ? 'building' : 'user';
 
   if (!effectiveImageUrl && meta.isCompany) {
@@ -59,8 +62,8 @@ const PeopleAvatar = ({
       borderColor={borderColor}
       borderWidth={borderWidth}
       textColor={textColor}
-      style={style}
       useGravatar={useGravatar}
+      style={style}
     />
   );
 };

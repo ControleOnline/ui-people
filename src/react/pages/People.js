@@ -306,6 +306,8 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
               borderWidth={1}
               textColor={palette.iconInverse}
               iconColor={palette.iconInverse}
+              useGravatar={contextConfig.useGravatar}
+              usePeopleImage={contextConfig.usePeopleImage}
               style={styles.avatar}
             />
 
