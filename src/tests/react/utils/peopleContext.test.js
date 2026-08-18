@@ -33,6 +33,19 @@ describe('peopleContext', () => {
     expect(config.defaultType).toBe('prospect')
     expect(config.enableExistingOwnerSelection).toBe(true)
     expect(config.hasTypeFilter).toBe(true)
+    expect(config.useGravatar).toBe(false)
+    expect(config.usePeopleImage).toBe(false)
+  })
+
+  it('preserves explicit avatar network options for page consumers', () => {
+    const config = buildPeopleContextConfig({
+      context: 'client',
+      useGravatar: true,
+      usePeopleImage: true,
+    })
+
+    expect(config.useGravatar).toBe(true)
+    expect(config.usePeopleImage).toBe(true)
   })
 
   it('falls back to the first available type when the default is not valid', () => {

@@ -129,6 +129,10 @@ export const resolvePeopleImageUrl = (
   resolveImageUrl = resolveFileImageUrl,
   options = {},
 ) => {
+  if (options.usePeopleImage === false) {
+    return '';
+  }
+
   const candidate = resolvePeopleImageCandidate(people);
 
   return typeof resolveImageUrl === 'function'
@@ -138,7 +142,10 @@ export const resolvePeopleImageUrl = (
 
 export const resolvePeopleAvatarMeta = (people, options = {}) => ({
   email: resolvePeopleAvatarEmail(people),
-  imageUrl: resolvePeopleImageUrl(people, options.resolveImageUrl, options.fileOptions),
+  imageUrl: resolvePeopleImageUrl(people, options.resolveImageUrl, {
+    ...options.fileOptions,
+    usePeopleImage: options.usePeopleImage,
+  }),
   isCompany: isCompanyPeople(people),
   name: resolvePeopleDisplayName(people),
 });

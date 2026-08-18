@@ -44,6 +44,23 @@ describe('peopleImage', () => {
     expect(calls).toEqual([[{id: 8}, {}]])
   })
 
+  it('suppresses optional people image lookups when disabled', () => {
+    const calls = []
+    const resolver = file => {
+      calls.push(file)
+      return file?.id ? `/files/${file.id}/download` : ''
+    }
+
+    expect(
+      resolvePeopleImageUrl(
+        {peopleType: 'F', image: {id: 9}},
+        resolver,
+        {usePeopleImage: false},
+      ),
+    ).toBe('')
+    expect(calls).toEqual([])
+  })
+
   it('extracts the first usable people email', () => {
     expect(
       resolvePeopleAvatarEmail({

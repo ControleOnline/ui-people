@@ -153,6 +153,8 @@ export const buildPeopleContextConfig = (context = {}) => {
       resolvePeopleContextLabel(defaultType, context),
     modalTitle: resolvePeopleContextModalTitle(defaultType, context),
     enableExistingOwnerSelection: Boolean(context?.enableExistingOwnerSelection),
+    useGravatar: Boolean(context?.useGravatar),
+    usePeopleImage: Boolean(context?.usePeopleImage),
     options: resolvedTypes.map(type => ({
       key: type,
       label: resolvePeopleContextLabel(type, context),

@@ -16,8 +16,13 @@ const PeopleAvatar = ({
   size = 40,
   style,
   textColor,
+  useGravatar = false,
+  usePeopleImage = false,
 }) => {
-  const meta = useMemo(() => resolvePeopleAvatarMeta(people), [people]);
+  const meta = useMemo(
+    () => resolvePeopleAvatarMeta(people, {usePeopleImage}),
+    [people, usePeopleImage],
+  );
   const effectiveImageUrl = imageUrl || meta.imageUrl;
   const fallbackIcon = meta.isCompany ? 'building' : 'user';
 
@@ -53,6 +58,7 @@ const PeopleAvatar = ({
       borderColor={borderColor}
       borderWidth={borderWidth}
       textColor={textColor}
+      useGravatar={useGravatar}
       style={style}
     />
   );
