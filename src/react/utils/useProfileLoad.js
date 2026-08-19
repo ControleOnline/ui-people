@@ -22,6 +22,27 @@ import {
   fetchTimezonesCached,
 } from '@controleonline/ui-people/src/react/utils/profileFormUtils';
 
+/**
+ * Pure guard used by fetchUser to avoid re-entry / re-fetch loops (React #185).
+ * Exported for unit coverage of the coalescence rules.
+ *
+ * @param {{ inFlight: boolean, hasInitiallyLoaded: boolean, forceRefresh?: boolean }} state
+ * @returns {'in-flight' | 'already-loaded' | 'run'}
+ */
+export function shouldSkipProfileFetch({
+  inFlight,
+  hasInitiallyLoaded,
+  forceRefresh = false,
+}) {
+  if (inFlight) {
+    return 'in-flight';
+  }
+  if (hasInitiallyLoaded && !forceRefresh) {
+    return 'already-loaded';
+  }
+  return 'run';
+}
+
 export function useProfileLoad({
   userIdKey,
   peopleIriKey,
@@ -59,13 +80,19 @@ export function useProfileLoad({
   const hasInitiallyLoadedRef = useRef(false);
 
   const fetchUser = useCallback(async (forceRefresh = false) => {
+    const decision = shouldSkipProfileFetch({
+      inFlight: Boolean(fetchPromiseRef.current),
+      hasInitiallyLoaded: hasInitiallyLoadedRef.current,
+      forceRefresh,
+    });
+
     // Evita requisições duplicadas quando já há uma em andamento
-    if (fetchPromiseRef.current) {
+    if (decision === 'in-flight') {
       return fetchPromiseRef.current;
     }
 
     // Se já carregou inicialmente e não é refresh forçado, não recarrega
-    if (hasInitiallyLoadedRef.current && !forceRefresh) {
+    if (decision === 'already-loaded') {
       return;
     }
 
