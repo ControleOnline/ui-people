@@ -20,7 +20,7 @@ export const normalizePeopleType = value =>
     .trim()
     .toUpperCase();
 
-export const normalizeIdentityValue = value => formatDisplayUppercase(value);
+export const normalizeIdentityValue = value => String(value ?? "").replace(/\s+/g, " ").trim();
 
 export const extractId = value => String(value || '').replace(/\D/g, '');
 

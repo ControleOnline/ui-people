@@ -10,9 +10,6 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AnimatedModal from '@controleonline/ui-common/src/react/components/AnimatedModal';
 import { useMessage } from '@controleonline/ui-common/src/react/components/MessageService';
-import {
-  uppercaseText,
-} from '@controleonline/ui-common/src/react/utils/entityDisplay';
 import { useStore } from '@store';
 import {
   LINK_TYPE_OPTIONS,
@@ -318,7 +315,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
               <TextInput
                 value={formData.name}
                 onChangeText={text =>
-                  setFormData(prev => ({ ...prev, name: uppercaseText(text) }))
+                  setFormData(prev => ({ ...prev, name: text }))
                 }
                 placeholder={namePlaceholder}
                 style={inlineStyle_300_14}
@@ -331,7 +328,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
               <TextInput
                 value={formData.alias}
                 onChangeText={text =>
-                  setFormData(prev => ({ ...prev, alias: uppercaseText(text) }))
+                  setFormData(prev => ({ ...prev, alias: text }))
                 }
                 placeholder={aliasPlaceholder}
                 style={inlineStyle_327_14}
