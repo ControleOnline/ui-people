@@ -182,8 +182,59 @@ const mockProfileApi = async page => {
   );
 };
 
+const isReactUpdateDepthError = text => {
+  const normalized = String(text || '').toLowerCase();
+  return (
+    normalized.includes('maximum update depth exceeded') ||
+    normalized.includes('react error #185') ||
+    normalized.includes('nested updates to prevent infinite loops')
+  );
+};
+
 test.describe('profile page browser smoke', () => {
+  test('opens profile-page without React #185 update-depth loop', async ({page}) => {
+    const updateDepthErrors = [];
+    page.on('console', message => {
+      if (message.type() === 'error' && isReactUpdateDepthError(message.text())) {
+        updateDepthErrors.push(message.text());
+      }
+    });
+    page.on('pageerror', error => {
+      if (isReactUpdateDepthError(error?.message || error)) {
+        updateDepthErrors.push(String(error?.message || error));
+      }
+    });
+
+    await mockProfileApi(page);
+    await page.goto('/profile-page?store=auth');
+
+    await expect(page.getByText('Profile', {exact: true})).toBeVisible({
+      timeout: 15000,
+    });
+
+    // Stability window: a setState loop would re-fire and surface #185 within a few frames.
+    await page.waitForTimeout(1500);
+    await expect(page.getByText('Profile', {exact: true})).toBeVisible();
+
+    expect(
+      updateDepthErrors,
+      `React #185 (Maximum update depth exceeded) must not occur on profile-page. Seen: ${JSON.stringify(updateDepthErrors)}`,
+    ).toEqual([]);
+  });
+
   test('opens the shared avatar manager before the system file chooser', async ({page}) => {
+    const updateDepthErrors = [];
+    page.on('console', message => {
+      if (message.type() === 'error' && isReactUpdateDepthError(message.text())) {
+        updateDepthErrors.push(message.text());
+      }
+    });
+    page.on('pageerror', error => {
+      if (isReactUpdateDepthError(error?.message || error)) {
+        updateDepthErrors.push(String(error?.message || error));
+      }
+    });
+
     await mockProfileApi(page);
 
     await page.goto('/profile-page?store=auth');
@@ -198,5 +249,10 @@ test.describe('profile page browser smoke', () => {
     const fileChooserPromise = page.waitForEvent('filechooser');
     await page.getByText('Enviar nova', {exact: true}).click();
     await expect(fileChooserPromise).resolves.toBeTruthy();
+
+    expect(
+      updateDepthErrors,
+      `React #185 must not occur while interacting with avatar manager. Seen: ${JSON.stringify(updateDepthErrors)}`,
+    ).toEqual([]);
   });
 });
