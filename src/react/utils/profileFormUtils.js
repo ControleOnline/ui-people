@@ -6,9 +6,6 @@
 import { resolveFileImageUrl } from '@controleonline/ui-common/src/react/utils/fileUrl';
 import { resolveUserPeopleIri } from '@controleonline/ui-common/src/react/utils/userAvatar';
 import { resolvePeopleImageUrl } from '@controleonline/ui-people/src/react/utils/peopleImage';
-import {
-  formatDisplayUppercase,
-} from '@controleonline/ui-common/src/react/utils/entityDisplay';
 
 export const extractPhoneDigits = value =>
   String(value || '')
@@ -173,18 +170,14 @@ export const validateEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 export const normalizeEmailValue = value => String(value || '').trim().toLowerCase();
 
 export const normalizeNameValue = value =>
-  formatDisplayUppercase(
-    String(value || '')
-      .replace(/\s+/g, ' ')
-      .trim(),
-  );
+  String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 export const normalizeAliasValue = value =>
-  formatDisplayUppercase(
-    String(value || '')
-      .replace(/\s+/g, ' ')
-      .trim(),
-  );
+  String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 export const toTimezoneItem = entry => {
   if (!entry) {

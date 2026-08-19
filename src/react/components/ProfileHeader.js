@@ -15,7 +15,6 @@ import DefaultUpload from '@controleonline/ui-default/src/react/components/uploa
 import { getAvatarDisplayName } from '@controleonline/ui-common/src/react/utils/userAvatar';
 import {
   formatDisplayUppercase,
-  uppercaseText,
 } from '@controleonline/ui-common/src/react/utils/entityDisplay';
 import {
   extractId,
@@ -113,7 +112,7 @@ export default function ProfileHeader({
               <TextInput
                 style={styles.userNameInput}
                 value={profileName}
-                onChangeText={text => setProfileName(uppercaseText(text))}
+                onChangeText={text => setProfileName(text)}
                 placeholder={global.t?.t("people", "placeholder", "emailLogin")}
                 placeholderTextColor={palette.textSecondary}
                 maxLength={80}
@@ -140,7 +139,7 @@ export default function ProfileHeader({
               <TextInput
                 style={styles.userAliasInput}
                 value={profileAlias}
-                onChangeText={text => setProfileAlias(uppercaseText(text))}
+                onChangeText={text => setProfileAlias(text)}
                 placeholder={global.t?.t("people", "placeholder", "alias")}
                 placeholderTextColor={palette.textSecondary}
                 maxLength={40}
