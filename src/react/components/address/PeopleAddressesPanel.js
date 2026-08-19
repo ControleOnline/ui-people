@@ -240,14 +240,22 @@ export default function PeopleAddressesPanel({peopleIri, title = 'Endereços'}) 
 }
 
 const createStyles = palette => StyleSheet.create({
-  container: {flex: 1, padding: 12},
+  // Alinhado ao padrão section/cardItem de Profile (people css) — app-community#373
+  container: {
+    marginBottom: 24,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
+    paddingHorizontal: 4,
   },
-  title: {fontSize: 16, fontWeight: '700', color: palette.textPrimary},
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: palette.textPrimary,
+  },
   addButton: {
     width: 34,
     height: 34,
@@ -258,22 +266,33 @@ const createStyles = palette => StyleSheet.create({
     backgroundColor: palette.buttonBackground,
     borderColor: palette.buttonBackground,
   },
-  list: {flex: 1},
+  list: {},
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: palette.cardBorder,
-    borderRadius: 8,
+    backgroundColor: palette.cardBackground,
+    borderRadius: 12,
     padding: 12,
     marginBottom: 8,
-    backgroundColor: palette.cardBackground,
+    shadowColor: '#64748B',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
   },
   cardContent: {
     flex: 1,
   },
-  cardPrimary: {fontWeight: '600', color: palette.cardText},
-  cardSecondary: {color: palette.textSecondary, marginTop: 4},
+  cardPrimary: {
+    fontWeight: '600',
+    fontSize: 15,
+    color: palette.cardText || palette.textPrimary,
+  },
+  cardSecondary: {
+    color: palette.textSecondary,
+    marginTop: 4,
+    fontSize: 13,
+  },
   deleteAction: {
     width: 34,
     height: 34,
@@ -285,7 +304,11 @@ const createStyles = palette => StyleSheet.create({
     backgroundColor: palette.buttonBackground,
     borderColor: palette.buttonBackground,
   },
-  empty: {color: palette.textSecondary, marginTop: 12},
+  empty: {
+    color: palette.textSecondary,
+    marginTop: 4,
+    paddingHorizontal: 4,
+  },
   error: {color: palette.textDanger, marginBottom: 8},
   modalBackdrop: {
     flex: 1,
