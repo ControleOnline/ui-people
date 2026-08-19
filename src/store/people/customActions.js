@@ -22,12 +22,36 @@ const normalizeCollection = (payload) => {
 };
 
 const extractId = value => {
-  if (value === null || value === undefined) {
+  if (value === null || value === undefined || value === '') {
     return '';
   }
 
-  const raw = typeof value === 'string' ? value : value?.id || value?.['@id'];
-  const match = String(raw || '').match(/(\d+)$/);
+  // Plain numeric id (common from API hydra members and DefaultUpload rows)
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return String(Math.trunc(value));
+  }
+
+  if (typeof value === 'string') {
+    const match = value.match(/(\d+)$/);
+    return match ? match[1] : '';
+  }
+
+  // Object: prefer explicit mediaId, then id / @id
+  const raw =
+    value?.mediaId ??
+    value?.id ??
+    value?.['@id'] ??
+    null;
+
+  if (raw === null || raw === undefined || raw === '') {
+    return '';
+  }
+
+  if (typeof raw === 'number' && Number.isFinite(raw)) {
+    return String(Math.trunc(raw));
+  }
+
+  const match = String(raw).match(/(\d+)$/);
   return match ? match[1] : '';
 };
 
