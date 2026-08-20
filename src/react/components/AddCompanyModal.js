@@ -14,7 +14,6 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import AnimatedModal from '@controleonline/ui-common/src/react/components/AnimatedModal';
 import { useMessage } from '@controleonline/ui-common/src/react/components/MessageService';
 import {
-  formatDisplayUppercase,
   uppercaseText,
 } from '@controleonline/ui-common/src/react/utils/entityDisplay';
 import { useStore } from '@store';
@@ -22,6 +21,22 @@ import {
   buildPeopleContextConfig,
   normalizePeopleContextType,
 } from '@controleonline/ui-people/src/react/utils/peopleContext';
+import {
+  buildAuthenticatedPersonLinkPayload,
+  resolveAuthenticatedPeopleIri,
+  resolveMyCompaniesLinkType,
+} from '@controleonline/ui-people/src/react/utils/myCompaniesCreate';
+import { toBrDateString, formatDateInput, parseBrDateInput } from '@controleonline/ui-people/src/react/utils/addCompanyDate';
+import {
+  LINK_TYPE_OPTIONS,
+  OWNER_LINK_TYPE,
+  FRANCHISE_LINK_TYPE,
+  normalizePeopleType,
+  normalizeIdentityValue,
+  toPeopleIri,
+  buildExistingOwnerLabel,
+} from '@controleonline/ui-people/src/react/utils/addCompanyFormHelpers';
+import { useExistingOwnerOptions } from '@controleonline/ui-people/src/react/hooks/useExistingOwnerOptions';
 
 import {
   inlineStyle_233_6,
@@ -47,76 +62,24 @@ import {
   inlineStyle_424_14,
   inlineStyle_433_14,
   inlineStyle_447_16,
-  inlineStyle_462_18,
-  inlineStyle_466_16,
-  inlineStyle_475_20,
-  inlineStyle_482_18,
-  inlineStyle_495_20,
-  inlineStyle_502_18,
-  inlineStyle_disabledContactInput,
-  inlineStyle_516_14,
-  inlineStyle_ownerHeaderRow,
-  inlineStyle_ownerHeaderColumn,
-  inlineStyle_ownerFieldsRow,
-  inlineStyle_ownerFieldColumn,
-  inlineStyle_ownerPickerWrap,
-  inlineStyle_525_18,
-  inlineStyle_532_20,
-  inlineStyle_540_26,
   inlineStyle_559_10,
   inlineStyle_571_12,
   inlineStyle_580_14,
   inlineStyle_595_12,
   inlineStyle_603_14,
 } from './AddCompanyModal.styles';
+;
 
-const LINK_TYPE_OPTIONS = [
-  { value: 'employee', translationKey: 'employee' },
-  { value: 'owner', translationKey: 'owner' },
-  { value: 'director', translationKey: 'director' },
-  { value: 'manager', translationKey: 'manager' },
-  { value: 'courier', translationKey: 'courier' },
-];
-
-const OWNER_LINK_TYPE = 'owner';
-const FRANCHISE_LINK_TYPE = 'franchisee';
-
-const normalizePeopleType = value =>
-  String(value ?? '')
-    .trim()
-    .toUpperCase();
-const normalizeIdentityValue = value => formatDisplayUppercase(value);
-const extractId = value => String(value || '').replace(/\D/g, '');
-const toPeopleIri = value => {
-  const directIri = String(value?.['@id'] || '').trim();
-  if (directIri.startsWith('/people/')) {
-    return directIri;
-  }
-
-  const id = extractId(value?.id || value);
-  return id ? `/people/${id}` : '';
-};
-const buildExistingOwnerLabel = owner =>
-  formatDisplayUppercase(owner?.name || owner?.alias || `#${extractId(owner?.id || owner?.['@id'])}`);
-
-const toBrDateString = date => {
-  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
-    return '';
-  }
-
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = String(date.getFullYear());
-  return `${day}/${month}/${year}`;
-};
-
-const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
+const AddCompanyModal = ({ visible, onClose, context, onSuccess, autoLinkAuthenticatedPerson = false }) => {
   const peopleStore = useStore('people');
   const getters  = peopleStore.getters;
   const actions  = peopleStore.actions;
   const peopleLinkStore = useStore('people_link');
   const peopleLinkActions = peopleLinkStore?.actions || {};
+  const authStore = useStore('auth');
   const { currentCompany } = getters;
+  const { user } = authStore?.getters || {};
+  const shouldAutoLinkAuthenticatedPerson = Boolean(autoLinkAuthenticatedPerson);
 
   const { showError } = useMessage();
   const contextConfig = buildPeopleContextConfig(context);
@@ -126,12 +89,16 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
       label: '',
     })),
   );
-  const [existingOwnerOptions, setExistingOwnerOptions] = useState([]);
-  const [isLoadingExistingOwners, setIsLoadingExistingOwners] = useState(false);
   const canSelectExistingOwner =
     Boolean(contextConfig.enableExistingOwnerSelection) &&
     normalizePeopleContextType(contextConfig.defaultType || context?.context) ===
       FRANCHISE_LINK_TYPE;
+  const { existingOwnerOptions, isLoadingExistingOwners } = useExistingOwnerOptions({
+    visible,
+    canSelectExistingOwner,
+    currentCompanyId: currentCompany?.id,
+    loadCandidates: actions.franchiseOwnerCandidates,
+  });
 
   const buildInitialFormData = registrationLinkType => {
     const defaultDate = new Date();
@@ -164,7 +131,9 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
   const isPessoaJuridica = formData.peopleType === 'J';
   const hasSelectedExistingOwner = String(formData.selectedExistingOwnerIri || '').startsWith('/people/');
   const shouldDisableManualContactFields =
-    isPessoaJuridica && canSelectExistingOwner && hasSelectedExistingOwner;
+    isPessoaJuridica &&
+    (shouldAutoLinkAuthenticatedPerson ||
+      (canSelectExistingOwner && hasSelectedExistingOwner));
   const nameLabel = isPessoaFisica ? global.t?.t('people', 'label', 'nameRequired') : global.t?.t('people', 'label', 'companyNameRequired');
   const namePlaceholder = isPessoaFisica
     ? global.t?.t('people', 'placeholder', 'enterName')
@@ -195,53 +164,6 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
     setFormData(buildInitialFormData(contextConfig.defaultType));
   }, [contextConfig.defaultType, visible]);
 
-  useEffect(() => {
-    if (!visible || !canSelectExistingOwner || !currentCompany?.id) {
-      setExistingOwnerOptions([]);
-      setIsLoadingExistingOwners(false);
-      return;
-    }
-
-    let cancelled = false;
-
-    const loadExistingOwners = async () => {
-      setIsLoadingExistingOwners(true);
-
-      try {
-        const response = await actions.franchiseOwnerCandidates({
-          companyId: currentCompany.id,
-        });
-
-        const ownerOptions = response.map(owner => ({
-          value: toPeopleIri(owner),
-          label: buildExistingOwnerLabel(owner),
-        }));
-
-        if (!cancelled) {
-          setExistingOwnerOptions(
-            ownerOptions
-              .filter(option => option.value)
-              .sort((left, right) => left.label.localeCompare(right.label)),
-          );
-        }
-      } catch {
-        if (!cancelled) {
-          setExistingOwnerOptions([]);
-        }
-        showError(global.t?.t('people', 'error', 'franchiseOwnerCandidatesLoadFailed'));
-      } finally {
-        if (!cancelled) {
-          setIsLoadingExistingOwners(false);
-        }
-      }
-    };
-
-    loadExistingOwners();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [visible, canSelectExistingOwner, currentCompany?.id]);
 
   const handleSave = async () => {
     if (!formData.name.trim() || !formData.alias.trim()) {
@@ -253,7 +175,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
       return;
     }
 
-    if (isPessoaJuridica) {
+    if (isPessoaJuridica && !shouldAutoLinkAuthenticatedPerson) {
       if (!hasSelectedExistingOwner) {
         if (
           !String(formData.firstEmployeeName || '').trim() ||
@@ -270,33 +192,27 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
       }
     }
 
+    if (isPessoaJuridica && shouldAutoLinkAuthenticatedPerson) {
+      if (!resolveAuthenticatedPeopleIri(user)) {
+        showError(
+          global.t?.t('people', 'error', 'authenticatedPersonRequired') ||
+            'Nao foi possivel identificar a pessoa do usuario autenticado.',
+        );
+        return;
+      }
+    }
+
     setIsLoading(true);
     try {
       let parsedFoundationDate = formData.foundationDate;
       if (formData.foundationDateInput) {
-        const normalized = formatDateInput(formData.foundationDateInput);
-        if (normalized.length !== 10) {
+        const parsed = parseBrDateInput(formData.foundationDateInput);
+        if (parsed.error) {
           showError(global.t?.t('people', 'error', 'invalidDateFormat'));
           setIsLoading(false);
           return;
         }
-
-        const [day, month, year] = normalized
-          .split('/')
-          .map(part => parseInt(part, 10));
-        const candidate = new Date(year, month - 1, day);
-        const validDate =
-          candidate.getFullYear() === year &&
-          candidate.getMonth() === month - 1 &&
-          candidate.getDate() === day;
-
-        if (!validDate) {
-          showError(global.t?.t('people', 'error', 'invalidDateFormat'));
-          setIsLoading(false);
-          return;
-        }
-
-        parsedFoundationDate = candidate;
+        parsedFoundationDate = parsed.date;
       }
 
       // O vinculo principal respeita o tipo selecionado no cadastro atual.
@@ -315,11 +231,29 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
         company: currentCompany ? '/people/' + currentCompany.id : null,
       };
 
+      // Never persist "all" as linkType on the company payload.
+      if (shouldAutoLinkAuthenticatedPerson) {
+        companyData.linkType = resolveMyCompaniesLinkType(registrationLinkType);
+      }
+
       const savedCompany = await actions.save(companyData);
 
       /* cria o contato PF vinculado à empresa PJ recém criada */
       if (isPessoaJuridica && savedCompany?.id) {
-        if (hasSelectedExistingOwner) {
+        if (shouldAutoLinkAuthenticatedPerson) {
+          const linkPayload = buildAuthenticatedPersonLinkPayload({
+            companyId: savedCompany.id,
+            user,
+            linkType: registrationLinkType,
+          });
+          if (!linkPayload) {
+            throw new Error(
+              global.t?.t('people', 'error', 'authenticatedPersonRequired') ||
+                'Nao foi possivel vincular a pessoa autenticada a empresa.',
+            );
+          }
+          await peopleLinkActions.save(linkPayload);
+        } else if (hasSelectedExistingOwner) {
           await peopleLinkActions.save({
             company: `/people/${savedCompany.id}`,
             people: formData.selectedExistingOwnerIri,
@@ -354,43 +288,14 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
     onClose();
   };
 
-  const formatDateInput = text => {
-    const numbers = String(text || '').replace(/\D/g, '').slice(0, 8);
-    if (!numbers) {
-      return '';
-    }
-
-    if (numbers.length <= 2) {
-      return numbers;
-    }
-
-    if (numbers.length <= 4) {
-      return `${numbers.slice(0, 2)}/${numbers.slice(2)}`;
-    }
-
-    return `${numbers.slice(0, 2)}/${numbers.slice(2, 4)}/${numbers.slice(4)}`;
-  };
-
   const handleDateChange = text => {
     const formatted = formatDateInput(text);
-    setFormData(prev => ({ ...prev, foundationDateInput: formatted }));
-
-    if (formatted.length === 10) {
-      const parts = formatted.split('/');
-      const day = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10) - 1;
-      const year = parseInt(parts[2], 10);
-
-      if (day >= 1 && day <= 31 && month >= 0 && month <= 11 && year >= 1900) {
-        const newDate = new Date(year, month, day);
-        if (!isNaN(newDate.getTime())) {
-          setFormData(prev => ({
-            ...prev,
-            foundationDate: newDate,
-          }));
-        }
-      }
-    }
+    const parsed = formatted.length === 10 ? parseBrDateInput(formatted) : null;
+    setFormData(prev => ({
+      ...prev,
+      foundationDateInput: formatted,
+      ...(parsed && parsed.date ? { foundationDate: parsed.date } : {}),
+    }));
   };
 
   return (
@@ -516,170 +421,16 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
             </View>
           </View>
           
-          {isPessoaJuridica && (
-            <View style={inlineStyle_462_18}>
-
-              
-              {canSelectExistingOwner ? (
-                <>
-                  <View style={inlineStyle_ownerHeaderRow}>
-                    <View style={inlineStyle_ownerHeaderColumn}>
-                      <Text
-                        style={inlineStyle_466_16}>
-                        {global.t?.t('people','title','contactLinked')}
-                      </Text>
-                    </View>
-                    <View style={inlineStyle_ownerHeaderColumn}>
-                      <Text
-                        style={inlineStyle_466_16}>
-                        {global.t?.t('people', 'label', 'existingOwner')}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={inlineStyle_ownerFieldsRow}>
-                    <View style={inlineStyle_ownerFieldColumn}>
-                      <View style={inlineStyle_475_20}>
-                        <TextInput
-                          value={formData.firstEmployeeName}
-                          onChangeText={text =>
-                            setFormData(prev => ({ ...prev, firstEmployeeName: uppercaseText(text) }))
-                          }
-                          placeholder={global.t?.t('people','placeholder','contactName')}
-                          style={[
-                            inlineStyle_482_18,
-                            shouldDisableManualContactFields ? inlineStyle_disabledContactInput : null,
-                          ]}
-                          placeholderTextColor="#6c757d"
-                          editable={!shouldDisableManualContactFields}
-                        />
-                      </View>
-                    </View>
-
-                    <View style={inlineStyle_ownerFieldColumn}>
-                      <View style={inlineStyle_475_20}>
-                        <View style={inlineStyle_ownerPickerWrap}>
-                          <Picker
-                            selectedValue={formData.selectedExistingOwnerIri}
-                            enabled={!isLoadingExistingOwners}
-                            onValueChange={value =>
-                              setFormData(prev => ({
-                                ...prev,
-                                selectedExistingOwnerIri: value,
-                                contactLinkType: value ? OWNER_LINK_TYPE : '',
-                              }))
-                            }>
-                            <Picker.Item
-                              label={
-                                isLoadingExistingOwners
-                                  ? global.t?.t('people', 'label', 'loadingOwners')
-                                  : existingOwnerOptions.length > 0
-                                    ? global.t?.t('people', 'label', 'selectExistingOwner')
-                                    : global.t?.t('people', 'label', 'noOwnerFound')
-                              }
-                              value=""
-                            />
-                            {existingOwnerOptions.map(option => (
-                              <Picker.Item
-                                key={option.value}
-                                label={option.label}
-                                value={option.value}
-                              />
-                            ))}
-                          </Picker>
-                        </View>
-                      </View>
-                    </View>
-                  </View>
-                </>
-              ) : (
-                <>
-                  <Text
-                    style={inlineStyle_466_16}>
-                    {global.t?.t('people','title','contactLinked')}
-                  </Text>
-
-                  <View style={inlineStyle_475_20}>
-                    <TextInput
-                      value={formData.firstEmployeeName}
-                      onChangeText={text =>
-                        setFormData(prev => ({ ...prev, firstEmployeeName: uppercaseText(text) }))
-                      }
-                      placeholder={global.t?.t('people','placeholder','contactName')}
-                      style={[
-                        inlineStyle_482_18,
-                        shouldDisableManualContactFields
-                          ? inlineStyle_disabledContactInput
-                          : null,
-                      ]}
-                      placeholderTextColor="#6c757d"
-                      editable={!shouldDisableManualContactFields}
-                    />
-                  </View>
-                </>
-              )}
-
-              <View style={inlineStyle_495_20}>
-                <TextInput
-                  value={formData.firstEmployeeAlias}
-                  onChangeText={text =>
-                    setFormData(prev => ({ ...prev, firstEmployeeAlias: uppercaseText(text) }))
-                  }
-                  placeholder={global.t?.t('people','placeholder','contactAlias')}
-                  style={[
-                    inlineStyle_502_18,
-                    shouldDisableManualContactFields
-                      ? inlineStyle_disabledContactInput
-                      : null,
-                  ]}
-                  placeholderTextColor="#6c757d"
-                  editable={!shouldDisableManualContactFields}
-                />
-              </View>
-
-              <Text
-                style={inlineStyle_516_14}>
-                {global.t?.t('people', 'label', 'contactRole')}
-              </Text>
-
-              {shouldDisableManualContactFields ? (
-                <View style={inlineStyle_525_18}>
-                  <TouchableOpacity
-                    activeOpacity={1}
-                    style={inlineStyle_532_20({
-                      isSelected: true,
-                    })}>
-                    <Text style={inlineStyle_540_26({
-                      isSelected: true,
-                    })}>
-                      {linkTypeOptions.find(option => option.value === OWNER_LINK_TYPE)?.label}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <View style={inlineStyle_525_18}>
-                  {linkTypeOptions.map(option => {
-                    const isSelected = formData.contactLinkType === option.value;
-                    return (
-                      <TouchableOpacity
-                        key={option.value}
-                        onPress={() =>
-                          setFormData(prev => ({ ...prev, contactLinkType: option.value }))
-                        }
-                        style={inlineStyle_532_20({
-                          isSelected: isSelected,
-                        })}>
-                        <Text style={inlineStyle_540_26({
-                          isSelected: isSelected,
-                        })}>
-                          {option.label}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              )}
-            </View>
+          {isPessoaJuridica && !shouldAutoLinkAuthenticatedPerson && (
+            <AddCompanyContactFields
+              formData={formData}
+              setFormData={setFormData}
+              canSelectExistingOwner={canSelectExistingOwner}
+              existingOwnerOptions={existingOwnerOptions}
+              isLoadingExistingOwners={isLoadingExistingOwners}
+              shouldDisableManualContactFields={shouldDisableManualContactFields}
+              linkTypeOptions={linkTypeOptions}
+            />
           )}
 
         </ScrollView>
