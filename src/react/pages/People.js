@@ -392,6 +392,7 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
         onClose={() => setShowAddCompanyModal(false)}
         context={runtimeContext}
         onSuccess={handleCreateSuccess}
+        autoLinkAuthenticatedPerson={isCompanyScope}
       />
 
       <Modal
