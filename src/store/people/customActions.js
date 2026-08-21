@@ -121,14 +121,16 @@ export const uploadPeopleMedia = (_context, payload = {}) => {
   const mediaTypeId = extractId(normalizedPayload.mediaTypeId || normalizedPayload.mediaType);
   const file = normalizedPayload.file;
 
-  if (!peopleIri || !mediaTypeId || !file) {
+  if (!peopleIri || !file) {
     throw new Error('Nao foi possivel identificar a midia para envio.');
   }
 
   const formData = new FormData();
   formData.append('file', file);
   formData.append('people', peopleIri);
-  formData.append('media_type_id', String(mediaTypeId));
+  if (mediaTypeId) {
+    formData.append('media_type_id', String(mediaTypeId));
+  }
 
   return api
     .upload('/people_media/upload', formData)
