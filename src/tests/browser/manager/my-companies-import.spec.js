@@ -264,3 +264,24 @@ test.describe('my companies page browser smoke', () => {
     await expect.poll(() => detailRequests.length).toBeGreaterThan(0);
   });
 });
+
+test.describe('clients page browser smoke', () => {
+  test('opens the clients list and add form without page errors', async ({page}) => {
+    const pageErrors = [];
+    page.on('pageerror', error => pageErrors.push(error.message));
+
+    await mockMyCompaniesApi(page);
+    await page.goto('/clients-index');
+
+    await expect(page.getByText('ACME', {exact: true})).toBeVisible({timeout: 15000});
+
+    const addButton = page.getByRole('button', {name: 'add'});
+    await expect(addButton).toBeVisible();
+    await addButton.click();
+
+    await expect(
+      page.getByText(/Individual|Pessoa f[ií]sica/i).first(),
+    ).toBeVisible({timeout: 5000});
+    expect(pageErrors).toEqual([]);
+  });
+});

@@ -37,6 +37,7 @@ import {
   buildExistingOwnerLabel,
 } from '@controleonline/ui-people/src/react/utils/addCompanyFormHelpers';
 import { useExistingOwnerOptions } from '@controleonline/ui-people/src/react/hooks/useExistingOwnerOptions';
+import AddCompanyContactFields from './AddCompanyContactFields';
 
 import {
   inlineStyle_233_6,
