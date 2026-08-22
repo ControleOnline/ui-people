@@ -126,7 +126,10 @@ const mockMyCompaniesApi = async page => {
       peopleQueries.push({
         companyPeople: url.searchParams.get('company.people'),
         linkTypes: url.searchParams.getAll('company.linkType[]'),
+        linkLinkType: url.searchParams.get('link.linkType'),
+        linkCompany: url.searchParams.get('link.company'),
         search: url.searchParams.get('search'),
+        query: url.search,
       });
 
       return route.fulfill({
@@ -136,13 +139,21 @@ const mockMyCompaniesApi = async page => {
       });
     }
 
-    if (pathname === 'people/41' && method === 'GET') {
+    if (/^people\/\d+$/.test(pathname) && method === 'GET') {
       detailRequests.push(pathname);
 
       return route.fulfill({
         status: 200,
         headers: jsonHeaders(),
-        body: JSON.stringify(peopleItem),
+        body: JSON.stringify(
+          pathname === 'people/41'
+            ? peopleItem
+            : {
+                ...peopleItem,
+                id: Number(pathname.split('/')[1]),
+                '@id': `/${pathname}`,
+              },
+        ),
       });
     }
 
@@ -262,6 +273,37 @@ test.describe('my companies page browser smoke', () => {
 
     await page.getByText('ACME', {exact: true}).first().click();
     await expect.poll(() => detailRequests.length).toBeGreaterThan(0);
+    // Dedicated MyCompanyDetails route must be registered (not a silent no-op).
+    await expect(page).toHaveURL(/my-company-details/i, {timeout: 10000});
+  });
+});
+
+test.describe('clients page browser smoke', () => {
+  test('opens the clients list and add form without page errors or duplicate list fetches', async ({page}) => {
+    const pageErrors = [];
+    page.on('pageerror', error => pageErrors.push(error.message));
+
+    const {peopleQueries} = await mockMyCompaniesApi(page);
+    await page.goto('/clients-index');
+
+    await expect(page.getByText('ACME', {exact: true})).toBeVisible({timeout: 15000});
+
+    // Wait for list traffic to settle, then assert a single list query for clients.
+    await page.waitForTimeout(1500);
+    const clientListQueries = peopleQueries.filter(
+      q => q.linkLinkType === 'client' || (q.query || '').includes('link.linkType=client'),
+    );
+    expect(clientListQueries.length).toBeGreaterThan(0);
+    expect(clientListQueries.length).toBe(1);
+
+    const addButton = page.getByRole('button', {name: 'add'});
+    await expect(addButton).toBeVisible();
+    await addButton.click();
+
+    await expect(
+      page.getByText(/Individual|Pessoa f[ií]sica/i).first(),
+    ).toBeVisible({timeout: 5000});
+    expect(pageErrors).toEqual([]);
   });
 });
 
