@@ -3,6 +3,7 @@ import People from '@controleonline/ui-people/src/react/pages/People';
 import {
   ALL_PEOPLE_LINK_TYPES_KEY,
   HUMAN_COMPANY_LINK_TYPES,
+  normalizeEntityId,
 } from '@controleonline/ui-people/src/react/utils/peopleLinkFilters';
 
 /**
@@ -22,7 +23,9 @@ const MyCompaniesPage = () => (
       emptySubtitle: 'Nenhum vinculo humano com empresa foi encontrado.',
       detailsRouteName: 'MyCompanyDetails',
       detailsRouteParams: (client, selectedLinkType) => {
-        const clientId = String(client?.id || client?.['@id'] || '').replace(/\D/g, '');
+        const clientId =
+          normalizeEntityId(client?.id ?? client?.['@id']) ||
+          normalizeEntityId(client?.company?.id ?? client?.company?.['@id']);
         return {
           clientId,
           contextKey:

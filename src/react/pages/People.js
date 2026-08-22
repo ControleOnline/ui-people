@@ -31,6 +31,7 @@ import {
   ALL_PEOPLE_LINK_TYPES_KEY,
   buildParentCompanyRequestParams,
   buildPeopleLinkRequestParams,
+  normalizeEntityId,
 } from '@controleonline/ui-people/src/react/utils/peopleLinkFilters';
 import {
   isCompanyPeople,
@@ -231,16 +232,30 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
 
   const handleEdit = useCallback(
     client => {
-      const clientId = String(client?.id || client?.['@id'] || '').replace(/\D/g, '');
+      // Resolve people id from common list shapes (direct people, nested company, IRI).
+      const clientId =
+        normalizeEntityId(client?.id ?? client?.['@id']) ||
+        normalizeEntityId(client?.company?.id ?? client?.company?.['@id']) ||
+        normalizeEntityId(client?.people?.id ?? client?.people?.['@id']);
       if (!clientId) {
         return;
       }
 
-      actions?.setItem?.(client);
+      const peoplePayload =
+        client && typeof client === 'object'
+          ? client.company && typeof client.company === 'object'
+            ? client.company
+            : client
+          : null;
+
+      if (peoplePayload) {
+        actions?.setItem?.(peoplePayload);
+      }
+
       const detailsRouteName = context?.detailsRouteName || 'ClientDetails';
-      const detailsRouteParams =
+      const baseParams =
         typeof context?.detailsRouteParams === 'function'
-          ? context.detailsRouteParams(client, selectedLinkType)
+          ? context.detailsRouteParams(peoplePayload || client, selectedLinkType)
           : (context?.detailsRouteParams || {
               clientId,
               contextKey:
@@ -249,7 +264,25 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
                   : String(selectedLinkType || ''),
             });
 
-      navigation.push(detailsRouteName, detailsRouteParams);
+      const detailsRouteParams = {
+        ...(baseParams && typeof baseParams === 'object' ? baseParams : {}),
+        clientId: String(baseParams?.clientId || clientId),
+        // Seed for details screen so first paint does not depend only on store.
+        client: peoplePayload || client,
+      };
+
+      try {
+        if (typeof navigation?.navigate === 'function') {
+          navigation.navigate(detailsRouteName, detailsRouteParams);
+        } else if (typeof navigation?.push === 'function') {
+          navigation.push(detailsRouteName, detailsRouteParams);
+        }
+      } catch (err) {
+        // Fallback: CRM client-details route always registered.
+        if (detailsRouteName !== 'ClientDetails' && typeof navigation?.navigate === 'function') {
+          navigation.navigate('ClientDetails', detailsRouteParams);
+        }
+      }
     },
     [actions, context?.detailsRouteName, context?.detailsRouteParams, navigation, selectedLinkType],
   );
@@ -294,7 +327,7 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
       return (
         <TouchableOpacity
           style={[styles.card, styles.contactCard, cardStyle]}
-          onPress={openRow || (() => handleEdit(people))}
+          onPress={() => handleEdit(people)}
           activeOpacity={0.8}
         >
           <View style={styles.cardHeader}>
