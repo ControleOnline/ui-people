@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import {useStore} from '@store';
 import FeatherIcon from 'react-native-vector-icons/Feather';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import DefaultAddress from '@controleonline/ui-default/src/react/components/address/DefaultAddress';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import {buildAddressOptionSummary} from '@controleonline/ui-common/src/react/utils/entityDisplay';
@@ -37,6 +38,7 @@ export default function PeopleAddressesPanel({peopleIri, title = 'Endereços'}) 
       buttonIcon: themeColors.buttonIcon,
       cardBackground: themeColors.cardBackground,
       cardBorder: themeColors.cardBorder,
+      cardIcon: themeColors.cardIcon || themeColors.textSecondary,
       cardText: themeColors.cardText,
       loadingSpinner: themeColors.loadingSpinner,
       modalBackground: themeColors.modalBackground,
@@ -176,7 +178,7 @@ export default function PeopleAddressesPanel({peopleIri, title = 'Endereços'}) 
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
         <TouchableOpacity style={styles.addButton} onPress={openCreate}>
-          <FeatherIcon name="plus" size={18} color={palette.buttonIcon || '#fff'} />
+          <FeatherIcon name="plus" size={16} color={palette.buttonIcon || '#fff'} />
         </TouchableOpacity>
       </View>
 
@@ -190,19 +192,33 @@ export default function PeopleAddressesPanel({peopleIri, title = 'Endereços'}) 
           const addressId = extractId(row?.id || row?.['@id']);
           const isDeleting = deletingAddressId === addressId;
           return (
-            <View key={key} style={styles.card}>
-              <TouchableOpacity style={styles.cardContent} onPress={() => openEdit(row)}>
-                <Text style={styles.cardPrimary}>
+            <View key={key} style={[styles.card, styles.cardWithActions]}>
+              <MaterialIcon
+                name="place"
+                size={20}
+                color={palette.cardIcon}
+                style={styles.cardIcon}
+              />
+              <TouchableOpacity
+                style={styles.cardContent}
+                onPress={() => openEdit(row)}
+                accessibilityRole="button"
+                accessibilityLabel="Editar endereço">
+                <Text style={styles.cardPrimary} numberOfLines={2}>
                   {summary.primary || row.nickname || 'Endereço'}
                 </Text>
-                <Text style={styles.cardSecondary}>
-                  {summary.secondary || ''}
-                </Text>
+                {summary.secondary ? (
+                  <Text style={styles.cardSecondary} numberOfLines={2}>
+                    {summary.secondary}
+                  </Text>
+                ) : null}
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.deleteAction}
                 onPress={() => confirmRemoveAddress(row)}
-                disabled={isDeleting}>
+                disabled={isDeleting}
+                accessibilityRole="button"
+                accessibilityLabel="Remover endereço">
                 {isDeleting ? (
                   <ActivityIndicator size="small" color={palette.buttonIcon || '#fff'} />
                 ) : (
@@ -240,14 +256,14 @@ export default function PeopleAddressesPanel({peopleIri, title = 'Endereços'}) 
 }
 
 const createStyles = palette => StyleSheet.create({
-  // Alinhado ao padrão section/cardItem de Profile (people css) — app-community#373
+  // Espelha sectionContainer / cardItem de Profile (people.css) — app-community#373
   container: {
     marginBottom: 24,
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 12,
     paddingHorizontal: 4,
   },
@@ -259,8 +275,8 @@ const createStyles = palette => StyleSheet.create({
   addButton: {
     width: 34,
     height: 34,
-    borderWidth: 1,
     borderRadius: 8,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: palette.buttonBackground,
@@ -280,8 +296,15 @@ const createStyles = palette => StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
   },
+  cardWithActions: {
+    paddingRight: 4,
+  },
+  cardIcon: {
+    marginRight: 12,
+  },
   cardContent: {
     flex: 1,
+    minWidth: 0,
   },
   cardPrimary: {
     fontWeight: '600',
@@ -290,24 +313,24 @@ const createStyles = palette => StyleSheet.create({
   },
   cardSecondary: {
     color: palette.textSecondary,
-    marginTop: 4,
+    marginTop: 2,
     fontSize: 13,
   },
   deleteAction: {
     width: 34,
     height: 34,
-    borderWidth: 1,
     borderRadius: 8,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 12,
     backgroundColor: palette.buttonBackground,
     borderColor: palette.buttonBackground,
   },
   empty: {
     color: palette.textSecondary,
-    marginTop: 4,
-    paddingHorizontal: 4,
+    fontStyle: 'italic',
+    fontSize: 14,
+    marginLeft: 4,
   },
   error: {color: palette.textDanger, marginBottom: 8},
   modalBackdrop: {
