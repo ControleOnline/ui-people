@@ -202,17 +202,6 @@ const isProfileCrashError = text => {
 };
 
 
-/** Catches #185 and the ProfileHeader ReferenceError (emails not in scope). */
-const isProfileCrashError = text => {
-  const normalized = String(text || '').toLowerCase();
-  return (
-    isReactUpdateDepthError(text) ||
-    normalized.includes("can't find variable: emails") ||
-    normalized.includes('emails is not defined') ||
-    (normalized.includes('referenceerror') && normalized.includes('emails'))
-  );
-};
-
 test.describe('profile page browser smoke', () => {
   test('opens profile-page without crash (React #185 or emails ReferenceError)', async ({page}) => {
     const profileErrors = [];
