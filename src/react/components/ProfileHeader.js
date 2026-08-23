@@ -152,7 +152,7 @@ export default function ProfileHeader({
             )}
           </View>
           <Text style={styles.userEmail} numberOfLines={1} ellipsizeMode="tail">
-            {emails[0]?.value || getPrimaryEmail(user?.email)}
+            {avatarEmail || ''}
           </Text>
         </View>
 

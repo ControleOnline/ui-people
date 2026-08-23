@@ -190,18 +190,29 @@ const isReactUpdateDepthError = text => {
     normalized.includes('nested updates to prevent infinite loops')
   );
 };
+/** Catches #185 and the ProfileHeader ReferenceError (emails not in scope). */
+const isProfileCrashError = text => {
+  const normalized = String(text || '').toLowerCase();
+  return (
+    isReactUpdateDepthError(text) ||
+    normalized.includes("can't find variable: emails") ||
+    normalized.includes('emails is not defined') ||
+    (normalized.includes('referenceerror') && normalized.includes('emails'))
+  );
+};
+
 
 test.describe('profile page browser smoke', () => {
-  test('opens profile-page without React #185 update-depth loop', async ({page}) => {
-    const updateDepthErrors = [];
+  test('opens profile-page without crash (React #185 or emails ReferenceError)', async ({page}) => {
+    const profileErrors = [];
     page.on('console', message => {
-      if (message.type() === 'error' && isReactUpdateDepthError(message.text())) {
-        updateDepthErrors.push(message.text());
+      if (message.type() === 'error' && isProfileCrashError(message.text())) {
+        profileErrors.push(message.text());
       }
     });
     page.on('pageerror', error => {
-      if (isReactUpdateDepthError(error?.message || error)) {
-        updateDepthErrors.push(String(error?.message || error));
+      if (isProfileCrashError(error?.message || error)) {
+        profileErrors.push(String(error?.message || error));
       }
     });
 
@@ -212,13 +223,13 @@ test.describe('profile page browser smoke', () => {
       timeout: 15000,
     });
 
-    // Stability window: a setState loop would re-fire and surface #185 within a few frames.
+    // Stability window: setState loop or ReferenceError would surface within a few frames.
     await page.waitForTimeout(1500);
     await expect(page.getByText('Profile', {exact: true})).toBeVisible();
 
     expect(
-      updateDepthErrors,
-      `React #185 (Maximum update depth exceeded) must not occur on profile-page. Seen: ${JSON.stringify(updateDepthErrors)}`,
+      profileErrors,
+      `Profile must not crash with React #185 or ReferenceError emails. Seen: ${JSON.stringify(profileErrors)}`,
     ).toEqual([]);
   });
 
