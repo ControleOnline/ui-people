@@ -16,7 +16,10 @@ export const normalizePeopleType = value =>
     .trim()
     .toUpperCase();
 
-export const normalizeIdentityValue = value => formatDisplayUppercase(value);
+export const normalizeIdentityValue = value =>
+  String(value ?? '')
+    .trim()
+    .replace(/\s+/g, ' ');
 
 export const extractId = value => String(value || '').replace(/\D/g, '');
 

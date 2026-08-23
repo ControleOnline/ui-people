@@ -13,9 +13,6 @@ import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AnimatedModal from '@controleonline/ui-common/src/react/components/AnimatedModal';
 import { useMessage } from '@controleonline/ui-common/src/react/components/MessageService';
-import {
-  uppercaseText,
-} from '@controleonline/ui-common/src/react/utils/entityDisplay';
 import { useStore } from '@store';
 import {
   buildPeopleContextConfig,
@@ -338,7 +335,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess, autoLinkAuthent
             </Text>
             <TextInput
               value={formData.name}
-              onChangeText={text => setFormData(prev => ({ ...prev, name: uppercaseText(text) }))}
+              onChangeText={text => setFormData(prev => ({ ...prev, name: text }))}
               placeholder={namePlaceholder}
               style={inlineStyle_300_14}
               placeholderTextColor="#6c757d"
@@ -352,7 +349,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess, autoLinkAuthent
             </Text>
             <TextInput
               value={formData.alias}
-              onChangeText={text => setFormData(prev => ({ ...prev, alias: uppercaseText(text) }))}
+              onChangeText={text => setFormData(prev => ({ ...prev, alias: text }))}
               placeholder={aliasPlaceholder}
               style={inlineStyle_327_14}
               placeholderTextColor="#6c757d"

@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { uppercaseText } from '@controleonline/ui-common/src/react/utils/entityDisplay';
 import {
   inlineStyle_462_18,
   inlineStyle_466_16,
@@ -63,7 +62,7 @@ const AddCompanyContactFields = ({
                         <TextInput
                           value={formData.firstEmployeeName}
                           onChangeText={text =>
-                            setFormData(prev => ({ ...prev, firstEmployeeName: uppercaseText(text) }))
+                            setFormData(prev => ({ ...prev, firstEmployeeName: text }))
                           }
                           placeholder={global.t?.t('people','placeholder','contactName')}
                           style={[
@@ -123,7 +122,7 @@ const AddCompanyContactFields = ({
                     <TextInput
                       value={formData.firstEmployeeName}
                       onChangeText={text =>
-                        setFormData(prev => ({ ...prev, firstEmployeeName: uppercaseText(text) }))
+                        setFormData(prev => ({ ...prev, firstEmployeeName: text }))
                       }
                       placeholder={global.t?.t('people','placeholder','contactName')}
                       style={[
@@ -143,7 +142,7 @@ const AddCompanyContactFields = ({
                 <TextInput
                   value={formData.firstEmployeeAlias}
                   onChangeText={text =>
-                    setFormData(prev => ({ ...prev, firstEmployeeAlias: uppercaseText(text) }))
+                    setFormData(prev => ({ ...prev, firstEmployeeAlias: text }))
                   }
                   placeholder={global.t?.t('people','placeholder','contactAlias')}
                   style={[
