@@ -9,6 +9,9 @@ import {
   isValidEmail,
   validateLinkedContactCommunication,
 } from '@controleonline/ui-people/src/react/utils/companyLinkedContact.js';
+import {
+  normalizeIdentityValue,
+} from '@controleonline/ui-people/src/react/utils/addCompanyFormHelpers.js';
 
 test('formatPhoneValue applies the expected mask for linked contact phones', () => {
   assert.equal(formatPhoneValue('11987654321'), '(11) 98765-4321');
@@ -139,4 +142,12 @@ test('persistLinkedContactCommunication fails fast when channel stores are unava
       }),
     /servicos de e-mail e telefone nao estao disponiveis/i,
   );
+});
+
+
+test('normalizeIdentityValue preserves mixed case and only trims whitespace', () => {
+  assert.equal(normalizeIdentityValue('  Cláudia Silva  '), 'Cláudia Silva');
+  assert.equal(normalizeIdentityValue('ACME Ltda'), 'ACME Ltda');
+  assert.equal(normalizeIdentityValue('kibelicia   comida  árabe'), 'kibelicia comida árabe');
+  assert.equal(normalizeIdentityValue(''), '');
 });
