@@ -227,14 +227,17 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess, autoLinkAuthent
         alias: normalizeIdentityValue(formData.alias),
         foundationDate: parsedFoundationDate.toISOString().split('T')[0],
         peopleType: formData.peopleType,
-        linkType: registrationLinkType,
         'extra-data': {},
-        company: currentCompany ? '/people/' + currentCompany.id : null,
       };
 
-      // Never persist "all" as linkType on the company payload.
+      // Generic create (client/CRM/etc.): register under current company + role.
+      // My Companies auto-link: do NOT attach currentCompany/linkType here —
+      // the authenticated person link is created explicitly via people_links.
       if (shouldAutoLinkAuthenticatedPerson) {
-        companyData.linkType = resolveMyCompaniesLinkType(registrationLinkType);
+        // omit company + linkType so postPersist does not invent an unrelated link
+      } else {
+        companyData.linkType = registrationLinkType;
+        companyData.company = currentCompany ? '/people/' + currentCompany.id : null;
       }
 
       const savedCompany = await actions.save(companyData);
@@ -251,6 +254,11 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess, autoLinkAuthent
             throw new Error(
               global.t?.t('people', 'error', 'authenticatedPersonRequired') ||
                 'Nao foi possivel vincular a pessoa autenticada a empresa.',
+            );
+          }
+          if (typeof peopleLinkActions.save !== 'function') {
+            throw new Error(
+              'people_link store indisponivel para vincular a pessoa autenticada.',
             );
           }
           await peopleLinkActions.save(linkPayload);
