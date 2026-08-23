@@ -132,15 +132,29 @@ const mockMyCompaniesApi = async page => {
         query: url.search,
       });
 
+      // Include nested company shape (list row that only exposes company.id) for #463.
+      const nestedShape = {
+        company: {
+          '@id': '/people/55',
+          id: 55,
+          name: 'NESTED CO LTDA',
+          alias: 'NESTED CO',
+          peopleType: 'J',
+          enable: true,
+        },
+        link: {linkType: 'owner', company: '/people/3'},
+      };
+
       return route.fulfill({
         status: 200,
         headers: jsonHeaders(),
-        body: JSON.stringify(collection([peopleItem])),
+        body: JSON.stringify(collection([peopleItem, nestedShape])),
       });
     }
 
     if (/^people\/\d+$/.test(pathname) && method === 'GET') {
       detailRequests.push(pathname);
+      const id = Number(pathname.split('/')[1]);
 
       return route.fulfill({
         status: 200,
@@ -148,11 +162,20 @@ const mockMyCompaniesApi = async page => {
         body: JSON.stringify(
           pathname === 'people/41'
             ? peopleItem
-            : {
-                ...peopleItem,
-                id: Number(pathname.split('/')[1]),
-                '@id': `/${pathname}`,
-              },
+            : pathname === 'people/55'
+              ? {
+                  '@id': '/people/55',
+                  id: 55,
+                  name: 'NESTED CO LTDA',
+                  alias: 'NESTED CO',
+                  peopleType: 'J',
+                  enable: true,
+                }
+              : {
+                  ...peopleItem,
+                  id,
+                  '@id': `/${pathname}`,
+                },
         ),
       });
     }
@@ -275,6 +298,47 @@ test.describe('my companies page browser smoke', () => {
     await expect.poll(() => detailRequests.length).toBeGreaterThan(0);
     // Dedicated MyCompanyDetails route must be registered (not a silent no-op).
     await expect(page).toHaveURL(/my-company-details/i, {timeout: 10000});
+  });
+
+  // app-community#463 — rework smoke: click must navigate (no no-op), no pageerror
+  test('click on company card navigates to MyCompanyDetails without pageerror (#463)', async ({
+    page,
+  }) => {
+    const pageErrors = [];
+    page.on('pageerror', error => pageErrors.push(String(error?.message || error)));
+
+    const {detailRequests} = await mockMyCompaniesApi(page);
+    await page.goto('/my-companies-page');
+
+    await expect(page.getByText('Minhas empresas', {exact: true})).toBeVisible({
+      timeout: 15000,
+    });
+    const companyCard = page.getByText('ACME', {exact: true}).first();
+    await expect(companyCard).toBeVisible({timeout: 15000});
+
+    await companyCard.click();
+
+    await expect.poll(() => detailRequests.length, {timeout: 10000}).toBeGreaterThan(0);
+    await expect(page).toHaveURL(/my-company-details/i, {timeout: 10000});
+    // Must not stay on list route (would indicate silent no-op).
+    await expect(page).not.toHaveURL(/my-companies-page/i);
+    expect(pageErrors).toEqual([]);
+
+    // Second company (nested company.id shape) — back then click.
+    await page.goBack();
+    await expect(page.getByText('Minhas empresas', {exact: true})).toBeVisible({
+      timeout: 10000,
+    });
+    const nestedCard = page.getByText('NESTED CO', {exact: true}).first();
+    await expect(nestedCard).toBeVisible({timeout: 10000});
+    const beforeNested = detailRequests.length;
+    await nestedCard.click();
+    await expect
+      .poll(() => detailRequests.length, {timeout: 10000})
+      .toBeGreaterThan(beforeNested);
+    await expect(page).toHaveURL(/my-company-details/i, {timeout: 10000});
+    await expect(page).not.toHaveURL(/my-companies-page/i);
+    expect(pageErrors).toEqual([]);
   });
 });
 
