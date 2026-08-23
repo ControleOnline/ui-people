@@ -190,7 +190,6 @@ const isReactUpdateDepthError = text => {
     normalized.includes('nested updates to prevent infinite loops')
   );
 };
-
 /** Catches #185 and the ProfileHeader ReferenceError (emails not in scope). */
 const isProfileCrashError = text => {
   const normalized = String(text || '').toLowerCase();
@@ -201,6 +200,7 @@ const isProfileCrashError = text => {
     (normalized.includes('referenceerror') && normalized.includes('emails'))
   );
 };
+
 
 test.describe('profile page browser smoke', () => {
   test('opens profile-page without crash (React #185 or emails ReferenceError)', async ({page}) => {
