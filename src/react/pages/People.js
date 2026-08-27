@@ -21,7 +21,6 @@ import PeopleAvatar from '@controleonline/ui-people/src/react/components/PeopleA
 import DefaultExternalFilters from '@controleonline/ui-default/src/react/components/filters/DefaultExternalFilters';
 import DefaultTable from '@controleonline/ui-default/src/react/components/table/DefaultTable';
 import ImportsPage from '@controleonline/ui-common/src/react/pages/Imports';
-import { formatDisplayUppercase } from '@controleonline/ui-common/src/react/utils/entityDisplay';
 import {
   buildPeopleContextConfig,
   normalizePeopleContextType,
@@ -319,8 +318,8 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
 
   const renderPeopleCard = useCallback(
     ({ item: people, openRow }) => {
-      const displayName = formatDisplayUppercase(resolvePeopleDisplayName(people));
-      const legalName = formatDisplayUppercase(people?.name || people?.alias);
+      const displayName = String(resolvePeopleDisplayName(people) ?? '').replace(/\s+/g, ' ').trim();
+      const legalName = String(people?.name || people?.alias || '').replace(/\s+/g, ' ').trim();
       const contactLine = renderContactLine(people);
       const peopleTypeLabel = isCompanyPeople(people) ? 'PJ' : 'PF';
 

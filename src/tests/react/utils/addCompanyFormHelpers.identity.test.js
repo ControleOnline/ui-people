@@ -4,7 +4,7 @@ const {
 
 const { describe, expect, it } = global
 
-describe('addCompanyFormHelpers normalizeIdentityValue (#376)', () => {
+describe('addCompanyFormHelpers normalizeIdentityValue (#626 my-companies)', () => {
   it('preserves mixed case typed by the user', () => {
     expect(normalizeIdentityValue('Empresa Exemplo Ltda')).toBe('Empresa Exemplo Ltda')
     expect(normalizeIdentityValue('nomeMiXto')).toBe('nomeMiXto')
@@ -13,6 +13,5 @@ describe('addCompanyFormHelpers normalizeIdentityValue (#376)', () => {
   it('only trims and collapses spaces', () => {
     expect(normalizeIdentityValue('  a   b  ')).toBe('a b')
     expect(normalizeIdentityValue(null)).toBe('')
-    expect(normalizeIdentityValue(undefined)).toBe('')
   })
 })

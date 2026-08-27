@@ -1,4 +1,3 @@
-import { formatDisplayUppercase } from '@controleonline/ui-common/src/react/utils/entityDisplay';
 import {
   normalizePeopleContextType,
 } from '@controleonline/ui-people/src/react/utils/peopleContext';
@@ -35,7 +34,7 @@ export const toPeopleIri = value => {
 };
 
 export const buildExistingOwnerLabel = owner =>
-  formatDisplayUppercase(
+  normalizeIdentityValue(
     owner?.name || owner?.alias || `#${extractId(owner?.id || owner?.['@id'])}`,
   );
 
