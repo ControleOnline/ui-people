@@ -1,4 +1,3 @@
-import { formatDisplayUppercase } from '@controleonline/ui-common/src/react/utils/entityDisplay';
 
 export const LINK_TYPE_OPTIONS = [
   { value: 'employee', translationKey: 'employee' },
@@ -16,7 +15,7 @@ export const normalizePeopleType = value =>
     .trim()
     .toUpperCase();
 
-export const normalizeIdentityValue = value => formatDisplayUppercase(value);
+export const normalizeIdentityValue = value => String(value ?? "").replace(/\s+/g, " ").trim();
 
 export const extractId = value => String(value || '').replace(/\D/g, '');
 
@@ -31,6 +30,6 @@ export const toPeopleIri = value => {
 };
 
 export const buildExistingOwnerLabel = owner =>
-  formatDisplayUppercase(
+  normalizeIdentityValue(
     owner?.name || owner?.alias || `#${extractId(owner?.id || owner?.['@id'])}`,
   );
