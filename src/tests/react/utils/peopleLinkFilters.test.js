@@ -1,6 +1,8 @@
 const {
   ALL_PEOPLE_LINK_TYPES_KEY,
   HUMAN_COMPANY_LINK_TYPES,
+  HUMAN_COMPANY_LINK_TYPE_OPTIONS,
+  isHumanCompanyLinkType,
   buildParentCompanyRequestParams,
   buildPeopleLinkRequestParams,
 } = require('@controleonline/ui-people/src/react/utils/peopleLinkFilters')
@@ -30,6 +32,28 @@ describe('peopleLinkFilters', () => {
       'company.people': '/people/7',
       'company.linkType': HUMAN_COMPANY_LINK_TYPES,
     })
+  })
+
+
+  it('exposes a reusable catalog of human company link types for UI options', () => {
+    expect(HUMAN_COMPANY_LINK_TYPES).toEqual([
+      'employee',
+      'owner',
+      'director',
+      'manager',
+      'salesman',
+      'after-sales',
+      'courier',
+    ])
+    expect(new Set(HUMAN_COMPANY_LINK_TYPES).size).toBe(
+      HUMAN_COMPANY_LINK_TYPES.length,
+    )
+    expect(HUMAN_COMPANY_LINK_TYPE_OPTIONS.map(option => option.value)).toEqual(
+      HUMAN_COMPANY_LINK_TYPES,
+    )
+    expect(isHumanCompanyLinkType('salesman')).toBe(true)
+    expect(isHumanCompanyLinkType('after-sales')).toBe(true)
+    expect(isHumanCompanyLinkType('unknown')).toBe(false)
   })
 
   it('keeps a selected human link type when filtering my companies', () => {

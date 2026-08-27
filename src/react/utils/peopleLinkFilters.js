@@ -10,6 +10,20 @@ export const HUMAN_COMPANY_LINK_TYPES = [
   'courier',
 ];
 
+export const HUMAN_COMPANY_LINK_TYPE_OPTIONS = HUMAN_COMPANY_LINK_TYPES.map(
+  value => ({
+    value,
+    translationKey: value,
+  }),
+);
+
+export const isHumanCompanyLinkType = value =>
+  HUMAN_COMPANY_LINK_TYPES.includes(
+    String(value || '')
+      .trim()
+      .toLowerCase(),
+  );
+
 export const normalizeEntityId = value => {
   if (value && typeof value === 'object') {
     return normalizeEntityId(value.value ?? value.id ?? value['@id'] ?? '');
