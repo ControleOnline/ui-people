@@ -24,8 +24,11 @@ export const normalizeIdentityValue = value => String(value ?? "").replace(/\s+/
 export const extractId = value => String(value || '').replace(/\D/g, '');
 
 export const toPeopleIri = value => {
-  const directIri = String(value?.['@id'] || '').trim();
-  if (directIri.startsWith('/people/')) {
+  const directIri = String(value?.['@id'] || value || '').trim();
+  if (directIri.includes(':id') || directIri.includes('{id}')) {
+    return '';
+  }
+  if (/^\/people\/\d+$/.test(directIri)) {
     return directIri;
   }
 
@@ -118,6 +121,7 @@ export const validateAddCompanyForm = ({
   hasSelectedExistingOwner,
   canSelectExistingOwner,
   shouldRequireManualRole,
+  skipLinkedContact = false,
 }) => {
   if (!String(formData.name || '').trim()) {
     return { ok: false, errorKey: 'nameRequired' };
@@ -131,7 +135,7 @@ export const validateAddCompanyForm = ({
     return { ok: false, errorKey: 'invalidDateFormat' };
   }
 
-  if (isPessoaJuridica && !hasSelectedExistingOwner) {
+  if (isPessoaJuridica && !hasSelectedExistingOwner && !skipLinkedContact) {
     if (
       !String(formData.firstEmployeeName || '').trim() ||
       !String(formData.firstEmployeeAlias || '').trim()
@@ -154,6 +158,7 @@ export const validateAddCompanyForm = ({
 
   if (
     isPessoaJuridica &&
+    !skipLinkedContact &&
     canSelectExistingOwner &&
     hasSelectedExistingOwner === false &&
     shouldRequireManualRole &&

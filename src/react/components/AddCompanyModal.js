@@ -33,6 +33,7 @@ import {
   normalizePeopleContextType,
 } from '@controleonline/ui-people/src/react/utils/peopleContext';
 import AddCompanyLinkedContactSection from './AddCompanyLinkedContactSection';
+import { buildAuthenticatedPersonLinkPayload } from '@controleonline/ui-people/src/react/utils/myCompaniesCreate';
 import {
   inlineStyle_233_6,
   inlineStyle_235_8,
@@ -64,7 +65,13 @@ import {
   inlineStyle_603_14,
 } from './AddCompanyModal.styles';
 
-const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
+const AddCompanyModal = ({
+  visible,
+  onClose,
+  context,
+  onSuccess,
+  autoLinkAuthenticatedPerson = false,
+}) => {
   const peopleStore = useStore('people');
   const getters = peopleStore.getters;
   const actions = peopleStore.actions;
@@ -72,7 +79,9 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
   const peopleLinkActions = peopleLinkStore?.actions || {};
   const emailsActions = useStore('emails')?.actions || {};
   const phonesActions = useStore('phones')?.actions || {};
+  const authStore = useStore('auth');
   const { currentCompany } = getters;
+  const { user } = authStore?.getters || {};
   const { showError } = useMessage();
 
   const contextConfig = buildPeopleContextConfig(context);
@@ -207,6 +216,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
         hasSelectedExistingOwner,
         canSelectExistingOwner,
         shouldRequireManualRole,
+        skipLinkedContact: autoLinkAuthenticatedPerson,
       });
 
       if (!validation.ok) {
@@ -220,22 +230,44 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
         normalizePeopleContextType(context?.context) ||
         'employee';
 
-      const companyData = {
-        name: normalizeIdentityValue(formData.name),
-        alias: normalizeIdentityValue(formData.alias),
-        foundationDate: validation.parsedFoundationDate
-          .toISOString()
-          .split('T')[0],
-        peopleType: formData.peopleType,
-        linkType: registrationLinkType,
-        'extra-data': {},
-        company: currentCompany ? '/people/' + currentCompany.id : null,
-      };
+      const companyData = autoLinkAuthenticatedPerson
+        ? {
+            name: normalizeIdentityValue(formData.name),
+            alias: normalizeIdentityValue(formData.alias),
+            foundationDate: validation.parsedFoundationDate
+              .toISOString()
+              .split('T')[0],
+            peopleType: formData.peopleType,
+            'extra-data': {},
+          }
+        : {
+            name: normalizeIdentityValue(formData.name),
+            alias: normalizeIdentityValue(formData.alias),
+            foundationDate: validation.parsedFoundationDate
+              .toISOString()
+              .split('T')[0],
+            peopleType: formData.peopleType,
+            linkType: registrationLinkType,
+            'extra-data': {},
+            company: currentCompany ? '/people/' + currentCompany.id : null,
+          };
 
       const savedCompany = await actions.save(companyData);
       const savedCompanyId = extractId(savedCompany?.id || savedCompany?.['@id']);
 
-      if (isPessoaJuridica && savedCompanyId) {
+      if (autoLinkAuthenticatedPerson && savedCompanyId) {
+        const linkPayload = buildAuthenticatedPersonLinkPayload({
+          companyId: savedCompanyId,
+          user,
+          linkType: OWNER_LINK_TYPE,
+        });
+        if (!linkPayload) {
+          throw new Error(
+            'Nao foi possivel resolver a pessoa autenticada para vincular a nova empresa.',
+          );
+        }
+        await peopleLinkActions.save(linkPayload);
+      } else if (isPessoaJuridica && savedCompanyId) {
         if (hasSelectedExistingOwner) {
           await peopleLinkActions.save({
             company: `/people/${savedCompanyId}`,
@@ -397,7 +429,7 @@ const AddCompanyModal = ({ visible, onClose, context, onSuccess }) => {
               </View>
             </View>
 
-            {isPessoaJuridica && (
+            {isPessoaJuridica && !autoLinkAuthenticatedPerson && (
               <AddCompanyLinkedContactSection
                 formData={formData}
                 setFormData={setFormData}

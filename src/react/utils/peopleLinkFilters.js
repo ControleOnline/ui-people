@@ -29,7 +29,12 @@ export const normalizeEntityId = value => {
     return normalizeEntityId(value.value ?? value.id ?? value['@id'] ?? '');
   }
 
-  const match = String(value ?? '').match(/\d+/g);
+  const raw = String(value ?? '').trim();
+  if (!raw || raw.includes(':id') || raw.includes('{id}')) {
+    return '';
+  }
+
+  const match = raw.match(/\d+/g);
   return match ? match[match.length - 1] : '';
 };
 
