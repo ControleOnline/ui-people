@@ -168,6 +168,7 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
       {
         key: 'add',
         icon: 'plus',
+        testID: isCompanyScope ? 'my-companies-add' : 'people-add',
         style: {
           backgroundColor: palette.buttonBackground,
           borderColor: palette.buttonBorder,
@@ -176,7 +177,7 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
         onPress: () => setShowAddCompanyModal(true),
       },
     ],
-    [palette],
+    [palette, isCompanyScope],
   );
 
   const requestParams = useMemo(
