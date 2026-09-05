@@ -223,9 +223,9 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
   const handleLinkTypeFiltersChange = useCallback(
     nextFilters => {
       const rawLinkType = nextFilters?.['link.linkType'];
-      const selectedValue = Array.isArray(rawLinkType)
-        ? rawLinkType[0]
-        : rawLinkType?.value ?? rawLinkType;
+      const rawSelectedValue = Array.isArray(rawLinkType) ? rawLinkType[0] : rawLinkType;
+      const selectedValue =
+        rawSelectedValue?.value ?? rawSelectedValue?.key ?? rawSelectedValue;
       const nextLinkType = normalizePeopleContextType(selectedValue) || contextConfig.defaultType;
       setSelectedLinkType(
         contextConfig.availableTypes.includes(nextLinkType)
