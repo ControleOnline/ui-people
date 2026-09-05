@@ -429,6 +429,7 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
           searchKey="search"
           searchPlaceholder={activeSearchPlaceholder}
           showSearch
+          showColumnFiltersButton={false}
           showRowActions={false}
           storeName="people"
           toolbarActions={toolbarActions}
