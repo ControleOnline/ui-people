@@ -274,7 +274,10 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
         client: peoplePayload || client,
       };
 
-      if (baseParams?.companyId) {
+      if (baseParams?.employeeId) {
+        detailsRouteParams.employeeId = String(baseParams.employeeId);
+        delete detailsRouteParams.clientId;
+      } else if (baseParams?.companyId) {
         detailsRouteParams.companyId = String(baseParams.companyId);
         delete detailsRouteParams.clientId;
       } else {
