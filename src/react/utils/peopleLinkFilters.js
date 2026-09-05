@@ -52,12 +52,17 @@ const resolveSelectedLinkTypes = ({
 
 export const buildPeopleLinkRequestParams = ({
   currentCompany,
+  availableTypes = HUMAN_COMPANY_LINK_TYPES,
   selectedLinkType,
 }) => ({
   ...(currentCompany?.id
     ? { 'link.company': resolvePeopleIri(currentCompany) }
     : {}),
-  'link.linkType': normalizeLinkType(selectedLinkType),
+  'link.linkType': resolveSelectedLinkTypes({
+    availableTypes,
+    fallbackTypes: HUMAN_COMPANY_LINK_TYPES,
+    selectedLinkType,
+  }),
 });
 
 export const buildParentCompanyRequestParams = ({

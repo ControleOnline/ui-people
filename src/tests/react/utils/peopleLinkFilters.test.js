@@ -32,6 +32,17 @@ describe('peopleLinkFilters', () => {
     })
   })
 
+  it('expands all employee contexts for the initial employees collection', () => {
+    expect(buildPeopleLinkRequestParams({
+      currentCompany: {id: 3},
+      availableTypes: ['all', 'employee', 'owner', 'courier'],
+      selectedLinkType: 'all',
+    })).toEqual({
+      'link.company': '/people/3',
+      'link.linkType': ['employee', 'owner', 'courier'],
+    })
+  })
+
   it('keeps a selected human link type when filtering my companies', () => {
     expect(
       buildParentCompanyRequestParams({
