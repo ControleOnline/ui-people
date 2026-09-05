@@ -19,7 +19,6 @@ import { useStore } from '@store';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AddCompanyModal from '@controleonline/ui-people/src/react/components/AddCompanyModal';
 import PeopleAvatar from '@controleonline/ui-people/src/react/components/PeopleAvatar';
-import DefaultExternalFilters from '@controleonline/ui-default/src/react/components/filters/DefaultExternalFilters';
 import DefaultTable from '@controleonline/ui-default/src/react/components/table/DefaultTable';
 import ImportsPage from '@controleonline/ui-common/src/react/pages/Imports';
 import {
@@ -59,6 +58,7 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
   const [showAddCompanyModal, setShowAddCompanyModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const isCompanyScope = companyScope === 'companies';
+  const useStoreExternalFilter = context?.useStoreExternalFilter === true;
 
   const hasAutoOpenedAddModalRef = useRef(false);
 
@@ -189,16 +189,21 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
             selectedLinkType,
             user,
           })
-        : buildPeopleLinkRequestParams({
-            currentCompany,
-            availableTypes: contextConfig.availableTypes,
-            selectedLinkType,
-          }),
+        : useStoreExternalFilter
+          ? (currentCompany?.id
+              ? { 'link.company': `/people/${currentCompany.id}` }
+              : {})
+          : buildPeopleLinkRequestParams({
+              currentCompany,
+              availableTypes: contextConfig.availableTypes,
+              selectedLinkType,
+            }),
     [
       contextConfig.availableTypes,
       currentCompany,
       isCompanyScope,
       selectedLinkType,
+      useStoreExternalFilter,
       user,
     ],
   );
@@ -209,31 +214,9 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
     });
   }, [navigation, title]);
 
-  const linkTypeFilters = useMemo(
-    () => ({
-      'link.linkType': selectedLinkType,
-    }),
-    [selectedLinkType],
-  );
   const getExternalFilterOptions = useCallback(
     column => ((column?.name || column?.key) === 'link.linkType' ? contextConfig.options : []),
     [contextConfig.options],
-  );
-
-  const handleLinkTypeFiltersChange = useCallback(
-    nextFilters => {
-      const rawLinkType = nextFilters?.['link.linkType'];
-      const rawSelectedValue = Array.isArray(rawLinkType) ? rawLinkType[0] : rawLinkType;
-      const selectedValue =
-        rawSelectedValue?.value ?? rawSelectedValue?.key ?? rawSelectedValue;
-      const nextLinkType = normalizePeopleContextType(selectedValue) || contextConfig.defaultType;
-      setSelectedLinkType(
-        contextConfig.availableTypes.includes(nextLinkType)
-          ? nextLinkType
-          : contextConfig.defaultType,
-      );
-    },
-    [contextConfig.availableTypes, contextConfig.defaultType],
   );
 
   const handleEdit = useCallback(
@@ -413,15 +396,6 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
 
   return (
     <View style={styles.container}>
-      {contextConfig.hasTypeFilter ? (
-          <DefaultExternalFilters
-            filters={linkTypeFilters}
-            getOptionsForColumn={getExternalFilterOptions}
-          onChangeFilters={handleLinkTypeFiltersChange}
-          storeName="people"
-        />
-      ) : null}
-
       <View style={styles.tableWrap}>
         <DefaultTable
           actions={actions}
@@ -433,7 +407,8 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
           searchKey="search"
           searchPlaceholder={activeSearchPlaceholder}
           showSearch
-          showColumnFiltersButton={false}
+          getOptionsForColumn={getExternalFilterOptions}
+          showColumnFiltersButton
           showRowActions={false}
           storeName="people"
           toolbarActions={toolbarActions}
