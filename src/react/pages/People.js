@@ -191,6 +191,7 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
           })
         : buildPeopleLinkRequestParams({
             currentCompany,
+            availableTypes: contextConfig.availableTypes,
             selectedLinkType,
           }),
     [
