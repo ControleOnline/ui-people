@@ -58,7 +58,12 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
   const [showAddCompanyModal, setShowAddCompanyModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const isCompanyScope = companyScope === 'companies';
-  const useStoreExternalFilter = context?.useStoreExternalFilter === true;
+  // Any people registration exposing more than one link type uses the
+  // DefaultTable external filter. Fixed-link registrations keep their
+  // contextual request contract, while callers may opt in explicitly.
+  const useStoreExternalFilter =
+    !isCompanyScope &&
+    (context?.useStoreExternalFilter === true || contextConfig.hasTypeFilter);
 
   const hasAutoOpenedAddModalRef = useRef(false);
 
@@ -215,7 +220,17 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
   }, [navigation, title]);
 
   const getExternalFilterOptions = useCallback(
-    column => ((column?.name || column?.key) === 'link.linkType' ? contextConfig.options : []),
+    column => {
+      if ((column?.name || column?.key) !== 'link.linkType') {
+        return [];
+      }
+
+      // "all" is represented by the absence of a link-type constraint. It
+      // must not be sent as a literal API value when selected in the table.
+      return contextConfig.options.filter(
+        option => option.key !== ALL_PEOPLE_LINK_TYPES_KEY,
+      );
+    },
     [contextConfig.options],
   );
 
