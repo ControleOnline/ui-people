@@ -27,7 +27,7 @@ const MyCompaniesPage = () => (
           normalizeEntityId(client?.id ?? client?.['@id']) ||
           normalizeEntityId(client?.company?.id ?? client?.company?.['@id']);
         return {
-          clientId,
+          companyId: clientId,
           contextKey:
             selectedLinkType === ALL_PEOPLE_LINK_TYPES_KEY
               ? 'company'
