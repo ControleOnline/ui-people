@@ -221,7 +221,11 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
 
   const handleLinkTypeFiltersChange = useCallback(
     nextFilters => {
-      const nextLinkType = normalizePeopleContextType(nextFilters?.['link.linkType']) || contextConfig.defaultType;
+      const rawLinkType = nextFilters?.['link.linkType'];
+      const selectedValue = Array.isArray(rawLinkType)
+        ? rawLinkType[0]
+        : rawLinkType?.value ?? rawLinkType;
+      const nextLinkType = normalizePeopleContextType(selectedValue) || contextConfig.defaultType;
       setSelectedLinkType(
         contextConfig.availableTypes.includes(nextLinkType)
           ? nextLinkType
@@ -269,8 +273,16 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
       // (web query becomes client=[object Object], app-community#641).
       const detailsRouteParams = {
         ...(baseParams && typeof baseParams === 'object' ? baseParams : {}),
-        clientId: String(baseParams?.clientId || clientId),
+        // Seed for details screen so first paint does not depend only on store.
+        client: peoplePayload || client,
       };
+
+      if (baseParams?.companyId) {
+        detailsRouteParams.companyId = String(baseParams.companyId);
+        delete detailsRouteParams.clientId;
+      } else {
+        detailsRouteParams.clientId = String(baseParams?.clientId || clientId);
+      }
 
       try {
         if (typeof navigation?.navigate === 'function') {

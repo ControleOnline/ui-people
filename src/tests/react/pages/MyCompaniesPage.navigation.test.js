@@ -18,7 +18,7 @@ function buildMyCompanyDetailsParams(client, selectedLinkType) {
     normalizeEntityId(client?.id ?? client?.['@id']) ||
     normalizeEntityId(client?.company?.id ?? client?.company?.['@id']);
   return {
-    clientId,
+    companyId: clientId,
     contextKey:
       selectedLinkType === ALL_PEOPLE_LINK_TYPES_KEY
         ? 'company'
@@ -27,16 +27,16 @@ function buildMyCompanyDetailsParams(client, selectedLinkType) {
 }
 
 describe('My Companies details navigation params (app-community#463)', () => {
-  it('resolves clientId from people id and uses company context', () => {
+  it('resolves companyId from people id and uses company context', () => {
     expect(buildMyCompanyDetailsParams({id: 42}, ALL_PEOPLE_LINK_TYPES_KEY)).toEqual({
-      clientId: '42',
+      companyId: '42',
       contextKey: 'company',
     });
   });
 
-  it('resolves clientId from IRI @id', () => {
+  it('resolves companyId from IRI @id', () => {
     expect(buildMyCompanyDetailsParams({'@id': '/people/99'}, 'owner')).toEqual({
-      clientId: '99',
+      companyId: '99',
       contextKey: 'owner',
     });
   });
@@ -45,12 +45,12 @@ describe('My Companies details navigation params (app-community#463)', () => {
     expect(
       buildMyCompanyDetailsParams({company: {id: 7}}, ALL_PEOPLE_LINK_TYPES_KEY),
     ).toEqual({
-      clientId: '7',
+      companyId: '7',
       contextKey: 'company',
     });
   });
 
-  it('returns empty clientId when entity has no id (caller must no-op)', () => {
-    expect(buildMyCompanyDetailsParams({}, ALL_PEOPLE_LINK_TYPES_KEY).clientId).toBe('');
+  it('returns empty companyId when entity has no id (caller must no-op)', () => {
+    expect(buildMyCompanyDetailsParams({}, ALL_PEOPLE_LINK_TYPES_KEY).companyId).toBe('');
   });
 });
