@@ -263,11 +263,11 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
                   : String(selectedLinkType || ''),
             });
 
+      // Only serializable scalars in route params — never `client: object`
+      // (web query becomes client=[object Object], app-community#641).
       const detailsRouteParams = {
         ...(baseParams && typeof baseParams === 'object' ? baseParams : {}),
         clientId: String(baseParams?.clientId || clientId),
-        // Seed for details screen so first paint does not depend only on store.
-        client: peoplePayload || client,
       };
 
       try {
