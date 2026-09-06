@@ -284,3 +284,128 @@ export const getPeople = (_context, id) => {
       return data;
     });
 };
+
+
+const CONTACT_KEYS = [
+  'email',
+  'phone',
+  'ddd',
+  'cep',
+  'street',
+  'number',
+  'complement',
+  'district',
+  'city',
+  'state',
+];
+
+const pickContactFields = (params) => {
+  const source = params && typeof params === 'object' ? params : {};
+  const contact = {};
+  CONTACT_KEYS.forEach((key) => {
+    if (source[key] !== undefined && source[key] !== null && source[key] !== '') {
+      contact[key] = source[key];
+    }
+  });
+  return contact;
+};
+
+const stripContactFields = (params) => {
+  const next = { ...(params && typeof params === 'object' ? params : {}) };
+  CONTACT_KEYS.forEach((key) => {
+    delete next[key];
+  });
+  return next;
+};
+
+const extractPeopleId = (data) => {
+  const payload = unwrapResponseData(data) || data;
+  return extractId(payload);
+};
+
+const persistPeopleContacts = (peopleId, contact) => {
+  const peopleIri = toPeopleIri(peopleId);
+  if (!peopleIri) return Promise.resolve();
+
+  const jobs = [];
+  const email = String(contact.email || '').trim();
+  if (email) {
+    jobs.push(
+      api.fetch('/emails', {
+        method: 'POST',
+        body: { email, people: peopleIri },
+      }),
+    );
+  }
+
+  const phoneDigits = String(contact.phone || '').replace(/\D/g, '');
+  if (phoneDigits) {
+    const ddd = String(contact.ddd || phoneDigits.slice(0, 2));
+    const phone = phoneDigits.length > 2 ? phoneDigits.slice(2) : phoneDigits;
+    jobs.push(
+      api.fetch('/phones', {
+        method: 'POST',
+        body: { ddd, phone, people: peopleIri },
+      }),
+    );
+  }
+
+  const cep = String(contact.cep || '').replace(/\D/g, '');
+  const street = String(contact.street || '').trim();
+  if (cep || street) {
+    jobs.push(
+      api.fetch('/addresses', {
+        method: 'POST',
+        body: {
+          people: peopleIri,
+          cep,
+          street,
+          number: contact.number || '',
+          complement: contact.complement || '',
+          district: contact.district || '',
+          city: contact.city || '',
+          state: contact.state || '',
+        },
+      }),
+    );
+  }
+
+  if (!jobs.length) return Promise.resolve();
+  return Promise.allSettled(jobs);
+};
+
+export const savePeopleCore = ({ commit }, params) => {
+  const requestParams = params && typeof params === 'object' ? params : {};
+  let id = requestParams?.id?.toString().replace(/\D/g, '');
+  const body = { ...requestParams };
+  delete body.id;
+
+  commit(types.SET_ISLOADING);
+  commit(types.SET_ERROR, '');
+
+  return api
+    .fetch(RESOURCE_ENDPOINT + (id ? '/' + id : ''), {
+      method: id ? 'PUT' : 'POST',
+      body,
+    })
+    .then((data) => {
+      commit(types.SET_ISLOADING, false);
+      return data;
+    })
+    .catch((e) => {
+      commit(types.SET_ISLOADING, false);
+      commit(types.SET_ERROR, e.message);
+      throw e;
+    });
+};
+
+export const save = ({ dispatch }, params) => {
+  const requestParams = params && typeof params === 'object' ? params : {};
+  const contact = pickContactFields(requestParams);
+  const peoplePayload = stripContactFields(requestParams);
+
+  return dispatch('savePeopleCore', peoplePayload).then((data) => {
+    const peopleId = extractPeopleId(data) || extractId(requestParams.id);
+    return persistPeopleContacts(peopleId, contact).then(() => data);
+  });
+};
