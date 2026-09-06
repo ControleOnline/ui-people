@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+// Technical wiki: https://github.com/ControleOnline/ui-people/wiki/Cadastro-de-Pessoas-Contatos-Usuarios-e-Vendedores
 /*
  * Contract imported from AGENTS.md
  * ## Escopo
