@@ -1,3 +1,4 @@
+// Technical wiki: https://github.com/ControleOnline/ui-people/wiki/Cadastro-de-Pessoas-Contatos-Usuarios-e-Vendedores
 export const ALL_PEOPLE_LINK_TYPES_KEY = 'all';
 
 export const HUMAN_COMPANY_LINK_TYPES = [

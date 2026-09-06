@@ -1,3 +1,4 @@
+// Technical wiki: https://github.com/ControleOnline/ui-people/wiki/Cadastro-de-Pessoas-Contatos-Usuarios-e-Vendedores
 import {
   normalizePeopleContextType,
 } from '@controleonline/ui-people/src/react/utils/peopleContext';

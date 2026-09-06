@@ -14,3 +14,8 @@
 | Regras de negócio (vínculos) | https://github.com/ControleOnline/ui-people/wiki/Regras-de-Negocio |
 | Client Details — aba Colaboradores (ui-customers) | https://github.com/ControleOnline/ui-customers/wiki/Client-Details-EmployeesTab-Refresh |
 | App-Home | https://github.com/ControleOnline/app-community/wiki |
+
+## Fluxo cadastro de pessoas
+
+- Wiki: https://github.com/ControleOnline/ui-people/wiki/Cadastro-de-Pessoas-Contatos-Usuarios-e-Vendedores
+- Cópia: docs/technical/Cadastro-de-Pessoas-Contatos-Usuarios-e-Vendedores.md
