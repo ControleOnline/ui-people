@@ -1,3 +1,4 @@
+// fluxo: minhas-empresas-cadastro | etapa: people-routes | wiki: https://github.com/ControleOnline/app-community/wiki/Venda-Producao
 import Profile from '@controleonline/ui-people/src/react/pages/Profile';
 
 const peopleRoutes = [
