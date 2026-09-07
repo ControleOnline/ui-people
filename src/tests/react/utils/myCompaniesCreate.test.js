@@ -35,6 +35,11 @@ describe('myCompaniesCreate', () => {
       expect(resolveAuthenticatedPeopleIri(null)).toBe('');
       expect(resolveAuthenticatedPeopleIri({})).toBe('');
     });
+
+    it('rejects hydra placeholder IRIs', () => {
+      expect(resolveAuthenticatedPeopleIri({ people: '/people/:id' })).toBe('');
+      expect(resolveAuthenticatedPeopleIri({ people: { '@id': '/people/:id' } })).toBe('');
+    });
   });
 
   describe('buildAuthenticatedPersonLinkPayload', () => {
