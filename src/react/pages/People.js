@@ -19,7 +19,6 @@ import { useStore } from '@store';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AddCompanyModal from '@controleonline/ui-people/src/react/components/AddCompanyModal';
 import PeopleAvatar from '@controleonline/ui-people/src/react/components/PeopleAvatar';
-import DefaultExternalFilters from '@controleonline/ui-default/src/react/components/filters/DefaultExternalFilters';
 import DefaultTable from '@controleonline/ui-default/src/react/components/table/DefaultTable';
 import ImportsPage from '@controleonline/ui-common/src/react/pages/Imports';
 import {
@@ -59,6 +58,12 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
   const [showAddCompanyModal, setShowAddCompanyModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const isCompanyScope = companyScope === 'companies';
+  // Any people registration exposing more than one link type uses the
+  // DefaultTable external filter. Fixed-link registrations keep their
+  // contextual request contract, while callers may opt in explicitly.
+  const useStoreExternalFilter =
+    !isCompanyScope &&
+    (context?.useStoreExternalFilter === true || contextConfig.hasTypeFilter);
 
   const hasAutoOpenedAddModalRef = useRef(false);
 
@@ -189,15 +194,21 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
             selectedLinkType,
             user,
           })
-        : buildPeopleLinkRequestParams({
-            currentCompany,
-            selectedLinkType,
-          }),
+        : useStoreExternalFilter
+          ? (currentCompany?.id
+              ? { 'link.company': `/people/${currentCompany.id}` }
+              : {})
+          : buildPeopleLinkRequestParams({
+              currentCompany,
+              availableTypes: contextConfig.availableTypes,
+              selectedLinkType,
+            }),
     [
       contextConfig.availableTypes,
       currentCompany,
       isCompanyScope,
       selectedLinkType,
+      useStoreExternalFilter,
       user,
     ],
   );
@@ -208,27 +219,19 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
     });
   }, [navigation, title]);
 
-  const linkTypeFilters = useMemo(
-    () => ({
-      'link.linkType': selectedLinkType,
-    }),
-    [selectedLinkType],
-  );
   const getExternalFilterOptions = useCallback(
-    column => ((column?.name || column?.key) === 'link.linkType' ? contextConfig.options : []),
-    [contextConfig.options],
-  );
+    column => {
+      if ((column?.name || column?.key) !== 'link.linkType') {
+        return [];
+      }
 
-  const handleLinkTypeFiltersChange = useCallback(
-    nextFilters => {
-      const nextLinkType = normalizePeopleContextType(nextFilters?.['link.linkType']) || contextConfig.defaultType;
-      setSelectedLinkType(
-        contextConfig.availableTypes.includes(nextLinkType)
-          ? nextLinkType
-          : contextConfig.defaultType,
+      // "all" is represented by the absence of a link-type constraint. It
+      // must not be sent as a literal API value when selected in the table.
+      return contextConfig.options.filter(
+        option => option.key !== ALL_PEOPLE_LINK_TYPES_KEY,
       );
     },
-    [contextConfig.availableTypes, contextConfig.defaultType],
+    [contextConfig.options],
   );
 
   const handleEdit = useCallback(
@@ -269,8 +272,19 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
       // (web query becomes client=[object Object], app-community#641).
       const detailsRouteParams = {
         ...(baseParams && typeof baseParams === 'object' ? baseParams : {}),
-        clientId: String(baseParams?.clientId || clientId),
+        // Seed for details screen so first paint does not depend only on store.
+        client: peoplePayload || client,
       };
+
+      if (baseParams?.employeeId) {
+        detailsRouteParams.employeeId = String(baseParams.employeeId);
+        delete detailsRouteParams.clientId;
+      } else if (baseParams?.companyId) {
+        detailsRouteParams.companyId = String(baseParams.companyId);
+        delete detailsRouteParams.clientId;
+      } else {
+        detailsRouteParams.clientId = String(baseParams?.clientId || clientId);
+      }
 
       try {
         if (typeof navigation?.navigate === 'function') {
@@ -397,15 +411,6 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
 
   return (
     <View style={styles.container}>
-      {contextConfig.hasTypeFilter ? (
-          <DefaultExternalFilters
-            filters={linkTypeFilters}
-            getOptionsForColumn={getExternalFilterOptions}
-          onChangeFilters={handleLinkTypeFiltersChange}
-          storeName="people"
-        />
-      ) : null}
-
       <View style={styles.tableWrap}>
         <DefaultTable
           actions={actions}
@@ -417,6 +422,8 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
           searchKey="search"
           searchPlaceholder={activeSearchPlaceholder}
           showSearch
+          getOptionsForColumn={getExternalFilterOptions}
+          showColumnFiltersButton
           showRowActions={false}
           storeName="people"
           toolbarActions={toolbarActions}
