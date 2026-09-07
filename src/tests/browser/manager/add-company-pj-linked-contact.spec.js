@@ -1,3 +1,4 @@
+// fluxo: minhas-empresas-cadastro | etapa: pj-with-contact | wiki: https://github.com/ControleOnline/app-community/wiki/Venda-Producao
 /**
  * Smoke: create PJ (pessoa jurídica) with linked contact email+phone (app-community#52)
  * Covers open AddCompanyModal → fill company + contact NOME/EMAIL/TELEFONE → save payloads.

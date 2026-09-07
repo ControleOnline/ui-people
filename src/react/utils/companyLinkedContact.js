@@ -1,3 +1,4 @@
+// Technical wiki: https://github.com/ControleOnline/ui-people/wiki/Cadastro-de-Pessoas-Contatos-Usuarios-e-Vendedores
 export const normalizeEmail = value => String(value || '').trim().toLowerCase();
 
 export const isValidEmail = value =>

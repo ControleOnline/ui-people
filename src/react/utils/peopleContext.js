@@ -1,3 +1,4 @@
+// Technical wiki: https://github.com/ControleOnline/ui-people/wiki/Cadastro-de-Pessoas-Contatos-Usuarios-e-Vendedores
 const PEOPLE_CONTEXT_META = {
   client: {
     label: () => global.t?.t('people', 'title', 'clients'),
