@@ -172,15 +172,16 @@ export const savePeopleMedia = (_context, payload = {}) => {
     .trim() || (extractId(normalizedPayload.mediaTypeId) ? `/media_types/${extractId(normalizedPayload.mediaTypeId)}` : '');
   const fileIri = String(normalizedPayload.file || normalizedPayload.fileIri || '')
     .trim() || (extractId(normalizedPayload.fileId) ? `/files/${extractId(normalizedPayload.fileId)}` : '');
-  const mediaId = extractId(normalizedPayload.id || normalizedPayload.mediaId);
-
+  // Always POST /people_media (PeopleMediaSaveController upserts by people+mediaType).
+  // PUT /people_media/{id} uses API Platform denormalization which resolves File via
+  // GET /files/{id} and fails with: Item not found for "/files/{id}" for private files.
   if (!peopleIri || !mediaTypeIri || !fileIri) {
     throw new Error('Nao foi possivel identificar a midia para salvar.');
   }
 
   return api
-    .fetch(mediaId ? `/people_media/${mediaId}` : '/people_media', {
-      method: mediaId ? 'PUT' : 'POST',
+    .fetch('/people_media', {
+      method: 'POST',
       body: {
         people: peopleIri,
         mediaType: mediaTypeIri,
