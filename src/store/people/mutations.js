@@ -11,8 +11,8 @@ export default {
     return 'currentCompany';
   },
 
-  [types.SET_DEFAULT_COMPANY](state, defaultCompany) {
-    state.defaultCompany = defaultCompany;
-    return 'defaultCompany';
+  [types.SET_DEFAULT_COMPANY](state, mainCompany) {
+    state.mainCompany = mainCompany;
+    return 'mainCompany';
   },
 };

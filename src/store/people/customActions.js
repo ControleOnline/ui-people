@@ -209,7 +209,7 @@ export const deletePeopleMedia = (_context, payload = {}) => {
     });
 };
 
-export const defaultCompany = ({ commit }) => {
+export const mainCompany = ({ commit }) => {
   commit(types.SET_ISLOADING, false);
 
   return api
@@ -253,12 +253,12 @@ export const franchiseOwnerCandidates = ({ commit }, values = {}) => {
 export const setCurrentCompany = ({ commit, getters }, company = null) => {
   const session = JSON.parse(localStorage.getItem("session") || "{}");
   const companies = Array.isArray(getters.companies) ? getters.companies : [];
-  const defaultCompany = getters.defaultCompany || {};
+  const mainCompany = getters.mainCompany || {};
 
   const currentCompany = resolveCurrentCompanySelection({
     companies,
     company,
-    defaultCompany,
+    mainCompany,
     session,
   });
 
