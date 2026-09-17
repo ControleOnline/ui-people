@@ -2,9 +2,46 @@ import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import UserAvatar from '@controleonline/ui-common/src/react/components/UserAvatar';
+import { resolveFileImageUrl } from '@controleonline/ui-common/src/react/utils/fileUrl';
 import {
+  isCompanyPeople,
   resolvePeopleAvatarMeta,
+  resolvePeopleImageUrl,
 } from '@controleonline/ui-people/src/react/utils/peopleImage';
+
+const normalizeText = value => String(value || '').trim();
+
+/**
+ * Company icon/logo must resolve even when usePeopleImage is false
+ * (My Companies list historically left the flag off → always showed building).
+ * FileService shape {id,url} needs resolveFileImageUrl for /files/.../download.
+ */
+const resolveAvatarImageUrl = (people, { imageUrl = '', usePeopleImage = false } = {}) => {
+  const direct = normalizeText(imageUrl);
+  if (direct) {
+    return direct;
+  }
+  if (!people || typeof people !== 'object') {
+    return '';
+  }
+
+  const isCompany = isCompanyPeople(people);
+  // Always attempt company icon/logo; person media only when opted in.
+  if (!isCompany && !usePeopleImage) {
+    return '';
+  }
+
+  return normalizeText(
+    resolvePeopleImageUrl(
+      isCompany ? { ...people, peopleType: people.peopleType || 'J' } : people,
+      resolveFileImageUrl,
+      {
+        usePeopleImage: true,
+        fileOptions: { company: isCompany ? people : undefined },
+      },
+    ),
+  );
+};
 
 const PeopleAvatar = ({
   backgroundColor,
@@ -20,13 +57,22 @@ const PeopleAvatar = ({
   usePeopleImage = false,
 }) => {
   const meta = useMemo(
-    () => resolvePeopleAvatarMeta(people, {usePeopleImage}),
-    [people, usePeopleImage],
+    () =>
+      resolvePeopleAvatarMeta(people, {
+        usePeopleImage: true,
+        resolveImageUrl: resolveFileImageUrl,
+        fileOptions: { company: isCompanyPeople(people) ? people : undefined },
+      }),
+    [people],
   );
-  const effectiveImageUrl = imageUrl || meta.imageUrl;
-  const fallbackIcon = meta.isCompany ? 'building' : 'user';
+  const effectiveImageUrl = useMemo(
+    () => resolveAvatarImageUrl(people, { imageUrl, usePeopleImage }),
+    [people, imageUrl, usePeopleImage],
+  );
+  const isCompany = meta.isCompany;
+  const fallbackIcon = isCompany ? 'building' : 'user';
 
-  if (!effectiveImageUrl && meta.isCompany) {
+  if (!effectiveImageUrl && isCompany) {
     return (
       <View
         style={[
