@@ -18,6 +18,7 @@ const MyCompaniesPage = () => (
       context: [ALL_PEOPLE_LINK_TYPES_KEY, ...HUMAN_COMPANY_LINK_TYPES],
       defaultContext: ALL_PEOPLE_LINK_TYPES_KEY,
       title: 'Minhas empresas',
+      usePeopleImage: true,
       searchPlaceholder: 'Buscar empresa',
       emptyTitle: 'Nenhuma empresa encontrada',
       emptySearchTitle: 'Nenhuma empresa encontrada',
