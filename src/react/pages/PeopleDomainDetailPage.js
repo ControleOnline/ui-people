@@ -36,7 +36,7 @@ export default function PeopleDomainDetailPage() {
   const themeStore = useStore('theme');
 
   const peopleDomainState = peopleDomainsStore.getters || {};
-  const { currentCompany, mainCompany } = peopleStore.getters || {};
+  const { mainCompany } = peopleStore.getters || {};
   const { colors: themeColors } = themeStore.getters || {};
 
   const item = peopleDomainState.item || {};
@@ -47,7 +47,6 @@ export default function PeopleDomainDetailPage() {
   const detailLoading = peopleDomainState.detailLoading === true;
   const detailError = String(peopleDomainState.detailError || '').trim();
 
-  const mainCompany = mainCompany || currentCompany || null;
   const palette = useMemo(
     () =>
       resolveThemePalette(
