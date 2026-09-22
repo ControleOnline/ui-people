@@ -172,15 +172,16 @@ export const savePeopleMedia = (_context, payload = {}) => {
     .trim() || (extractId(normalizedPayload.mediaTypeId) ? `/media_types/${extractId(normalizedPayload.mediaTypeId)}` : '');
   const fileIri = String(normalizedPayload.file || normalizedPayload.fileIri || '')
     .trim() || (extractId(normalizedPayload.fileId) ? `/files/${extractId(normalizedPayload.fileId)}` : '');
-  const mediaId = extractId(normalizedPayload.id || normalizedPayload.mediaId);
-
+  // Always POST /people_media (PeopleMediaSaveController upserts by people+mediaType).
+  // PUT denormalizes File IRI via GET /files/{id} which FileSecurityExtension can
+  // hide → "Item not found for /files/{id}" (400) and the media never persists.
   if (!peopleIri || !mediaTypeIri || !fileIri) {
     throw new Error('Nao foi possivel identificar a midia para salvar.');
   }
 
   return api
-    .fetch(mediaId ? `/people_media/${mediaId}` : '/people_media', {
-      method: mediaId ? 'PUT' : 'POST',
+    .fetch('/people_media', {
+      method: 'POST',
       body: {
         people: peopleIri,
         mediaType: mediaTypeIri,
@@ -208,7 +209,7 @@ export const deletePeopleMedia = (_context, payload = {}) => {
     });
 };
 
-export const defaultCompany = ({ commit }) => {
+export const mainCompany = ({ commit }) => {
   commit(types.SET_ISLOADING, false);
 
   return api
@@ -252,12 +253,12 @@ export const franchiseOwnerCandidates = ({ commit }, values = {}) => {
 export const setCurrentCompany = ({ commit, getters }, company = null) => {
   const session = JSON.parse(localStorage.getItem("session") || "{}");
   const companies = Array.isArray(getters.companies) ? getters.companies : [];
-  const defaultCompany = getters.defaultCompany || {};
+  const mainCompany = getters.mainCompany || {};
 
   const currentCompany = resolveCurrentCompanySelection({
     companies,
     company,
-    defaultCompany,
+    mainCompany,
     session,
   });
 

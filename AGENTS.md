@@ -11,6 +11,7 @@
 | --- | --- |
 | Home da wiki | https://github.com/ControleOnline/ui-people/wiki/Home |
 | Lista / employees-index — filtros `linkType` e owners | https://github.com/ControleOnline/ui-people/wiki/People-List-LinkType-Filters-Employees-Index |
+| Cadastro PF/PJ, contatos, usuários e vendedores | https://github.com/ControleOnline/ui-people/wiki/Cadastro-de-Pessoas-Contatos-Usuarios-e-Vendedores |
 | Regras de negócio (vínculos) | https://github.com/ControleOnline/ui-people/wiki/Regras-de-Negocio |
 | Client Details — aba Colaboradores (ui-customers) | https://github.com/ControleOnline/ui-customers/wiki/Client-Details-EmployeesTab-Refresh |
 | App-Home | https://github.com/ControleOnline/app-community/wiki |
