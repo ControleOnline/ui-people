@@ -4,6 +4,7 @@ const {beforeEach, describe, expect, it} = global
 
 jest.mock('@controleonline/ui-common/src/api', () => ({
   api: {
+    fetch: jest.fn(),
     upload: jest.fn(),
   },
 }))
@@ -45,6 +46,10 @@ describe('people customActions', () => {
       ['file', file],
       ['people', '/people/7'],
     ])
+  })
+
+  it('preserves mainCompany as an alias for the default-company action', () => {
+    expect(actions.mainCompany).toBe(actions.defaultCompany)
   })
 
   it('keeps sending media type when it is available', async () => {
