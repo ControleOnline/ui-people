@@ -15,21 +15,21 @@ export default function PeopleDomainsPage() {
   const peopleStore = useStore('people');
   const themeStore = useStore('theme');
   const authStore = useStore('auth');
-  const { currentCompany, defaultCompany } = peopleStore.getters || {};
+  const { currentCompany, mainCompany } = peopleStore.getters || {};
   const { user } = authStore.getters || {};
   const { colors: themeColors } = themeStore.getters || {};
 
   const isAdminApp = app_type_base === 'ADMIN';
   const canManagePeopleDomains = isAdminApp && userHasRole(user, 'ROLE_SUPER');
-  const mainCompany = defaultCompany || currentCompany || null;
+  const selectedMainCompany = mainCompany || currentCompany || null;
 
   const palette = useMemo(
     () =>
       resolveThemePalette(
-        { ...themeColors, ...(mainCompany?.theme?.colors || {}) },
+        { ...themeColors, ...(selectedMainCompany?.theme?.colors || {}) },
         colors,
       ),
-    [mainCompany?.id, mainCompany?.theme?.colors, themeColors],
+    [selectedMainCompany?.id, selectedMainCompany?.theme?.colors, themeColors],
   );
 
   useEffect(() => {

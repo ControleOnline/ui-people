@@ -48,8 +48,15 @@ describe('people customActions', () => {
     ])
   })
 
-  it('preserves mainCompany as an alias for the default-company action', () => {
-    expect(actions.mainCompany).toBe(actions.defaultCompany)
+  it('loads and stores the main company using the canonical action', async () => {
+    const mainCompany = {id: 42, name: 'Main company'}
+    api.fetch.mockResolvedValueOnce({data: mainCompany})
+    const commit = jest.fn()
+
+    await actions.mainCompany({commit})
+
+    expect(api.fetch).toHaveBeenCalledWith('/people/company/default')
+    expect(commit).toHaveBeenCalledWith('SET_MAIN_COMPANY', mainCompany)
   })
 
   it('keeps sending media type when it is available', async () => {

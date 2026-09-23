@@ -17,7 +17,7 @@ export default {
     message: {},
     filters: {},
     currentCompany: {},
-    defaultCompany: {},
+    mainCompany: {},
     companies: [],
     columns: [
     ],

@@ -12,34 +12,34 @@ const pickFirstAccessibleCompany = companies => {
   return companies.find(item => item?.panel_enabled !== false) || companies[0]
 }
 
-const mergeCompanyThemeFromDefault = (company, defaultCompany) => {
+const mergeCompanyThemeFromMain = (company, mainCompany) => {
   if (!company?.id) {
     return company || null
   }
 
   if (
     company?.theme?.colors ||
-    !defaultCompany?.id ||
-    String(defaultCompany.id) !== String(company.id) ||
-    !defaultCompany?.theme
+    !mainCompany?.id ||
+    String(mainCompany.id) !== String(company.id) ||
+    !mainCompany?.theme
   ) {
     return company
   }
 
   return {
     ...company,
-    theme: defaultCompany.theme,
-    logo: company.logo || defaultCompany.logo,
-    alias: company.alias || defaultCompany.alias,
-    name: company.name || defaultCompany.name,
-    configs: company.configs || defaultCompany.configs,
+    theme: mainCompany.theme,
+    logo: company.logo || mainCompany.logo,
+    alias: company.alias || mainCompany.alias,
+    name: company.name || mainCompany.name,
+    configs: company.configs || mainCompany.configs,
   }
 }
 
 export const resolveCurrentCompanySelection = ({
   companies = [],
   company = null,
-  defaultCompany = {},
+  mainCompany = {},
   session = {},
 } = {}) => {
   const accessibleCompanies = Array.isArray(companies) ? companies : []
@@ -82,7 +82,7 @@ export const resolveCurrentCompanySelection = ({
     currentCompany = pickFirstAccessibleCompany(accessibleCompanies)
   }
 
-  return mergeCompanyThemeFromDefault(currentCompany, defaultCompany)
+  return mergeCompanyThemeFromMain(currentCompany, mainCompany)
 }
 
 export const persistCurrentCompanyInSession = (session = {}, currentCompany = null) => ({
