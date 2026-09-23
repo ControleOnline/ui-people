@@ -228,6 +228,9 @@ export const defaultCompany = ({ commit }) => {
     });
 };
 
+// Keep the legacy store action available while consumers migrate to defaultCompany.
+export const mainCompany = defaultCompany;
+
 export const franchiseOwnerCandidates = ({ commit }, values = {}) => {
   commit(types.SET_ERROR, "");
   commit(types.SET_ISLOADING);
