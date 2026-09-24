@@ -216,7 +216,7 @@ export const mainCompany = ({ commit }) => {
     .fetch(`${RESOURCE_ENDPOINT}/company/default`)
     .then((data) => {
       const company = unwrapResponseData(data) || {};
-      commit(customTypes.SET_MAIN_COMPANY, company);
+      commit(customTypes.SET_DEFAULT_COMPANY, company);
 
       return company;
     })
