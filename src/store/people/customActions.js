@@ -208,14 +208,14 @@ export const deletePeopleMedia = (_context, payload = {}) => {
     });
 };
 
-export const defaultCompany = ({ commit }) => {
+export const mainCompany = ({ commit }) => {
   commit(types.SET_ISLOADING, false);
 
   return api
     .fetch(`${RESOURCE_ENDPOINT}/company/default`)
     .then((data) => {
       const company = unwrapResponseData(data) || {};
-      commit(customTypes.SET_DEFAULT_COMPANY, company);
+      commit(customTypes.SET_MAIN_COMPANY, company);
 
       return company;
     })
@@ -227,9 +227,6 @@ export const defaultCompany = ({ commit }) => {
       commit(types.SET_ISLOADING, false);
     });
 };
-
-// Keep the legacy store action available while consumers migrate to defaultCompany.
-export const mainCompany = defaultCompany;
 
 export const franchiseOwnerCandidates = ({ commit }, values = {}) => {
   commit(types.SET_ERROR, "");
@@ -255,12 +252,12 @@ export const franchiseOwnerCandidates = ({ commit }, values = {}) => {
 export const setCurrentCompany = ({ commit, getters }, company = null) => {
   const session = JSON.parse(localStorage.getItem("session") || "{}");
   const companies = Array.isArray(getters.companies) ? getters.companies : [];
-  const defaultCompany = getters.defaultCompany || {};
+  const mainCompany = getters.mainCompany || {};
 
   const currentCompany = resolveCurrentCompanySelection({
     companies,
     company,
-    defaultCompany,
+    mainCompany,
     session,
   });
 

@@ -1,3 +1,3 @@
 export const currentCompany = state => state.currentCompany;
-export const defaultCompany = state => state.defaultCompany;
+export const mainCompany = state => state.mainCompany;
 export const companies      = state => state.companies;
