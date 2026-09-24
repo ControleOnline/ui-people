@@ -36,7 +36,8 @@ export default function PeopleDomainDetailPage() {
   const themeStore = useStore('theme');
 
   const peopleDomainState = peopleDomainsStore.getters || {};
-  const { currentCompany, defaultCompany } = peopleStore.getters || {};
+  const { currentCompany, mainCompany: domainCompany } = peopleStore.getters || {};
+  const mainCompany = domainCompany || currentCompany || null;
   const { colors: themeColors } = themeStore.getters || {};
 
   const item = peopleDomainState.item || {};
@@ -47,7 +48,6 @@ export default function PeopleDomainDetailPage() {
   const detailLoading = peopleDomainState.detailLoading === true;
   const detailError = String(peopleDomainState.detailError || '').trim();
 
-  const mainCompany = defaultCompany || currentCompany || null;
   const palette = useMemo(
     () =>
       resolveThemePalette(
