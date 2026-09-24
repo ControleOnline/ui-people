@@ -1,7 +1,9 @@
 const {beforeEach, describe, expect, it, jest} = require('@jest/globals');
 
 jest.mock('@controleonline/ui-common/src/api', () => ({api: {fetch: jest.fn()}}));
-jest.mock('@controleonline/ui-default/src/store/default/actions', () => ({}));
+jest.mock('@controleonline/ui-default/src/store/default/actions', () => ({
+  mainCompany: {legacy: true},
+}));
 
 const {api} = require('@controleonline/ui-common/src/api');
 const people = require('@controleonline/ui-people/src/store/people').default;

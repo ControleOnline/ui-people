@@ -108,8 +108,9 @@ export default {
     ],
   },
   actions: {
-    ...customActions,
     ...actions,
+    // Keep domain-specific actions authoritative when generic store actions reuse a name.
+    ...customActions,
   },
   getters: {
     ...customGetters,
