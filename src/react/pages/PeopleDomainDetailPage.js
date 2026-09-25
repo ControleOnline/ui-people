@@ -36,7 +36,8 @@ export default function PeopleDomainDetailPage() {
   const themeStore = useStore('theme');
 
   const peopleDomainState = peopleDomainsStore.getters || {};
-  const { mainCompany } = peopleStore.getters || {};
+  const { currentCompany, mainCompany: domainCompany } = peopleStore.getters || {};
+  const mainCompany = domainCompany || currentCompany || null;
   const { colors: themeColors } = themeStore.getters || {};
 
   const item = peopleDomainState.item || {};

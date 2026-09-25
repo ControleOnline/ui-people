@@ -172,16 +172,15 @@ export const savePeopleMedia = (_context, payload = {}) => {
     .trim() || (extractId(normalizedPayload.mediaTypeId) ? `/media_types/${extractId(normalizedPayload.mediaTypeId)}` : '');
   const fileIri = String(normalizedPayload.file || normalizedPayload.fileIri || '')
     .trim() || (extractId(normalizedPayload.fileId) ? `/files/${extractId(normalizedPayload.fileId)}` : '');
-  // Always POST /people_media (PeopleMediaSaveController upserts by people+mediaType).
-  // PUT denormalizes File IRI via GET /files/{id} which FileSecurityExtension can
-  // hide → "Item not found for /files/{id}" (400) and the media never persists.
+  const mediaId = extractId(normalizedPayload.id || normalizedPayload.mediaId);
+
   if (!peopleIri || !mediaTypeIri || !fileIri) {
     throw new Error('Nao foi possivel identificar a midia para salvar.');
   }
 
   return api
-    .fetch('/people_media', {
-      method: 'POST',
+    .fetch(mediaId ? `/people_media/${mediaId}` : '/people_media', {
+      method: mediaId ? 'PUT' : 'POST',
       body: {
         people: peopleIri,
         mediaType: mediaTypeIri,
@@ -216,7 +215,7 @@ export const mainCompany = ({ commit }) => {
     .fetch(`${RESOURCE_ENDPOINT}/company/default`)
     .then((data) => {
       const company = unwrapResponseData(data) || {};
-      commit(customTypes.SET_DEFAULT_COMPANY, company);
+      commit(customTypes.SET_MAIN_COMPANY, company);
 
       return company;
     })

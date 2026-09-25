@@ -15,7 +15,8 @@ export default function PeopleDomainsPage() {
   const peopleStore = useStore('people');
   const themeStore = useStore('theme');
   const authStore = useStore('auth');
-  const { mainCompany } = peopleStore.getters || {};
+  const { currentCompany, mainCompany: domainCompany } = peopleStore.getters || {};
+  const mainCompany = domainCompany || currentCompany || null;
   const { user } = authStore.getters || {};
   const { colors: themeColors } = themeStore.getters || {};
 
