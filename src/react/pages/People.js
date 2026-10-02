@@ -58,12 +58,9 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
   const [showAddCompanyModal, setShowAddCompanyModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const isCompanyScope = companyScope === 'companies';
-  // Any people registration exposing more than one link type uses the
-  // DefaultTable external filter. Fixed-link registrations keep their
-  // contextual request contract, while callers may opt in explicitly.
-  const useStoreExternalFilter =
-    !isCompanyScope &&
-    (context?.useStoreExternalFilter === true || contextConfig.hasTypeFilter);
+  // Multi-type registrations still expose DefaultTable external filter UI for
+  // link.linkType; requestParams always seeds company + resolved link types
+  // so the first list load is not empty when selected type is "all".
 
   const hasAutoOpenedAddModalRef = useRef(false);
 
@@ -187,28 +184,30 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
   );
 
   const requestParams = useMemo(
-    () =>
-      isCompanyScope
-        ? buildParentCompanyRequestParams({
-            availableTypes: contextConfig.availableTypes,
-            selectedLinkType,
-            user,
-          })
-        : useStoreExternalFilter
-          ? (currentCompany?.id
-              ? { 'link.company': `/people/${currentCompany.id}` }
-              : {})
-          : buildPeopleLinkRequestParams({
-              currentCompany,
-              availableTypes: contextConfig.availableTypes,
-              selectedLinkType,
-            }),
+    () => {
+      if (isCompanyScope) {
+        return buildParentCompanyRequestParams({
+          availableTypes: contextConfig.availableTypes,
+          selectedLinkType,
+          user,
+        });
+      }
+
+      // Always scope by currentCompany + resolved linkType(s). When the table
+      // owns the external linkType filter UI, still seed
+      // the expanded types for "all" so the first request is not empty;
+      // DefaultTable may refine the filter after load.
+      return buildPeopleLinkRequestParams({
+        currentCompany,
+        availableTypes: contextConfig.availableTypes,
+        selectedLinkType,
+      });
+    },
     [
       contextConfig.availableTypes,
       currentCompany,
       isCompanyScope,
       selectedLinkType,
-      useStoreExternalFilter,
       user,
     ],
   );
