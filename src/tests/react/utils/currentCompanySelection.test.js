@@ -48,3 +48,21 @@ describe('currentCompanySelection', () => {
     expect(company).toMatchObject({id: 21, alias: 'Second Enabled'})
   })
 })
+
+
+describe('domain theme enrichment', () => {
+  it('only enriches the selected company when it is the domain company', () => {
+    const mainCompany = {id: 1, theme: {colors: {primary: 'red'}}, logo: 'domain-logo'};
+    expect(resolveCurrentCompanySelection({companies: [{id: 1}], mainCompany}))
+      .toMatchObject({id: 1, theme: mainCompany.theme, logo: 'domain-logo'});
+    expect(resolveCurrentCompanySelection({companies: [{id: 2}], mainCompany}))
+      .toEqual({id: 2});
+  });
+
+  it('preserves a selected company theme even when its ID matches the domain', () => {
+    const company = {id: 1, theme: {colors: {primary: 'blue'}}};
+    expect(resolveCurrentCompanySelection({companies: [company], mainCompany: {
+      id: 1, theme: {colors: {primary: 'red'}},
+    }})).toEqual(company);
+  });
+});
