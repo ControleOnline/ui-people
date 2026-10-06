@@ -84,13 +84,21 @@ export const buildPeopleLinkRequestParams = ({
   const normalizedPeopleType = String(peopleType || '')
     .trim()
     .toUpperCase();
+  // The unrestricted scope only applies while no concrete link type is
+  // selected; picking a real type in the filter narrows the list again.
+  const normalizedSelected = normalizeLinkType(selectedLinkType);
+  const dropLinkType =
+    anyLinkType &&
+    (!normalizedSelected ||
+      normalizedSelected === ALL_PEOPLE_LINK_TYPES_KEY ||
+      normalizedSelected === 'employment');
 
   return {
     ...(currentCompany?.id
       ? { 'link.company': resolvePeopleIri(currentCompany) }
       : {}),
     ...(normalizedPeopleType ? { peopleType: normalizedPeopleType } : {}),
-    ...(anyLinkType
+    ...(dropLinkType
       ? {}
       : {
           'link.linkType': resolveSelectedLinkTypes({

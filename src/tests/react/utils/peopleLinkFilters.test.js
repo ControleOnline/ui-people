@@ -79,6 +79,28 @@ describe('peopleLinkFilters', () => {
     })
   })
 
+  it('drops the link type for "all" but narrows when a concrete type is selected', () => {
+    expect(buildPeopleLinkRequestParams({
+      currentCompany: {id: 3},
+      availableTypes: ['all', 'employee', 'owner', 'courier'],
+      selectedLinkType: 'all',
+      peopleType: 'F',
+      anyLinkType: true,
+    })).toEqual({'link.company': '/people/3', peopleType: 'F'})
+
+    expect(buildPeopleLinkRequestParams({
+      currentCompany: {id: 3},
+      availableTypes: ['all', 'employee', 'owner', 'courier'],
+      selectedLinkType: 'owner',
+      peopleType: 'F',
+      anyLinkType: true,
+    })).toEqual({
+      'link.company': '/people/3',
+      peopleType: 'F',
+      'link.linkType': 'owner',
+    })
+  })
+
   it('keeps a selected human link type when filtering my companies', () => {
     expect(
       buildParentCompanyRequestParams({
