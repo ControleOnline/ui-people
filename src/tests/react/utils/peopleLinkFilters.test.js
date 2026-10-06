@@ -5,6 +5,7 @@ const {
   isHumanCompanyLinkType,
   buildParentCompanyRequestParams,
   buildPeopleLinkRequestParams,
+  buildCompanyLinksRequestParams,
 } = require('@controleonline/ui-people/src/react/utils/peopleLinkFilters')
 
 const {describe, expect, it} = global
@@ -99,6 +100,24 @@ describe('peopleLinkFilters', () => {
       peopleType: 'F',
       'link.linkType': 'owner',
     })
+  })
+
+  it('lists the people_links of the current company for human link types', () => {
+    expect(buildCompanyLinksRequestParams({
+      currentCompany: {id: 51},
+      availableTypes: ['all', 'employee', 'owner', 'courier'],
+      selectedLinkType: 'all',
+    })).toEqual({
+      company: '51',
+      linkType: HUMAN_COMPANY_LINK_TYPES,
+      enable: 1,
+    })
+    expect(buildCompanyLinksRequestParams({
+      currentCompany: {id: 51},
+      availableTypes: ['all', 'employee', 'owner'],
+      selectedLinkType: 'owner',
+    }).linkType).toEqual(['owner'])
+    expect(buildCompanyLinksRequestParams({}).company).toBe('0')
   })
 
   it('keeps a selected human link type when filtering my companies', () => {

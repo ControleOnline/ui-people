@@ -28,6 +28,7 @@ import {
 } from '@controleonline/ui-people/src/react/utils/peopleContext';
 import {
   ALL_PEOPLE_LINK_TYPES_KEY,
+  buildCompanyLinksRequestParams,
   buildParentCompanyRequestParams,
   buildPeopleLinkRequestParams,
   normalizeEntityId,
@@ -198,8 +199,22 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
     };
   }, [context?.peopleType, context?.anyLinkType, contextConfig]);
 
+  // company-links source: lists the people_link rows of the currentCompany
+  // (people_link.company_id = currentCompany) and renders the linked person.
+  // This is what My Company Details / EmployeesTab already do, and the API
+  // scopes it by company access instead of the global /people visibility wall.
+  const isCompanyLinksSource = !isCompanyScope && context?.listSource === 'company-links';
+
   const requestParams = useMemo(
     () => {
+      if (isCompanyLinksSource) {
+        return buildCompanyLinksRequestParams({
+          currentCompany,
+          availableTypes: contextConfig.availableTypes,
+          selectedLinkType,
+        });
+      }
+
       if (isCompanyScope) {
         return buildParentCompanyRequestParams({
           availableTypes: contextConfig.availableTypes,
@@ -224,6 +239,7 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
       collaboratorScope,
       contextConfig.availableTypes,
       currentCompany,
+      isCompanyLinksSource,
       isCompanyScope,
       selectedLinkType,
       user,
@@ -252,7 +268,12 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
   );
 
   const handleEdit = useCallback(
-    client => {
+    row => {
+      // company-links rows are people_link records; the target is the linked person.
+      const client =
+        isCompanyLinksSource && row?.people && typeof row.people === 'object'
+          ? row.people
+          : row;
       // Resolve people id from common list shapes (direct people, nested company, IRI).
       const clientId =
         normalizeEntityId(client?.id ?? client?.['@id']) ||
@@ -316,7 +337,7 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
         }
       }
     },
-    [actions, context?.detailsRouteName, context?.detailsRouteParams, navigation, selectedLinkType],
+    [actions, context?.detailsRouteName, context?.detailsRouteParams, isCompanyLinksSource, navigation, selectedLinkType],
   );
 
   const handleCreateSuccess = useCallback(
@@ -417,8 +438,13 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
   );
 
   const renderClientCard = useCallback(
-    args => renderPeopleCard(args),
-    [renderPeopleCard],
+    args =>
+      renderPeopleCard(
+        isCompanyLinksSource && args?.item?.people
+          ? { ...args, item: args.item.people }
+          : args,
+      ),
+    [isCompanyLinksSource, renderPeopleCard],
   );
 
   const renderCompanyCard = useCallback(
@@ -430,7 +456,7 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
     <View style={styles.container}>
       <View style={styles.tableWrap}>
         <DefaultTable
-          actions={actions}
+          actions={isCompanyLinksSource ? undefined : actions}
           add={false}
           initialViewMode="cards"
           requestParams={requestParams}
@@ -438,11 +464,11 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
           renderCard={isCompanyScope ? renderCompanyCard : renderClientCard}
           searchKey="search"
           searchPlaceholder={activeSearchPlaceholder}
-          showSearch
+          showSearch={!isCompanyLinksSource}
           getOptionsForColumn={getExternalFilterOptions}
           showColumnFiltersButton
           showRowActions={false}
-          storeName="people"
+          storeName={isCompanyLinksSource ? 'people_link' : 'people'}
           toolbarActions={toolbarActions}
         />
       </View>
