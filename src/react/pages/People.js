@@ -201,9 +201,13 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
         currentCompany,
         availableTypes: contextConfig.availableTypes,
         selectedLinkType,
+        peopleType: context?.peopleType,
+        anyLinkType: context?.anyLinkType === true,
       });
     },
     [
+      context?.peopleType,
+      context?.anyLinkType,
       contextConfig.availableTypes,
       currentCompany,
       isCompanyScope,
