@@ -40,6 +40,8 @@ import {
 import styles from './People.styles';
 import { inlineStyle_133_14, inlineStyle_137_16 } from './People.styles';
 
+const EMPLOYMENT_CONTEXT = 'employment';
+
 const People = ({ context = {}, initialShowAddModal = false, companyScope = 'people' }) => {
   const contextConfig = useMemo(() => buildPeopleContextConfig(context), [context]);
   const title = context.title;
@@ -183,6 +185,19 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
     [palette, isCompanyScope],
   );
 
+  // Collaborators (employment context) = PF people linked to the currentCompany
+  // through peopleLink, whatever the link type. "employment" is not a real
+  // link.linkType, so it must never be sent as a linkType filter.
+  const collaboratorScope = useMemo(() => {
+    const isEmployment =
+      contextConfig.defaultType === EMPLOYMENT_CONTEXT ||
+      contextConfig.availableTypes.includes(EMPLOYMENT_CONTEXT);
+    return {
+      peopleType: context?.peopleType ?? (isEmployment ? 'F' : undefined),
+      anyLinkType: context?.anyLinkType ?? isEmployment,
+    };
+  }, [context?.peopleType, context?.anyLinkType, contextConfig]);
+
   const requestParams = useMemo(
     () => {
       if (isCompanyScope) {
@@ -201,13 +216,12 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
         currentCompany,
         availableTypes: contextConfig.availableTypes,
         selectedLinkType,
-        peopleType: context?.peopleType,
-        anyLinkType: context?.anyLinkType === true,
+        peopleType: collaboratorScope.peopleType,
+        anyLinkType: collaboratorScope.anyLinkType,
       });
     },
     [
-      context?.peopleType,
-      context?.anyLinkType,
+      collaboratorScope,
       contextConfig.availableTypes,
       currentCompany,
       isCompanyScope,
