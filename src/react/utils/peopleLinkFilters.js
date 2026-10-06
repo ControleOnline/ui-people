@@ -70,20 +70,37 @@ const resolveSelectedLinkTypes = ({
   return linkTypes.length === 1 ? linkTypes[0] : linkTypes;
 };
 
+// peopleType scopes the list to PF ("F") or PJ ("J"). anyLinkType drops the
+// link.linkType constraint so every person linked to the company through
+// peopleLink is returned (e.g. collaborators = peopleType F linked to the
+// current company, whatever the link type).
 export const buildPeopleLinkRequestParams = ({
   currentCompany,
   availableTypes = HUMAN_COMPANY_LINK_TYPES,
   selectedLinkType,
-}) => ({
-  ...(currentCompany?.id
-    ? { 'link.company': resolvePeopleIri(currentCompany) }
-    : {}),
-  'link.linkType': resolveSelectedLinkTypes({
-    availableTypes,
-    fallbackTypes: HUMAN_COMPANY_LINK_TYPES,
-    selectedLinkType,
-  }),
-});
+  peopleType,
+  anyLinkType = false,
+}) => {
+  const normalizedPeopleType = String(peopleType || '')
+    .trim()
+    .toUpperCase();
+
+  return {
+    ...(currentCompany?.id
+      ? { 'link.company': resolvePeopleIri(currentCompany) }
+      : {}),
+    ...(normalizedPeopleType ? { peopleType: normalizedPeopleType } : {}),
+    ...(anyLinkType
+      ? {}
+      : {
+          'link.linkType': resolveSelectedLinkTypes({
+            availableTypes,
+            fallbackTypes: HUMAN_COMPANY_LINK_TYPES,
+            selectedLinkType,
+          }),
+        }),
+  };
+};
 
 export const buildParentCompanyRequestParams = ({
   availableTypes = HUMAN_COMPANY_LINK_TYPES,

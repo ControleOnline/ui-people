@@ -66,6 +66,19 @@ describe('peopleLinkFilters', () => {
     })
   })
 
+  it('lists collaborators as PF linked to the current company for any link type', () => {
+    expect(buildPeopleLinkRequestParams({
+      currentCompany: {id: 3},
+      availableTypes: ['employment'],
+      selectedLinkType: 'employment',
+      peopleType: 'f',
+      anyLinkType: true,
+    })).toEqual({
+      'link.company': '/people/3',
+      peopleType: 'F',
+    })
+  })
+
   it('keeps a selected human link type when filtering my companies', () => {
     expect(
       buildParentCompanyRequestParams({
