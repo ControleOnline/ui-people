@@ -10,11 +10,26 @@
 | Destino | Link |
 | --- | --- |
 | Home da wiki | https://github.com/ControleOnline/ui-people/wiki/Home |
-| Lista / employees-index — filtros `linkType` e owners | https://github.com/ControleOnline/ui-people/wiki/People-List-LinkType-Filters-Employees-Index |
+| Lista / employees-index — company, `linkType` e owners | https://github.com/ControleOnline/ui-people/wiki/People-List-LinkType-Filters-Employees-Index |
 | Cadastro PF/PJ, contatos, usuários e vendedores | https://github.com/ControleOnline/ui-people/wiki/Cadastro-de-Pessoas-Contatos-Usuarios-e-Vendedores |
 | Regras de negócio (vínculos) | https://github.com/ControleOnline/ui-people/wiki/Regras-de-Negocio |
 | Client Details — aba Colaboradores (ui-customers) | https://github.com/ControleOnline/ui-customers/wiki/Client-Details-EmployeesTab-Refresh |
 | App-Home | https://github.com/ControleOnline/app-community/wiki |
+
+### Por categoria — listagem de colaboradores
+
+| Página | O que documenta |
+| --- | --- |
+| [People-List-LinkType-Filters-Employees-Index](https://github.com/ControleOnline/ui-people/wiki/People-List-LinkType-Filters-Employees-Index) | `/employees-index` no escopo da `currentCompany`; expansão de `link.linkType=all`; owners (#760, #967) |
+| Espelho Git | `docs/technical/People-List-LinkType-Filters-Employees-Index.md` |
+
+### Módulos relacionados
+
+| Módulo | Entrada |
+| --- | --- |
+| ui-customers | https://github.com/ControleOnline/ui-customers/wiki |
+| app-community | https://github.com/ControleOnline/app-community/wiki/ui-people |
+| api-platform-people | https://github.com/ControleOnline/api-platform-people/wiki |
 
 ## Fluxo cadastro de pessoas
 
