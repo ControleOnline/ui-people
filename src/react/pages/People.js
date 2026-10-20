@@ -19,6 +19,7 @@ import { useStore } from '@store';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AddCompanyModal from '@controleonline/ui-people/src/react/components/AddCompanyModal';
 import PeopleAvatar from '@controleonline/ui-people/src/react/components/PeopleAvatar';
+import DefaultEntityCard from '@controleonline/ui-default/src/react/components/cards/DefaultEntityCard';
 import DefaultTable from '@controleonline/ui-default/src/react/components/table/DefaultTable';
 import ImportsPage from '@controleonline/ui-common/src/react/pages/Imports';
 import {
@@ -112,6 +113,8 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
       cardBackground: themeColors.cardBackground,
       cardBorder: themeColors.cardBorder,
       cardIcon: themeColors.cardIcon,
+      cardIconBackground: themeColors.cardIconBackground || themeColors.cardBackground,
+      cardIconColor: themeColors.cardIconColor || themeColors.cardIcon || themeColors.listItemText,
       cardShadow: themeColors.cardShadow,
       iconInverse: themeColors.iconInverse,
       listItemIcon: themeColors.listItemIcon,
@@ -139,9 +142,9 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
 
   const avatarStyle = useMemo(
     () => ({
-      backgroundColor: palette.cardIcon,
+      backgroundColor: palette.cardIconBackground,
     }),
-    [palette.cardIcon],
+    [palette.cardIconBackground],
   );
 
   const clientNameStyle = useMemo(
@@ -379,19 +382,19 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
 
       return (
         <TouchableOpacity
-          style={[styles.card, styles.contactCard, cardStyle]}
+          style={{width:'100%'}}
           onPress={() => handleEdit(people)}
           activeOpacity={0.8}
         >
-          <View style={styles.cardHeader}>
+          <DefaultEntityCard embedded palette={palette}><View style={[styles.cardHeader,{marginBottom:0}]}>
             <PeopleAvatar
               people={people}
               size={52}
               backgroundColor={avatarStyle.backgroundColor}
               borderColor={palette.cardBorder || avatarStyle.backgroundColor}
               borderWidth={1}
-              textColor={palette.iconInverse}
-              iconColor={palette.iconInverse}
+              textColor={palette.cardIconColor}
+              iconColor={palette.cardIconColor}
               useGravatar={contextConfig.useGravatar}
               usePeopleImage={contextConfig.usePeopleImage}
               style={styles.avatar}
@@ -419,7 +422,7 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
             </View>
 
             <Icon name="chevron-right" size={14} color={palette.listItemIcon} />
-          </View>
+          </View></DefaultEntityCard>
         </TouchableOpacity>
       );
     },
@@ -430,7 +433,7 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
       clientSubtitleStyle,
       handleEdit,
       palette.cardBorder,
-      palette.iconInverse,
+      palette.cardIconColor,
       palette.listItemIcon,
       palette.listItemSubtitleText,
       renderContactLine,
