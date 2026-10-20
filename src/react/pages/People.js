@@ -314,7 +314,10 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
       const detailsRouteParams = {
         ...(baseParams && typeof baseParams === 'object' ? baseParams : {}),
         // Seed for details screen so first paint does not depend only on store.
-        client: peoplePayload || client,
+        // Web serializes route params into the URL, so an object becomes
+        // client=[object Object] (app-community#1124). The store is already
+        // seeded through actions.setItem above, so web omits the object.
+        ...(Platform.OS === 'web' ? {} : { client: peoplePayload || client }),
       };
 
       if (baseParams?.employeeId) {
