@@ -44,6 +44,21 @@ import { inlineStyle_133_14, inlineStyle_137_16 } from './People.styles';
 
 const EMPLOYMENT_CONTEXT = 'employment';
 
+// The people_link store declares no columns (its original presentation is
+// cards only), so table mode rendered empty rows (app-community#1123).
+// company-links rows carry the person under `people`.
+const COMPANY_LINK_TABLE_COLUMNS = [
+  { name: 'id', label: 'ID', editable: false, sortable: false, isIdentity: true },
+  {
+    name: 'people',
+    label: 'Colaborador',
+    editable: false,
+    sortable: false,
+    format: person =>
+      String(resolvePeopleDisplayName(person) || person?.name || person?.alias || '-'),
+  },
+];
+
 const People = ({ context = {}, initialShowAddModal = false, companyScope = 'people' }) => {
   const contextConfig = useMemo(() => buildPeopleContextConfig(context), [context]);
   const title = context.title;
@@ -464,6 +479,7 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
         <DefaultTable
           actions={isCompanyLinksSource ? undefined : actions}
           add={false}
+          columns={isCompanyLinksSource ? COMPANY_LINK_TABLE_COLUMNS : undefined}
           initialViewMode="cards"
           requestParams={requestParams}
           onRowPress={handleEdit}
