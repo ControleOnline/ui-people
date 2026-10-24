@@ -216,7 +216,19 @@ export const mainCompany = ({ commit }) => {
     .fetch(`${RESOURCE_ENDPOINT}/company/default`)
     .then((data) => {
       const company = unwrapResponseData(data) || {};
-      commit(customTypes.SET_DEFAULT_COMPANY, company);
+      commit(customTypes.SET_MAIN_COMPANY, company);
+
+      // Runtime app_type from people_domain (defaultCompany.appType) — not .env
+      try {
+        const appType = String(company?.appType || company?.app_type || '')
+          .trim()
+          .toUpperCase();
+        if (appType && typeof localStorage !== 'undefined') {
+          localStorage.setItem('app-type', appType);
+        }
+      } catch (_e) {
+        /* ignore storage errors */
+      }
 
       return company;
     })
