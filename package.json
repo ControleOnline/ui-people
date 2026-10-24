@@ -1,6 +1,6 @@
 {
   "name": "@controleonline/ui-people",
-  "version": "1.0.101",
+  "version": "1.0.102",
   "author": "ControleOnline",
   "description": "ControleOnline people Quasar UI Component",
   "license": "MIT",
@@ -16,9 +16,9 @@
     "last 1 version, not dead, ie >= 11"
   ],
   "dependencies": {
-    "@controleonline/ui-common": "*",
-    "@controleonline/ui-crm": "*",
-    "@controleonline/ui-default": "*",
-    "@controleonline/ui-layout": "*"
+    "@controleonline/ui-common": "1.2.103",
+    "@controleonline/ui-crm": "1.0.44",
+    "@controleonline/ui-default": "1.0.281",
+    "@controleonline/ui-layout": "1.0.20"
   }
 }
