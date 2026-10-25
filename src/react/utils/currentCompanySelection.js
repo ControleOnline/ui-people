@@ -17,7 +17,7 @@ const pickFirstAccessibleCompany = companies => {
   return companies.find(isCompanySelectable) || null
 }
 
-const mergeCompanyThemeFromMain = (company, mainCompany) => {
+const mergeCompanyThemeFromDefault = (company, mainCompany) => {
   if (!company?.id) {
     return company || null
   }
@@ -88,7 +88,7 @@ export const resolveCurrentCompanySelection = ({
     currentCompany = pickFirstAccessibleCompany(accessibleCompanies)
   }
 
-  return mergeCompanyThemeFromMain(currentCompany, mainCompany)
+  return mergeCompanyThemeFromDefault(currentCompany, mainCompany)
 }
 
 export const persistCurrentCompanyInSession = (session = {}, currentCompany = null) => ({
