@@ -17,8 +17,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import {app_type} from '@appType';
 import { createProfileAvatarHandlers } from '@controleonline/ui-people/src/react/utils/profileAvatarHandlers';
-import {resolveThemePalette} from '@controleonline/../../src/styles/branding';
-import {colors} from '@controleonline/../../src/styles/colors';
+import {resolveThemePalette} from '@controleonline/ui-layout/src/styles/branding';
+import {colors} from '@controleonline/ui-layout/src/styles/colors';
 import { isManagerAppType } from '@controleonline/ui-common/src/react/utils/managerOrderNotifications';
 import { resolveLoggedUserId } from '@controleonline/ui-people/src/react/utils/profileSession';
 import {
