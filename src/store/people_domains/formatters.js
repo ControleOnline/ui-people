@@ -2,6 +2,21 @@ const normalizeValue = value => String(value ?? '').trim();
 
 export const PEOPLE_DOMAIN_TYPES = ['API', 'APP', 'ERP', 'SHOP', 'WEBSITE'];
 
+/** Operational app type stored on people_domain.app_type (source of truth in DB). */
+export const PEOPLE_APP_TYPES = [
+  'ADMIN',
+  'MANAGER',
+  'CRM',
+  'POS',
+  'DELIVERY',
+  'PPC',
+  'SHOP',
+  'SERVICE',
+  'CHECKOUT',
+  'MENU',
+  'MKT',
+];
+
 export const formatPeopleValue = (value, column, row) =>
   normalizeValue(row?.peopleLabel || value?.alias || value?.name || value?.peopleName || value);
 
@@ -35,4 +50,12 @@ export const saveDomainTypeValue = value => {
   const normalized = normalizeValue(value?.value ?? value).toUpperCase();
 
   return PEOPLE_DOMAIN_TYPES.includes(normalized) ? normalized : 'ERP';
+};
+
+export const formatAppTypeValue = value => normalizeValue(value).toUpperCase() || 'MANAGER';
+
+export const saveAppTypeValue = value => {
+  const normalized = normalizeValue(value?.value ?? value).toUpperCase();
+
+  return PEOPLE_APP_TYPES.includes(normalized) ? normalized : 'MANAGER';
 };
