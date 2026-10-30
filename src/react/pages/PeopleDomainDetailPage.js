@@ -11,8 +11,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import { useStore } from '@store';
-import { resolveThemePalette } from '@controleonline/../../src/styles/branding';
-import { colors } from '@controleonline/../../src/styles/colors';
+import { resolveThemePalette } from '@controleonline/ui-layout/src/styles/branding';
+import { colors } from '@controleonline/ui-layout/src/styles/colors';
 import DefaultTooltip from '@controleonline/ui-default/src/react/components/help/DefaultTooltip';
 import styles from './PeopleDomainDetailPage.styles';
 
