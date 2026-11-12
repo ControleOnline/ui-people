@@ -11,6 +11,7 @@ import {
   toPeopleIri,
   toTimezoneItem,
   resolveTimezoneId,
+  resolveUserTimezoneId,
   extractCollectionItems,
   splitCombinedIdentity,
   getDisplayName,
@@ -148,6 +149,7 @@ export function useProfileLoad({
 
         setPhones(parsedPhones);
         setEmails(parsedEmails);
+        parsedTimezoneId = resolveUserTimezoneId(userSnapshot, parsedTimezones);
         setTimezones(parsedTimezones);
         setSelectedTimezoneId(parsedTimezoneId);
         setAvatarOverride(getAvatarFromUser(userSnapshot));

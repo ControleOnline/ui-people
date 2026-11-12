@@ -253,6 +253,38 @@ export const resolveTimezoneName = value => {
   return '';
 };
 
+const TIMEZONE_REFERENCE_PATTERN = /^(?:\/?(?:[\w-]+\/)*timezones\/)?\d+$/;
+
+// The user's timezone may come as an id, an IRI ("/timezones/12") or the
+// timezone name ("America/Cuiaba"). extractId() only keeps digits, so names must
+// be matched against the loaded list instead of being converted to an id.
+export const resolveUserTimezoneId = (user, timezones = []) => {
+  const options = Array.isArray(timezones) ? timezones : [];
+  const rawTimezone = user && typeof user === 'object' ? user.timezone : user;
+  const rawText =
+    typeof rawTimezone === 'string' ? rawTimezone.trim() : '';
+  const name = resolveTimezoneName(rawTimezone).toLowerCase();
+  const byName = name
+    ? options.find(item => String(item?.name || '').trim().toLowerCase() === name)
+    : null;
+
+  if (rawText && !TIMEZONE_REFERENCE_PATTERN.test(rawText)) {
+    return byName ? String(byName.id) : '';
+  }
+
+  const id = resolveTimezoneId(user);
+
+  if (!id) {
+    return byName ? String(byName.id) : '';
+  }
+
+  if (options.length === 0 || options.some(item => String(item?.id) === id)) {
+    return id;
+  }
+
+  return byName ? String(byName.id) : id;
+};
+
 export const extractCollectionItems = payload => {
   if (Array.isArray(payload)) {
     return payload;
