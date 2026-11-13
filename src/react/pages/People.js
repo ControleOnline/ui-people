@@ -19,6 +19,7 @@ import { useStore } from '@store';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AddCompanyModal from '@controleonline/ui-people/src/react/components/AddCompanyModal';
 import PeopleAvatar from '@controleonline/ui-people/src/react/components/PeopleAvatar';
+import DefaultEntityCard from '@controleonline/ui-default/src/react/components/cards/DefaultEntityCard';
 import DefaultTable from '@controleonline/ui-default/src/react/components/table/DefaultTable';
 import ImportsPage from '@controleonline/ui-common/src/react/pages/Imports';
 import {
@@ -28,6 +29,7 @@ import {
 } from '@controleonline/ui-people/src/react/utils/peopleContext';
 import {
   ALL_PEOPLE_LINK_TYPES_KEY,
+  buildCompanyLinksRequestParams,
   buildParentCompanyRequestParams,
   buildPeopleLinkRequestParams,
   normalizeEntityId,
@@ -39,6 +41,23 @@ import {
 } from '@controleonline/ui-people/src/react/utils/peopleImage';
 import styles from './People.styles';
 import { inlineStyle_133_14, inlineStyle_137_16 } from './People.styles';
+
+const EMPLOYMENT_CONTEXT = 'employment';
+
+// The people_link store declares no columns (its original presentation is
+// cards only), so table mode rendered empty rows (app-community#1123).
+// company-links rows carry the person under `people`.
+const COMPANY_LINK_TABLE_COLUMNS = [
+  { name: 'id', label: 'ID', editable: false, sortable: false, isIdentity: true },
+  {
+    name: 'people',
+    label: 'Colaborador',
+    editable: false,
+    sortable: false,
+    format: person =>
+      String(resolvePeopleDisplayName(person) || person?.name || person?.alias || '-'),
+  },
+];
 
 const People = ({ context = {}, initialShowAddModal = false, companyScope = 'people' }) => {
   const contextConfig = useMemo(() => buildPeopleContextConfig(context), [context]);
@@ -58,12 +77,9 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
   const [showAddCompanyModal, setShowAddCompanyModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const isCompanyScope = companyScope === 'companies';
-  // Any people registration exposing more than one link type uses the
-  // DefaultTable external filter. Fixed-link registrations keep their
-  // contextual request contract, while callers may opt in explicitly.
-  const useStoreExternalFilter =
-    !isCompanyScope &&
-    (context?.useStoreExternalFilter === true || contextConfig.hasTypeFilter);
+  // Multi-type registrations still expose DefaultTable external filter UI for
+  // link.linkType; requestParams always seeds company + resolved link types
+  // so the first list load is not empty when selected type is "all".
 
   const hasAutoOpenedAddModalRef = useRef(false);
 
@@ -112,6 +128,8 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
       cardBackground: themeColors.cardBackground,
       cardBorder: themeColors.cardBorder,
       cardIcon: themeColors.cardIcon,
+      cardIconBackground: themeColors.cardIconBackground || themeColors.cardBackground,
+      cardIconColor: themeColors.cardIconColor || themeColors.cardIcon || themeColors.listItemText,
       cardShadow: themeColors.cardShadow,
       iconInverse: themeColors.iconInverse,
       listItemIcon: themeColors.listItemIcon,
@@ -139,9 +157,9 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
 
   const avatarStyle = useMemo(
     () => ({
-      backgroundColor: palette.cardIcon,
+      backgroundColor: palette.cardIconBackground,
     }),
-    [palette.cardIcon],
+    [palette.cardIconBackground],
   );
 
   const clientNameStyle = useMemo(
@@ -186,29 +204,62 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
     [palette, isCompanyScope],
   );
 
+  // Collaborators (employment context) = PF people linked to the currentCompany
+  // through peopleLink, whatever the link type. "employment" is not a real
+  // link.linkType, so it must never be sent as a linkType filter.
+  const collaboratorScope = useMemo(() => {
+    const isEmployment =
+      contextConfig.defaultType === EMPLOYMENT_CONTEXT ||
+      contextConfig.availableTypes.includes(EMPLOYMENT_CONTEXT);
+    return {
+      peopleType: context?.peopleType ?? (isEmployment ? 'F' : undefined),
+      anyLinkType: context?.anyLinkType ?? isEmployment,
+    };
+  }, [context?.peopleType, context?.anyLinkType, contextConfig]);
+
+  // company-links source: lists the people_link rows of the currentCompany
+  // (people_link.company_id = currentCompany) and renders the linked person.
+  // This is what My Company Details / EmployeesTab already do, and the API
+  // scopes it by company access instead of the global /people visibility wall.
+  const isCompanyLinksSource = !isCompanyScope && context?.listSource === 'company-links';
+
   const requestParams = useMemo(
-    () =>
-      isCompanyScope
-        ? buildParentCompanyRequestParams({
-            availableTypes: contextConfig.availableTypes,
-            selectedLinkType,
-            user,
-          })
-        : useStoreExternalFilter
-          ? (currentCompany?.id
-              ? { 'link.company': `/people/${currentCompany.id}` }
-              : {})
-          : buildPeopleLinkRequestParams({
-              currentCompany,
-              availableTypes: contextConfig.availableTypes,
-              selectedLinkType,
-            }),
+    () => {
+      if (isCompanyLinksSource) {
+        return buildCompanyLinksRequestParams({
+          currentCompany,
+          availableTypes: contextConfig.availableTypes,
+          selectedLinkType,
+        });
+      }
+
+      if (isCompanyScope) {
+        return buildParentCompanyRequestParams({
+          availableTypes: contextConfig.availableTypes,
+          selectedLinkType,
+          user,
+        });
+      }
+
+      // Always scope by currentCompany + resolved linkType(s). When the table
+      // owns the external linkType filter UI, still seed
+      // the expanded types for "all" so the first request is not empty;
+      // DefaultTable may refine the filter after load.
+      return buildPeopleLinkRequestParams({
+        currentCompany,
+        availableTypes: contextConfig.availableTypes,
+        selectedLinkType,
+        peopleType: collaboratorScope.peopleType,
+        anyLinkType: collaboratorScope.anyLinkType,
+      });
+    },
     [
+      collaboratorScope,
       contextConfig.availableTypes,
       currentCompany,
+      isCompanyLinksSource,
       isCompanyScope,
       selectedLinkType,
-      useStoreExternalFilter,
       user,
     ],
   );
@@ -235,7 +286,12 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
   );
 
   const handleEdit = useCallback(
-    client => {
+    row => {
+      // company-links rows are people_link records; the target is the linked person.
+      const client =
+        isCompanyLinksSource && row?.people && typeof row.people === 'object'
+          ? row.people
+          : row;
       // Resolve people id from common list shapes (direct people, nested company, IRI).
       const clientId =
         normalizeEntityId(client?.id ?? client?.['@id']) ||
@@ -273,7 +329,10 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
       const detailsRouteParams = {
         ...(baseParams && typeof baseParams === 'object' ? baseParams : {}),
         // Seed for details screen so first paint does not depend only on store.
-        client: peoplePayload || client,
+        // Web serializes route params into the URL, so an object becomes
+        // client=[object Object] (app-community#1124). The store is already
+        // seeded through actions.setItem above, so web omits the object.
+        ...(Platform.OS === 'web' ? {} : { client: peoplePayload || client }),
       };
 
       if (baseParams?.employeeId) {
@@ -299,7 +358,7 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
         }
       }
     },
-    [actions, context?.detailsRouteName, context?.detailsRouteParams, navigation, selectedLinkType],
+    [actions, context?.detailsRouteName, context?.detailsRouteParams, isCompanyLinksSource, navigation, selectedLinkType],
   );
 
   const handleCreateSuccess = useCallback(
@@ -341,19 +400,19 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
 
       return (
         <TouchableOpacity
-          style={[styles.card, styles.contactCard, cardStyle]}
+          style={{width:'100%'}}
           onPress={() => handleEdit(people)}
           activeOpacity={0.8}
         >
-          <View style={styles.cardHeader}>
+          <DefaultEntityCard embedded palette={palette}><View style={[styles.cardHeader,{marginBottom:0}]}>
             <PeopleAvatar
               people={people}
               size={52}
               backgroundColor={avatarStyle.backgroundColor}
               borderColor={palette.cardBorder || avatarStyle.backgroundColor}
               borderWidth={1}
-              textColor={palette.iconInverse}
-              iconColor={palette.iconInverse}
+              textColor={palette.cardIconColor}
+              iconColor={palette.cardIconColor}
               useGravatar={contextConfig.useGravatar}
               usePeopleImage={contextConfig.usePeopleImage}
               style={styles.avatar}
@@ -381,7 +440,7 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
             </View>
 
             <Icon name="chevron-right" size={14} color={palette.listItemIcon} />
-          </View>
+          </View></DefaultEntityCard>
         </TouchableOpacity>
       );
     },
@@ -392,7 +451,7 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
       clientSubtitleStyle,
       handleEdit,
       palette.cardBorder,
-      palette.iconInverse,
+      palette.cardIconColor,
       palette.listItemIcon,
       palette.listItemSubtitleText,
       renderContactLine,
@@ -400,8 +459,13 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
   );
 
   const renderClientCard = useCallback(
-    args => renderPeopleCard(args),
-    [renderPeopleCard],
+    args =>
+      renderPeopleCard(
+        isCompanyLinksSource && args?.item?.people
+          ? { ...args, item: args.item.people }
+          : args,
+      ),
+    [isCompanyLinksSource, renderPeopleCard],
   );
 
   const renderCompanyCard = useCallback(
@@ -413,19 +477,20 @@ const People = ({ context = {}, initialShowAddModal = false, companyScope = 'peo
     <View style={styles.container}>
       <View style={styles.tableWrap}>
         <DefaultTable
-          actions={actions}
+          actions={isCompanyLinksSource ? undefined : actions}
           add={false}
+          columns={isCompanyLinksSource ? COMPANY_LINK_TABLE_COLUMNS : undefined}
           initialViewMode="cards"
           requestParams={requestParams}
           onRowPress={handleEdit}
           renderCard={isCompanyScope ? renderCompanyCard : renderClientCard}
           searchKey="search"
           searchPlaceholder={activeSearchPlaceholder}
-          showSearch
+          showSearch={!isCompanyLinksSource}
           getOptionsForColumn={getExternalFilterOptions}
           showColumnFiltersButton
           showRowActions={false}
-          storeName="people"
+          storeName={isCompanyLinksSource ? 'people_link' : 'people'}
           toolbarActions={toolbarActions}
         />
       </View>

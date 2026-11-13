@@ -4,15 +4,20 @@ const normalizeId = value => {
   return match?.[0] || null
 }
 
+// Availability flags come from companies/my; role and tenant scope remain server-owned.
+export const isCompanySelectable = company => !!company?.id &&
+  ![company.enabled, company.panel_enabled, company.user?.enabled].some(value =>
+    value === false || value === 0 || value === '0' || value === 'false');
+
 const pickFirstAccessibleCompany = companies => {
   if (!Array.isArray(companies) || companies.length === 0) {
     return null
   }
 
-  return companies.find(item => item?.panel_enabled !== false) || companies[0]
+  return companies.find(isCompanySelectable) || null
 }
 
-const mergeCompanyThemeFromDefault = (company, mainCompany) => {
+const mergeCompanyThemeFromMain = (company, mainCompany) => {
   if (!company?.id) {
     return company || null
   }
@@ -42,7 +47,7 @@ export const resolveCurrentCompanySelection = ({
   mainCompany = {},
   session = {},
 } = {}) => {
-  const accessibleCompanies = Array.isArray(companies) ? companies : []
+  const accessibleCompanies = Array.isArray(companies) ? companies.filter(isCompanySelectable) : []
   const explicitSelectedId = normalizeId(company?.id)
   const persistedSelectedId = normalizeId(session?.mycompany)
   const desiredSelectedId = explicitSelectedId || persistedSelectedId || null
@@ -72,7 +77,8 @@ export const resolveCurrentCompanySelection = ({
     !currentCompany &&
     company &&
     typeof company === 'object' &&
-    accessibleCompanies.length === 0 &&
+    Array.isArray(companies) && companies.length === 0 &&
+    isCompanySelectable(company) &&
     normalizeId(company?.id)
   ) {
     currentCompany = company
@@ -82,7 +88,7 @@ export const resolveCurrentCompanySelection = ({
     currentCompany = pickFirstAccessibleCompany(accessibleCompanies)
   }
 
-  return mergeCompanyThemeFromDefault(currentCompany, mainCompany)
+  return mergeCompanyThemeFromMain(currentCompany, mainCompany)
 }
 
 export const persistCurrentCompanyInSession = (session = {}, currentCompany = null) => ({

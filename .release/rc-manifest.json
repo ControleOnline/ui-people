@@ -1,13 +1,17 @@
 {
-  "branch": "rc/1.10.29-rc.1",
-  "version": "1.10.29",
+  "version": "1.0.103",
   "rc": 1,
-  "frozen": true,
+  "branch": "rc/1.0.103-rc.1",
+  "baseMaster": "dcebd738a478e51e575d6799cee16a7d3b92ab72",
   "tasks": [
-    805
+    48
   ],
-  "baseMaster": "b063488f4a6dcdbfbd1587aee1e63106def8f243",
+  "frozen": true,
   "repositories": {
-    "ControleOnline/ui-people": "22f0a64d73daa99385946d7a35e9a4c0b162630f"
+    "ControleOnline/ui-people": "b020ac6db5061c7019609011638296112227da16"
+  },
+  "validation": {
+    "scope": "Alinha o master do ui-people ao pacote publicado 1.0.103 (tag v1.0.103), que contem a correcao do timezone do Perfil (#48).",
+    "checks": "Arvore identica a v1.0.103 (publicada no npm e consumida pelo app master); Security aceito (#48)."
   }
 }

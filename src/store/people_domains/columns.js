@@ -1,10 +1,13 @@
 import {
   PEOPLE_DOMAIN_TYPES,
+  PEOPLE_APP_TYPES,
   formatApiPeopleDomainValue,
+  formatAppTypeValue,
   formatDomainTypeValue,
   formatPeopleValue,
   formatThemeValue,
   saveApiPeopleDomainValue,
+  saveAppTypeValue,
   saveDomainTypeValue,
   savePeopleValue,
   saveThemeValue,
@@ -13,6 +16,11 @@ import {
 const domainTypeOptions = PEOPLE_DOMAIN_TYPES.map(value => ({
   value,
   label: value === 'SHOP' ? 'Loja' : value === 'APP' ? 'App' : value === 'WEBSITE' ? 'Website' : value,
+}));
+
+const appTypeOptions = PEOPLE_APP_TYPES.map(value => ({
+  value,
+  label: value,
 }));
 
 export const peopleDomainColumns = [
@@ -38,11 +46,22 @@ export const peopleDomainColumns = [
     sortable: true,
     name: 'domainType',
     align: 'left',
-    label: 'Tipo',
+    label: 'Tipo de domínio',
     defaultValue: 'ERP',
     list: domainTypeOptions,
     format: formatDomainTypeValue,
     saveFormat: saveDomainTypeValue,
+  },
+  {
+    editable: true,
+    sortable: true,
+    name: 'appType',
+    align: 'left',
+    label: 'Tipo do app',
+    defaultValue: 'MANAGER',
+    list: appTypeOptions,
+    format: formatAppTypeValue,
+    saveFormat: saveAppTypeValue,
   },
   {
     editable: true,
